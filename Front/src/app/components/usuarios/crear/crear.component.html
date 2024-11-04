@@ -1,0 +1,200 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4 text-primary">Agregar Usuario</h2>
+
+  <form
+    (ngSubmit)="agregarUsuario()"
+    class="mb-4 p-4 border rounded shadow-sm"
+    style="background-color: #f8f9fa"
+  >
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label for="nombre" class="form-label">Nombre Completo</label>
+        <input
+          type="text"
+          id="nombre"
+          [(ngModel)]="nuevoUsuario.nombre"
+          name="nombre"
+          class="form-control border-info"
+          placeholder="Ingrese su nombre completo"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          type="email"
+          id="email"
+          [(ngModel)]="nuevoUsuario.email"
+          name="email"
+          class="form-control border-info"
+          placeholder="ejemplo@correo.com"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="contrasena" class="form-label">Contraseña</label>
+        <input
+          type="password"
+          id="contrasena"
+          [(ngModel)]="nuevoUsuario.contrasena"
+          name="contrasena"
+          class="form-control border-info"
+          placeholder="Ingrese una contraseña"
+          required
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label for="telefono" class="form-label">Teléfono</label>
+        <input
+          type="tel"
+          id="telefono"
+          [(ngModel)]="nuevoUsuario.telefono"
+          name="telefono"
+          class="form-control border-info"
+          placeholder="Ingrese su número de teléfono"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="direccion" class="form-label">Dirección</label>
+        <input
+          type="text"
+          id="direccion"
+          [(ngModel)]="nuevoUsuario.direccion"
+          name="direccion"
+          class="form-control border-info"
+          placeholder="Ingrese su dirección"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="fechaNacimiento" class="form-label"
+          >Fecha de Nacimiento</label
+        >
+        <input
+          type="date"
+          id="fechaNacimiento"
+          [(ngModel)]="nuevoUsuario.fechaNacimiento"
+          name="fechaNacimiento"
+          class="form-control border-info"
+          required
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label for="genero" class="form-label">Género</label>
+        <select
+          id="genero"
+          [(ngModel)]="nuevoUsuario.genero"
+          name="genero"
+          class="form-select border-info"
+          required
+        >
+          <option value="" disabled selected>Seleccione</option>
+          <option value="masculino">Masculino</option>
+          <option value="femenino">Femenino</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="edad" class="form-label">Edad</label>
+        <input
+          type="number"
+          id="edad"
+          [(ngModel)]="nuevoUsuario.edad"
+          name="edad"
+          class="form-control border-info"
+          placeholder="Ingrese su edad"
+          required
+          min="0"
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="tipo" class="form-label">Tipo de Usuario</label>
+        <select
+          id="tipo"
+          [(ngModel)]="nuevoUsuario.tipo"
+          name="tipo"
+          class="form-select border-info"
+          required
+        >
+          <option value="usuario">Usuario Normal</option>
+          <option value="administrador">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label for="area" class="form-label">Área de Trabajo</label>
+        <input
+          type="text"
+          id="area"
+          [(ngModel)]="nuevoUsuario.area"
+          name="area"
+          class="form-control border-info"
+          placeholder="Ingrese el área de trabajo"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="numeroCuenta" class="form-label">Número de Cuenta</label>
+        <input
+          type="text"
+          id="numeroCuenta"
+          [(ngModel)]="nuevoUsuario.numeroCuenta"
+          name="numeroCuenta"
+          class="form-control border-info"
+          placeholder="Número de cuenta del usuario"
+          required
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="tipoCuenta" class="form-label">Tipo de Cuenta</label>
+        <select
+          id="tipoCuenta"
+          [(ngModel)]="nuevoUsuario.tipoCuenta"
+          name="tipoCuenta"
+          class="form-select border-info"
+          required
+        >
+          <option value="ahorros">Ahorros</option>
+          <option value="corriente">Corriente</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label for="salario" class="form-label">Salario</label>
+        <input
+          type="number"
+          id="salario"
+          [(ngModel)]="nuevoUsuario.salario"
+          name="salario"
+          class="form-control border-info"
+          placeholder="Ingrese el salario del usuario"
+          required
+          min="0"
+        />
+      </div>
+      <div class="col-md-4 mb-3">
+        <label for="activo" class="form-label">Activo</label>
+        <select
+          id="activo"
+          [(ngModel)]="nuevoUsuario.activo"
+          name="activo"
+          class="form-select border-info"
+          required
+        >
+          <option value="true">Sí</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-success btn-block">
+      Agregar Usuario
+    </button>
+  </form>
+</div>

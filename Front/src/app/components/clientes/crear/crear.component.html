@@ -1,0 +1,96 @@
+<div class="container mt-5">
+  <h2 class="mb-4">Crear Cliente</h2>
+  <form class="card p-4 shadow-sm">
+    <!-- Nombre del Cliente -->
+    <div class="mb-3">
+      <label for="nombre" class="form-label fw-semibold">Nombre Completo</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light"
+          ><i class="bi bi-person"></i
+        ></span>
+        <input
+          type="text"
+          class="form-control"
+          id="nombre"
+          placeholder="Ingresa el nombre completo del cliente"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Correo Electrónico del Cliente -->
+    <div class="mb-3">
+      <label for="email" class="form-label fw-semibold"
+        >Correo Electrónico</label
+      >
+      <div class="input-group">
+        <span class="input-group-text bg-light"
+          ><i class="bi bi-envelope"></i
+        ></span>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          placeholder="Ingresa el correo electrónico del cliente"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Teléfono del Cliente -->
+    <div class="mb-3">
+      <label for="telefono" class="form-label fw-semibold">Teléfono</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light"
+          ><i class="bi bi-telephone"></i
+        ></span>
+        <input
+          type="tel"
+          class="form-control"
+          id="telefono"
+          placeholder="Ingresa el número de teléfono"
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Dirección del Cliente -->
+    <div class="mb-3">
+      <label for="direccion" class="form-label fw-semibold">Dirección</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light"
+          ><i class="bi bi-geo-alt"></i
+        ></span>
+        <input
+          type="text"
+          class="form-control"
+          id="direccion"
+          placeholder="Ingresa la dirección del cliente"
+        />
+      </div>
+    </div>
+
+    <!-- Identificación del Cliente (opcional, para facturación) -->
+    <div class="mb-3">
+      <label for="identificacion" class="form-label fw-semibold"
+        >Identificación</label
+      >
+      <div class="input-group">
+        <span class="input-group-text bg-light"
+          ><i class="bi bi-credit-card"></i
+        ></span>
+        <input
+          type="text"
+          class="form-control"
+          id="identificacion"
+          placeholder="Ingresa el número de identificación del cliente"
+        />
+      </div>
+    </div>
+
+    <!-- Botón de Guardar -->
+    <button type="submit" class="btn btn-primary w-100 mt-3">
+      Guardar Cliente
+    </button>
+  </form>
+</div>

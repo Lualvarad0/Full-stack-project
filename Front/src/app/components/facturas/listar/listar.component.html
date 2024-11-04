@@ -1,0 +1,78 @@
+<div class="container mt-4">
+  <h2>Listar Facturas</h2>
+
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <select
+        [(ngModel)]="selectedFilter"
+        class="form-control"
+        (change)="updateFilterValue()"
+      >
+        <option value="" disabled selected>Selecciona un filtro</option>
+        <option *ngFor="let option of filterOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <input
+        type="text"
+        placeholder="Valor del filtro"
+        [(ngModel)]="filterValue"
+        class="form-control"
+      />
+    </div>
+    <div class="col-md-2">
+      <button
+        class="btn btn-primary"
+        (click)="addFilter(selectedFilter, filterValue)"
+      >
+        Agregar Filtro
+      </button>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-secondary" (click)="clearFilters()">
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <h4>Filtros Aplicados:</h4>
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let filter of filters">
+        {{ filter.criterion | titlecase }}: {{ filter.value }}
+        <button
+          class="btn btn-danger btn-sm float-right"
+          (click)="removeFilter(filter)"
+        >
+          Eliminar
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <table class="table mt-4">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre Cliente</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let factura of filteredFacturas">
+        <td>{{ factura.id }}</td>
+        <td>{{ factura.nombreCliente }}</td>
+        <td>{{ factura.monto }}</td>
+        <td>{{ factura.fecha }}</td>
+        <td>
+          <button class="btn btn-warning">Editar</button>
+          <button class="btn btn-danger">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,78 @@
+<div class="bg-light border-right sidebar-wrapper" id="sidebar-wrapper">
+  <div class="sidebar-heading text-center">
+    <div class="user-icon">
+      <div class="user-photo"></div>
+    </div>
+    <h5>Usuario</h5>
+    <small *ngIf="userRole === 'admin'" class="text-danger"
+      >Administrador</small
+    >
+    <small *ngIf="userRole === 'user'" class="text-secondary"
+      >Usuario Normal</small
+    >
+  </div>
+  <div class="list-group list-group-flush">
+    <!-- Gestión de Clientes -->
+    <div class="list-group-item" (click)="toggleSection('clientes')">
+      <i class="fas fa-users"></i> Gestión de Clientes
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div *ngIf="sections.clientes" class="submenu">
+      <a routerLink="/clientes/crear" class="list-group-item-action"
+        ><i class="fas fa-user-plus"></i> Crear</a
+      >
+      <a routerLink="/clientes/listar" class="list-group-item-action"
+        ><i class="fas fa-user-friends"></i> Listar</a
+      >
+    </div>
+
+    <!-- Gestión de Productos -->
+    <div class="list-group-item" (click)="toggleSection('productos')">
+      <i class="fas fa-box-open"></i> Gestión de Productos
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div *ngIf="sections.productos" class="submenu">
+      <a routerLink="/productos/crear" class="list-group-item-action"
+        ><i class="fas fa-plus-square"></i> Crear</a
+      >
+      <a routerLink="/productos/listar" class="list-group-item-action"
+        ><i class="fas fa-th-list"></i> Listar</a
+      >
+    </div>
+
+    <!-- Gestión de Facturas -->
+    <div class="list-group-item" (click)="toggleSection('facturas')">
+      <i class="fas fa-file-invoice"></i> Gestión de Facturas
+      <i class="fas fa-chevron-down toggle-icon"></i>
+    </div>
+    <div *ngIf="sections.facturas" class="submenu">
+      <a routerLink="/facturas/crear" class="list-group-item-action"
+        ><i class="fas fa-file-medical"></i> Crear</a
+      >
+      <a routerLink="/facturas/listar" class="list-group-item-action"
+        ><i class="fas fa-file-alt"></i> Listar</a
+      >
+    </div>
+
+    <!-- Opciones exclusivas para administrador -->
+    <ng-container *ngIf="userRole === 'admin'">
+      <div class="list-group-item" (click)="toggleSection('usuarios')">
+        <i class="fas fa-user-cog"></i> Gestión de Usuarios
+        <i class="fas fa-chevron-down toggle-icon"></i>
+      </div>
+      <div *ngIf="sections.usuarios" class="submenu">
+        <a routerLink="/usuarios/crear" class="list-group-item-action"
+          ><i class="fas fa-user-plus"></i> Crear</a
+        >
+        <a routerLink="/usuarios/listar" class="list-group-item-action"
+          ><i class="fas fa-users-cog"></i> Listar</a
+        >
+      </div>
+    </ng-container>
+
+    <!-- Cerrar sesión -->
+    <button class="list-group-item" (click)="logout()">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+    </button>
+  </div>
+</div>

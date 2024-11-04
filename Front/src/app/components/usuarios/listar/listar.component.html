@@ -1,0 +1,40 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Lista de Usuarios - Área Contable</h2>
+
+  <div class="mb-3">
+    <label for="filtro" class="form-label">Buscar Usuarios:</label>
+    <input
+      type="text"
+      id="filtro"
+      [(ngModel)]="filtro"
+      (ngModelChange)="buscarUsuarios()"
+      class="form-control"
+      placeholder="Buscar por nombre, email, teléfono o área"
+    />
+  </div>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Área</th>
+        <th>Salario</th>
+        <th>Activo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let usuario of usuariosFiltrados">
+        <td>{{ usuario.nombre }}</td>
+        <td>{{ usuario.email }}</td>
+        <td>{{ usuario.telefono }}</td>
+        <td>{{ usuario.direccion }}</td>
+        <td>{{ usuario.area }}</td>
+        <td>{{ usuario.salario | currency }}</td>
+        <td>{{ usuario.activo ? "Sí" : "No" }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

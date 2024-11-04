@@ -1,0 +1,87 @@
+.sidebar-wrapper {
+  width: 250px;
+  background-color: #f8f9fa; /* Color de fondo */
+  border-right: 1px solid #dee2e6; /* Borde a la derecha */
+  height: 100vh; /* Altura total */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra para profundidad */
+}
+
+.sidebar-heading {
+  padding: 15px;
+  margin: 20px 0; /* Espacio arriba y abajo del encabezado */
+  text-align: center; /* Centra el texto */
+}
+
+.user-icon {
+  display: flex;
+  justify-content: center; /* Centra el círculo */
+  margin-bottom: 10px; /* Espacio debajo del círculo */
+  font-size: 50px; /* Tamaño del icono del usuario */
+  color: #007bff; /* Color del icono */
+}
+
+.user-photo {
+  width: 70px; /* Ancho del círculo */
+  height: 70px; /* Alto del círculo */
+  border-radius: 50%; /* Hace que el elemento sea un círculo */
+  background-color: #ccc; /* Color de fondo del círculo */
+  border: 3px solid #007bff; /* Borde del círculo */
+}
+
+.list-group-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  padding: 10px 15px; /* Espaciado interno */
+}
+
+.list-group-item:hover {
+  background-color: #e9ecef; /* Color al pasar el ratón */
+}
+
+.list-group-item i {
+  margin-right: 10px;
+}
+
+.toggle-icon {
+  transition: transform 0.3s;
+}
+
+.list-group-item:hover .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.submenu {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 5px; /* Espacio entre el item del menú y submenú */
+}
+
+.submenu a {
+  padding: 8px 15px;
+  font-size: 0.9em;
+  color: #495057; /* Color del texto */
+  text-decoration: none;
+  transition: color 0.3s; /* Transición para el color */
+}
+
+.submenu a:hover {
+  color: #007bff; /* Color al pasar el ratón */
+  text-decoration: underline; /* Subrayar al pasar el ratón */
+}
+
+.text-danger, .text-secondary {
+  font-weight: bold; /* Resalta el texto del rol */
+}
+
+.text-danger {
+  color: #dc3545; /* Color para el rol de admin */
+}
+
+.text-secondary {
+  color: #6c757d; /* Color para el rol de usuario */
+}
+

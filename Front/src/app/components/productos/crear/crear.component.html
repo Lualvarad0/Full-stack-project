@@ -1,0 +1,102 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4 text-primary">Crear Producto</h2>
+  <form
+    [formGroup]="productoForm"
+    (ngSubmit)="agregarProducto()"
+    class="shadow p-4 bg-light rounded"
+  >
+    <div class="mb-3">
+      <label for="nombre" class="form-label">Nombre</label>
+      <input
+        type="text"
+        id="nombre"
+        formControlName="nombre"
+        class="form-control"
+        placeholder="Ingrese el nombre del producto"
+        required
+      />
+      <div
+        *ngIf="
+          productoForm.get('nombre')?.invalid &&
+          productoForm.get('nombre')?.touched
+        "
+        class="text-danger"
+      >
+        El nombre es obligatorio.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="descripcion" class="form-label">Descripción</label>
+      <textarea
+        id="descripcion"
+        formControlName="descripcion"
+        class="form-control"
+        placeholder="Ingrese la descripción del producto"
+        rows="3"
+        required
+      ></textarea>
+      <div
+        *ngIf="
+          productoForm.get('descripcion')?.invalid &&
+          productoForm.get('descripcion')?.touched
+        "
+        class="text-danger"
+      >
+        La descripción es obligatoria.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="precio" class="form-label">Precio</label>
+      <input
+        type="number"
+        id="precio"
+        formControlName="precio"
+        class="form-control"
+        placeholder="Ingrese el precio del producto"
+        required
+        min="0"
+      />
+      <div
+        *ngIf="
+          productoForm.get('precio')?.invalid &&
+          productoForm.get('precio')?.touched
+        "
+        class="text-danger"
+      >
+        El precio debe ser mayor que 0.
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="stock" class="form-label">Stock</label>
+      <input
+        type="number"
+        id="stock"
+        formControlName="stock"
+        class="form-control"
+        placeholder="Ingrese la cantidad de stock"
+        required
+        min="0"
+      />
+      <div
+        *ngIf="
+          productoForm.get('stock')?.invalid &&
+          productoForm.get('stock')?.touched
+        "
+        class="text-danger"
+      >
+        El stock debe ser mayor que 0.
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      class="btn btn-primary w-100"
+      [disabled]="productoForm.invalid"
+    >
+      Agregar Producto
+    </button>
+  </form>
+</div>

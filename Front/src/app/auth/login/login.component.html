@@ -1,0 +1,75 @@
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card shadow-lg p-4 rounded-3" style="width: 400px">
+    <h3 class="text-center mb-4">Iniciar Sesión</h3>
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <!-- Campo de Correo Electrónico -->
+      <div class="mb-3 position-relative">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="Ingrese su correo"
+            required
+          />
+        </div>
+        <div
+          *ngIf="
+            loginForm.get('email')?.invalid && loginForm.get('email')?.touched
+          "
+          class="text-danger mt-1"
+        >
+          Ingrese un correo válido.
+        </div>
+      </div>
+
+      <!-- Campo de Contraseña -->
+      <div class="mb-3 position-relative">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            class="form-control"
+            placeholder="Ingrese su contraseña"
+            required
+          />
+        </div>
+        <div
+          *ngIf="
+            loginForm.get('password')?.invalid &&
+            loginForm.get('password')?.touched
+          "
+          class="text-danger mt-1"
+        >
+          Ingrese su contraseña.
+        </div>
+      </div>
+
+      <!-- Botón de Ingresar -->
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="loginForm.invalid || loading"
+      >
+        <span
+          *ngIf="loading"
+          class="spinner-border spinner-border-sm me-2"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Ingresar
+      </button>
+    </form>
+
+    <!-- Enlace para Registro -->
+    <div class="text-center mt-3">
+      <p>¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
+    </div>
+  </div>
+</div>

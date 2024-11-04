@@ -1,0 +1,31 @@
+<div class="container mt-5">
+  <h4 class="mb-4">Lista de Productos</h4>
+
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Buscar productos..."
+      [(ngModel)]="filtro"
+    />
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let producto of productosFiltrados">
+        <td>{{ producto.id }}</td>
+        <td>{{ producto.nombre }}</td>
+        <td>{{ producto.descripcion }}</td>
+        <td>{{ producto.precio | currency }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

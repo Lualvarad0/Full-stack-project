@@ -1,0 +1,57 @@
+<div class="container-fluid p-0">
+  <div class="d-flex">
+    <!-- Sidebar -->
+
+    <!-- Contenido principal -->
+    <div class="content p-4 w-100">
+      <div class="container mt-4">
+        <h2>Dashboard</h2>
+
+        <!-- Tarjetas de métricas con colores y enlaces -->
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <a [routerLink]="'/facturas/listar'" class="text-decoration-none">
+              <div class="card text-center bg-primary text-white hover-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Facturas</h5>
+                  <p class="card-text display-4">{{ totalFacturas }}</p>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <!-- Mostrar solo si es administrador -->
+          <div *ngIf="isAdmin" class="col-md-4">
+            <a [routerLink]="'/usuarios/listar'" class="text-decoration-none">
+              <div class="card text-center bg-success text-white hover-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Usuarios</h5>
+                  <p class="card-text display-4">{{ totalUsuarios }}</p>
+                </div>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-4">
+            <a [routerLink]="'/productos/listar'" class="text-decoration-none">
+              <div class="card text-center bg-warning text-white hover-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Productos</h5>
+                  <p class="card-text display-4">{{ totalProductos }}</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Contenedor del gráfico con tamaño ajustado -->
+        <div
+          class="chart-container my-4"
+          style="width: 80%; max-width: 700px; height: 400px; margin: 0 auto"
+        >
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
