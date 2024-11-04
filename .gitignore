@@ -20,7 +20,7 @@ src/environments/*.ts
 *.lock
 *.tsbuildinfo
 
-# .NET
+# .NET (archivos de compilación y temporales)
 bin/
 obj/
 *.user
@@ -31,7 +31,7 @@ obj/
 *.pdb
 *.publishsettings
 
-# ASP.NET Core
+# ASP.NET Core (archivos de configuración)
 appsettings*.json
 .vscode/
 .vs/
