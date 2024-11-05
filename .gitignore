@@ -4,6 +4,12 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Node (para Angular)
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Angular (incluyendo Angular 16)
 .angular/
@@ -11,16 +17,12 @@ yarn-error.log*
 .sass-cache/
 coverage/
 .vscode/
-
-# Archivos de entorno de Angular
 src/environments/*.ts
-
-# Archivos de configuración Angular específicos de versiones modernas
 *.log
 *.lock
 *.tsbuildinfo
 
-# .NET (archivos de compilación y temporales)
+# .NET
 bin/
 obj/
 *.user
@@ -31,7 +33,7 @@ obj/
 *.pdb
 *.publishsettings
 
-# ASP.NET Core (archivos de configuración)
+# ASP.NET Core
 appsettings*.json
 .vscode/
 .vs/
