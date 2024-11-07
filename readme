@@ -1,4 +1,4 @@
-### Ingreso y Gestión de Facturas
+# Ingreso y Gestión de Facturas
 
 Este es un sistema de **Ingreso y Gestión de Facturas** desarrollado con **Angular 16** para el frontend y **.NET 6** para el backend. La aplicación permite a los usuarios realizar el registro, consulta y gestión de facturas de manera intuitiva y eficiente.
 
