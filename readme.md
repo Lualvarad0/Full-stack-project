@@ -1,5 +1,8 @@
 # Ingreso y Gestión de Facturas
 
+
+[![Angular|Project](https://i.ytimg.com/vi/9ZD7cKIaxdM/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAQb1MLfIrKeAzWKkyZXJnganG8Ew)](https://blog.angular.dev/angular-v16-is-here-4d7a28ec680d)
+
 Este es un sistema de **Ingreso y Gestión de Facturas** desarrollado con **Angular 16** para el frontend y **.NET 6** para el backend. La aplicación permite a los usuarios realizar el registro, consulta y gestión de facturas de manera intuitiva y eficiente.
 
 ## Características
