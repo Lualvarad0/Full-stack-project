@@ -1,10 +1,10 @@
-﻿using Back.Interfaces;
+using Back.Data;
+using Back.Interfaces;
 using Back.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Back.Repositories
 {
-
     public class ClienteRepository : IClienteRepository
     {
         private readonly AppDbContext _context;
@@ -14,45 +14,38 @@ namespace Back.Repositories
             _context = context;
         }
 
-        // Obtiene todos los clientes
-        public async Task<IEnumerable<Cliente>> GetClientesAsync()
+        public Task<List<Cliente>> GetAllAsync(string? busqueda)
         {
-            return await _context.Clientes.ToListAsync();
-        }
-
-        // Obtiene un cliente por su ID
-        public async Task<Cliente> GetClienteByIdAsync(int id)
-        {
-            return await _context.Clientes.FindAsync(id);
-        }
-
-        // Agrega un nuevo cliente
-        public async Task AddClienteAsync(Cliente cliente)
-        {
-            await _context.Clientes.AddAsync(cliente);
-            await _context.SaveChangesAsync();
-        }
-
-        // Actualiza un cliente existente
-        public async Task UpdateClienteAsync(Cliente cliente)
-        {
-            // Si solo quieres actualizar propiedades específicas, puedes hacer algo como:
-            // var existingClient = await _context.Clientes.FindAsync(cliente.Id);
-            // if (existingClient != null) { existingClient.Nombre = cliente.Nombre; ... }
-            _context.Entry(cliente).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-        }
-
-        // Elimina un cliente por su ID
-        public async Task DeleteClienteAsync(int id)
-        {
-            var cliente = await GetClienteByIdAsync(id);
-            if (cliente != null)
+            var query = _context.Clientes.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(busqueda))
             {
-                _context.Clientes.Remove(cliente);
-                await _context.SaveChangesAsync();
+                var patron = $"%{busqueda.Trim()}%";
+                query = query.Where(c => EF.Functions.ILike(c.Nombre, patron) || EF.Functions.ILike(c.Identificacion, patron));
             }
+            return query.OrderBy(c => c.Nombre).ToListAsync();
+        }
+
+        public Task<Cliente?> GetByIdAsync(int id) =>
+            _context.Clientes.FirstOrDefaultAsync(c => c.ClienteId == id);
+
+        public Task<bool> ExisteIdentificacionAsync(string identificacion, int? excluirId = null) =>
+            _context.Clientes.AnyAsync(c => c.Identificacion == identificacion && c.ClienteId != excluirId);
+
+        public Task<bool> TieneFacturasAsync(int id) =>
+            _context.Facturas.AnyAsync(f => f.ClienteId == id);
+
+        public async Task AddAsync(Cliente cliente)
+        {
+            _context.Clientes.Add(cliente);
+            await _context.SaveChangesAsync();
+        }
+
+        public Task UpdateAsync(Cliente cliente) => _context.SaveChangesAsync();
+
+        public async Task DeleteAsync(Cliente cliente)
+        {
+            _context.Clientes.Remove(cliente);
+            await _context.SaveChangesAsync();
         }
     }
-
 }

@@ -1,25 +1,128 @@
-﻿using Back.Models;
+using Back.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Back
+namespace Back.Data
 {
     public class AppDbContext : DbContext
     {
-        public class AppDbContext : DbContext
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        public DbSet<Cliente> Clientes => Set<Cliente>();
+        public DbSet<Usuario> Usuarios => Set<Usuario>();
+        public DbSet<Producto> Productos => Set<Producto>();
+        public DbSet<Factura> Facturas => Set<Factura>();
+        public DbSet<DetalleFactura> DetallesFactura => Set<DetalleFactura>();
+        public DbSet<Comprobante> Comprobantes => Set<Comprobante>();
+        public DbSet<ComprobanteXml> ComprobantesXml => Set<ComprobanteXml>();
+        public DbSet<ProveedorCategoria> ProveedoresCategoria => Set<ProveedorCategoria>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+            base.OnModelCreating(modelBuilder);
 
-            public DbSet<Cliente> Clientes { get; set; }
-            public DbSet<Usuario> Usuarios { get; set; }
-            public DbSet<Producto> Productos { get; set; }
-            public DbSet<Factura> Facturas { get; set; }
-            public DbSet<DetalleFactura> DetallesFactura { get; set; }
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            modelBuilder.Entity<Usuario>(e =>
             {
-                // Configuraciones adicionales (relaciones, restricciones, etc.)
-                base.OnModelCreating(modelBuilder);
-            }
+                e.Property(u => u.Nombre).HasMaxLength(100);
+                e.Property(u => u.Correo).HasMaxLength(150);
+                e.Property(u => u.Rol).HasMaxLength(20);
+                e.Property(u => u.Cedula).HasMaxLength(10);
+                e.Property(u => u.Ruc).HasMaxLength(13);
+                e.Property(u => u.RazonSocial).HasMaxLength(300);
+                e.Property(u => u.Regimen).HasConversion<string>().HasMaxLength(30);
+                e.HasIndex(u => u.Correo).IsUnique();
+            });
+
+            modelBuilder.Entity<Cliente>(e =>
+            {
+                e.Property(c => c.Identificacion).HasMaxLength(20);
+                e.Property(c => c.Nombre).HasMaxLength(150);
+                e.Property(c => c.Telefono).HasMaxLength(20);
+                e.Property(c => c.Correo).HasMaxLength(150);
+                e.HasIndex(c => c.Identificacion).IsUnique();
+            });
+
+            modelBuilder.Entity<Producto>(e =>
+            {
+                e.Property(p => p.Nombre).HasMaxLength(150);
+                e.Property(p => p.Precio).HasPrecision(12, 2);
+                e.Property(p => p.Version).IsRowVersion();
+                e.ToTable(t =>
+                {
+                    t.HasCheckConstraint("ck_productos_precio", "precio >= 0");
+                    t.HasCheckConstraint("ck_productos_stock", "stock >= 0");
+                });
+            });
+
+            modelBuilder.Entity<Factura>(e =>
+            {
+                e.Property(f => f.FormaPago).HasMaxLength(50);
+                e.Property(f => f.MontoTotal).HasPrecision(12, 2);
+                e.HasOne(f => f.Cliente).WithMany().HasForeignKey(f => f.ClienteId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(f => f.Usuario).WithMany().HasForeignKey(f => f.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+                e.HasMany(f => f.Detalles).WithOne(d => d.Factura).HasForeignKey(d => d.FacturaId).OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(f => f.Fecha);
+            });
+
+            modelBuilder.Entity<DetalleFactura>(e =>
+            {
+                e.ToTable("detalles_factura");
+                e.Property(d => d.PrecioUnitario).HasPrecision(12, 2);
+                e.Property(d => d.PrecioTotal).HasPrecision(12, 2);
+                e.HasOne(d => d.Producto).WithMany().HasForeignKey(d => d.ProductoId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Comprobante>(e =>
+            {
+                e.ToTable("comprobantes");
+                e.Property(c => c.ClaveAcceso).HasMaxLength(49).IsFixedLength();
+                e.Property(c => c.TipoComprobante).HasMaxLength(2).IsFixedLength();
+                e.Property(c => c.NumeroComprobante).HasMaxLength(17);
+                e.Property(c => c.NumeroAutorizacion).HasMaxLength(49);
+                e.Property(c => c.RucEmisor).HasMaxLength(13);
+                e.Property(c => c.RazonSocialEmisor).HasMaxLength(300);
+                e.Property(c => c.NombreComercial).HasMaxLength(300);
+                e.Property(c => c.IdentificacionComprador).HasMaxLength(20);
+                e.Property(c => c.RazonSocialComprador).HasMaxLength(300);
+                e.Property(c => c.DocumentoModificado).HasMaxLength(17);
+                e.Property(c => c.Categoria).HasConversion<string>().HasMaxLength(20);
+                e.Property(c => c.Direccion).HasConversion<string>().HasMaxLength(10);
+                foreach (var monto in new[] { "Subtotal", "BaseIva0", "BaseIvaGravada", "Iva", "OtrosImpuestos", "Descuento", "Propina", "Total" })
+                    e.Property(monto).HasPrecision(12, 2);
+                e.Ignore(c => c.Signo);
+
+                e.HasIndex(c => new { c.UsuarioId, c.ClaveAcceso }).IsUnique();
+                e.HasIndex(c => new { c.UsuarioId, c.Direccion, c.FechaEmision });
+                e.HasIndex(c => new { c.UsuarioId, c.RucEmisor });
+                e.HasOne(c => c.Usuario).WithMany().HasForeignKey(c => c.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+                e.HasMany(c => c.Detalles).WithOne().HasForeignKey(d => d.ComprobanteId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(c => c.Xml).WithOne().HasForeignKey<ComprobanteXml>(x => x.ComprobanteId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ComprobanteDetalle>(e =>
+            {
+                e.ToTable("comprobantes_detalle");
+                e.Property(d => d.Codigo).HasMaxLength(50);
+                e.Property(d => d.Descripcion).HasMaxLength(500);
+                e.Property(d => d.Cantidad).HasPrecision(18, 6);
+                e.Property(d => d.PrecioUnitario).HasPrecision(18, 6);
+                e.Property(d => d.Descuento).HasPrecision(12, 2);
+                e.Property(d => d.Subtotal).HasPrecision(12, 2);
+            });
+
+            modelBuilder.Entity<ComprobanteXml>(e =>
+            {
+                e.ToTable("comprobantes_xml");
+                e.HasKey(x => x.ComprobanteId);
+            });
+
+            modelBuilder.Entity<ProveedorCategoria>(e =>
+            {
+                e.ToTable("proveedores_categoria");
+                e.Property(p => p.Ruc).HasMaxLength(13);
+                e.Property(p => p.Categoria).HasConversion<string>().HasMaxLength(20);
+                e.HasIndex(p => new { p.UsuarioId, p.Ruc }).IsUnique();
+                e.HasOne<Usuario>().WithMany().HasForeignKey(p => p.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }

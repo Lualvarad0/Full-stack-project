@@ -1,21 +1,41 @@
-﻿using System.ComponentModel.DataAnnotations;
-
 namespace Back.Models
 {
     public class Usuario
     {
-        [Key]
         public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Correo { get; set; } = string.Empty;
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Rol { get; set; } = Roles.User;
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
-        [Required]
-        public string Nombre { get; set; }
+        // Perfil tributario
+        public string? Cedula { get; set; }
+        public string? Ruc { get; set; }
+        /// <summary>Nombre o razón social tal como consta en el RUC.</summary>
+        public string? RazonSocial { get; set; }
+        public RegimenTributario? Regimen { get; set; }
+        public int CargasFamiliares { get; set; }
+        public bool EnfermedadCatastrofica { get; set; }
 
-        [Required]
-        [EmailAddress]
-        public string Correo { get; set; }
+        /// <summary>Identificaciones con las que el usuario aparece como comprador en sus facturas.</summary>
+        public IEnumerable<string> Identificaciones()
+        {
+            if (!string.IsNullOrEmpty(Cedula)) yield return Cedula;
+            if (!string.IsNullOrEmpty(Ruc)) yield return Ruc;
+        }
+    }
 
-        [Required]
-        public string Password { get; set; } // Podria encriptar este campo al almacenarlo[no olvidar]
-        //puedo agregar mas campos como vea necesario]
+    public static class Roles
+    {
+        public const string Admin = "admin";
+        public const string User = "user";
+    }
+
+    public enum RegimenTributario
+    {
+        General,
+        RimpeEmprendedor,
+        RimpeNegocioPopular,
     }
 }

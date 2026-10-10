@@ -1,34 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Back.Dtos;
+using Back.Helpers;
+using Back.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class FacturasController : ControllerBase
+namespace Back.Controllers
 {
-    private readonly FacturaService _facturaService;
-
-    public FacturasController(FacturaService facturaService)
+    [ApiController]
+    [Authorize]
+    [Route("api/[controller]")]
+    public class FacturasController : ControllerBase
     {
-        _facturaService = facturaService;
-    }
+        private readonly FacturaService _facturaService;
 
-    [HttpGet]
-    public async Task<IActionResult> GetFacturas()
-    {
-        var facturas = await _facturaService.ObtenerFacturasAsync();
-        return Ok(facturas);
-    }
+        public FacturasController(FacturaService facturaService)
+        {
+            _facturaService = facturaService;
+        }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetFactura(int id)
-    {
-        var factura = await _facturaService.ObtenerFacturaPorIdAsync(id);
-        return factura != null ? Ok(factura) : NotFound();
-    }
+        // GET api/facturas?desde=2026-10-01&hasta=2026-11-01&clienteId=3  (hasta es exclusivo)
+        [HttpGet]
+        public async Task<ActionResult<List<FacturaDto>>> GetFacturas(
+            [FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, [FromQuery] int? clienteId) =>
+            Ok(await _facturaService.ObtenerFacturasAsync(ToUtc(desde), ToUtc(hasta), clienteId));
 
-    [HttpPost]
-    public async Task<IActionResult> CreateFactura(Factura factura)
-    {
-        await _facturaService.CrearFacturaAsync(factura);
-        return CreatedAtAction(nameof(GetFactura), new { id = factura.FacturaId }, factura);
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<FacturaDto>> GetFactura(int id) =>
+            Ok(await _facturaService.ObtenerFacturaPorIdAsync(id));
+
+        [HttpPost]
+        public async Task<ActionResult<FacturaDto>> CreateFactura(FacturaRequest request)
+        {
+            var factura = await _facturaService.CrearFacturaAsync(request, JwtHelper.GetUsuarioId(User));
+            return CreatedAtAction(nameof(GetFactura), new { id = factura.Id }, factura);
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteFactura(int id)
+        {
+            await _facturaService.EliminarFacturaAsync(id);
+            return NoContent();
+        }
+
+        // Npgsql exige DateTime UTC para columnas timestamptz.
+        private static DateTime? ToUtc(DateTime? fecha) => fecha switch
+        {
+            null => null,
+            { Kind: DateTimeKind.Utc } f => f,
+            var f => DateTime.SpecifyKind(f.Value, DateTimeKind.Utc),
+        };
     }
 }

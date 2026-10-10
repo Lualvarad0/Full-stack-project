@@ -1,0 +1,263 @@
+<app-titulo linea1="Resumen de" [linea2]="nombreMes()" subtitulo="Lo que facturaste y lo que gastaste, verificado con el SRI.">
+  <a routerLink="/importar" class="btn btn-primary">
+    <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Importar del SRI
+  </a>
+</app-titulo>
+
+@if (!perfil.completo()) {
+  <a routerLink="/configuracion" class="mt-6 flex items-start gap-3 rounded-xl border border-accent/30 bg-primary-soft p-4 text-sm transition-colors hover:border-accent">
+    <svg lucideIdCard class="mt-0.5 size-5 shrink-0 text-accent" aria-hidden="true"></svg>
+    <span>
+      <strong class="text-fg">Completa tu perfil tributario.</strong>
+      <span class="text-muted-fg"> Registra tu RUC y régimen para separar tus ingresos de tus gastos y validar que tus facturas estén a tu nombre. →</span>
+    </span>
+  </a>
+}
+
+@if (carga().error) {
+  <div class="aviso-error mt-6" role="alert">
+    <svg lucideCircleAlert class="mt-0.5 size-5 shrink-0 text-danger" aria-hidden="true"></svg>
+    <p>{{ carga().error }}</p>
+  </div>
+}
+
+@if (carga().cargando && !carga().datos) {
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true" aria-label="Cargando resumen">
+    @for (i of [1, 2, 3, 4]; track i) {
+      <div class="card h-28 animate-pulse bg-muted"></div>
+    }
+  </div>
+} @else if (sinDatos()) {
+  <!-- Primer uso -->
+  <section class="card mt-6 p-6 sm:p-10">
+    <h2 class="text-lg font-semibold">Empieza importando tus comprobantes de {{ periodo.anio() }}</h2>
+    <p class="mt-2 max-w-2xl text-sm text-muted-fg">
+      Descarga de SRI en Línea el reporte de comprobantes recibidos y súbelo aquí. Verificamos cada factura con el SRI
+      y armamos tu resumen de gastos, ingresos y deducibles automáticamente.
+    </p>
+    <ol class="mt-6 grid gap-4 sm:grid-cols-3">
+      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">1.</span> Entra a SRI en Línea → Facturación electrónica → Comprobantes electrónicos recibidos.</li>
+      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">2.</span> Consulta el mes y descarga el reporte (.txt).</li>
+      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">3.</span> Súbelo en Nudo, junto con los XML de las facturas que emitiste.</li>
+    </ol>
+    <a routerLink="/importar" class="btn btn-primary mt-6">
+      <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Importar mi primer reporte
+    </a>
+  </section>
+} @else if (mes(); as m) {
+  <div class="transition-opacity duration-200" [class.opacity-60]="carga().cargando">
+    <!-- Indicadores del mes -->
+    <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Indicadores del mes">
+      @if (perfil.tieneRuc()) {
+        <a routerLink="/ingresos" class="card p-5 transition-colors hover:border-success/50">
+          <p class="etiqueta flex items-center gap-1.5">
+            <svg lucideHandCoins class="size-4 text-success" aria-hidden="true"></svg> Ingresos del mes
+          </p>
+          <p class="mt-2"><app-monto [valor]="m.ingresos" /></p>
+          <p class="mt-1 text-xs text-muted-fg">{{ m.comprobantesEmitidos }} facturas emitidas · IVA cobrado {{ m.ivaCobrado | dinero }}</p>
+        </a>
+      } @else {
+        <a routerLink="/configuracion" class="card p-5 transition-colors hover:border-accent/50">
+          <p class="etiqueta flex items-center gap-1.5">
+            <svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos del mes
+          </p>
+          <p class="cifra mt-2 text-[28px] leading-none text-muted-fg">—</p>
+          <p class="mt-1 text-xs text-accent">Registra tu RUC para verlos →</p>
+        </a>
+      }
+      <div class="card p-5">
+        <p class="etiqueta">Gastos del mes</p>
+        <p class="mt-2"><app-monto [valor]="m.total" /></p>
+        <p class="mt-1 text-xs text-muted-fg">{{ m.comprobantes }} comprobantes · netos de notas de crédito</p>
+      </div>
+      <div class="card p-5">
+        <p class="etiqueta">Deducible del mes</p>
+        <p class="mt-2"><app-monto [valor]="m.totalDeducible" /></p>
+        <p class="mt-1 text-xs text-muted-fg">Vivienda, alimentación, salud, educación, vestimenta y turismo</p>
+      </div>
+      <div class="card p-5">
+        <p class="etiqueta">IVA pagado en compras</p>
+        <p class="mt-2"><app-monto [valor]="m.iva" /></p>
+        <p class="mt-1 text-xs text-muted-fg">Incluido en tus gastos del mes</p>
+      </div>
+    </section>
+
+    <!-- Pendientes -->
+    @if (m.sinCategoria > 0 || m.aNombreDeOtros > 0) {
+      <section class="mt-4 grid gap-3 sm:grid-cols-2" aria-label="Pendientes del mes">
+        @if (m.sinCategoria > 0) {
+          <a routerLink="/gastos" [queryParams]="{ categoria: 'SinCategoria' }" class="aviso-atencion transition-colors hover:border-warning">
+            <svg lucideTriangleAlert class="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true"></svg>
+            <span>
+              <strong>{{ m.sinCategoria }} {{ m.sinCategoria === 1 ? 'gasto sin categoría' : 'gastos sin categoría' }}.</strong>
+              <span class="text-muted-fg"> Asígnales una para que cuenten como deducibles →</span>
+            </span>
+          </a>
+        }
+        @if (m.aNombreDeOtros > 0) {
+          <a routerLink="/gastos" [queryParams]="{ ajenos: true }" class="aviso-atencion transition-colors hover:border-warning">
+            <svg lucideTriangleAlert class="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true"></svg>
+            <span>
+              <strong>{{ m.aNombreDeOtros }} {{ m.aNombreDeOtros === 1 ? 'factura no está' : 'facturas no están' }} a tu nombre.</strong>
+              <span class="text-muted-fg"> Solo puedes deducirlas si son de tus cargas familiares →</span>
+            </span>
+          </a>
+        }
+      </section>
+    }
+
+    <!-- Tope de gastos personales -->
+    @if (tope(); as t) {
+      <section class="card mt-4 p-5 sm:p-6" aria-labelledby="titulo-tope">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 id="titulo-tope" class="font-semibold">Tope de gastos personales {{ t.anio }}</h2>
+            <p class="mt-1 text-sm text-muted-fg">
+              {{ t.canastas }} canastas básicas ({{ t.canasta | dinero }} c/u) ·
+              {{ cargasFamiliares() === 0 ? 'sin cargas familiares' : cargasFamiliares() + (cargasFamiliares() === 1 ? ' carga familiar' : ' cargas familiares') }} ·
+              <a routerLink="/configuracion" class="text-accent hover:underline">cambiar</a>
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-muted-fg">Rebaja estimada del impuesto a la renta</p>
+            <p class="text-success"><app-monto [valor]="t.rebaja" clase="text-[26px] leading-none" /></p>
+          </div>
+        </div>
+
+        <div class="mt-5">
+          <div class="flex items-baseline justify-between text-sm">
+            <span><span class="money font-semibold">{{ t.deducible | dinero }}</span><span class="ml-1 text-muted-fg">de {{ t.tope | dinero }}</span></span>
+            <span class="money font-medium">{{ t.porcentaje | number: '1.0-0' }} %</span>
+          </div>
+          <div
+            class="mt-2 h-2.5 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-label="Avance hacia el tope de gastos personales"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="t.porcentaje | number: '1.0-0'"
+          >
+            <div
+              class="h-full rounded-full transition-[width] duration-500"
+              [class.bg-bar]="t.estado === 'normal'"
+              [class.bg-warning]="t.estado === 'cerca'"
+              [class.bg-success]="t.estado === 'alcanzado'"
+              [style.width.%]="t.porcentaje > 100 ? 100 : t.porcentaje"
+            ></div>
+          </div>
+        </div>
+
+        @switch (t.estado) {
+          @case ('cerca') {
+            <p class="aviso-atencion mt-4 py-3" role="status">
+              <svg lucideTriangleAlert class="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true"></svg>
+              <span><strong>Te acercas al tope.</strong> Te faltan {{ t.restante | dinero }} en gastos deducibles para alcanzar la rebaja máxima de {{ t.rebajaMaxima | dinero }}.</span>
+            </p>
+          }
+          @case ('alcanzado') {
+            <p class="aviso-ok mt-4 py-3" role="status">
+              <svg lucideCircleCheck class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true"></svg>
+              <span><strong>Alcanzaste el tope.</strong> Ya obtienes la rebaja máxima; los gastos adicionales de este año no la aumentan.</span>
+            </p>
+          }
+          @default {
+            <p class="mt-4 flex items-start gap-2 text-sm text-muted-fg">
+              <svg lucideInfo class="mt-0.5 size-4 shrink-0" aria-hidden="true"></svg>
+              <span>Puedes sumar {{ t.restante | dinero }} más en gastos deducibles este año. La rebaja es el 18 % del menor valor entre tus gastos y el tope.</span>
+            </p>
+          }
+        }
+      </section>
+    }
+
+    <div class="mt-4 grid gap-4 lg:grid-cols-2">
+      <section class="card p-5 sm:p-6" aria-labelledby="titulo-categorias">
+        <h2 id="titulo-categorias" class="font-semibold">Gasto por categoría</h2>
+        <p class="mt-1 text-sm text-muted-fg">{{ periodo.etiqueta() }}</p>
+        <div class="mt-5">
+          @if (porCategoria().length) {
+            <app-barras-horizontales [barras]="porCategoria()" titulo="Gasto por categoría del mes" />
+          } @else {
+            <p class="py-8 text-center text-sm text-muted-fg">No hay gastos en este mes.</p>
+          }
+        </div>
+      </section>
+
+      <section class="card p-5 sm:p-6" aria-labelledby="titulo-meses">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 id="titulo-meses" class="font-semibold">{{ serieMensual() === 'ingresos' ? 'Ingresos' : 'Gastos' }} por mes</h2>
+            <p class="mt-1 text-sm text-muted-fg">
+              {{ periodo.anio() }} · total <span class="money font-medium text-fg">{{ totalAnualSerie() | dinero }}</span>
+            </p>
+          </div>
+          @if (perfil.tieneRuc()) {
+            <div class="inline-flex rounded-lg bg-muted p-1 text-sm" role="radiogroup" aria-label="Serie del gráfico">
+              <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
+                [class]="serieMensual() === 'gastos' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+                [attr.aria-checked]="serieMensual() === 'gastos'" (click)="serieMensual.set('gastos')">Gastos</button>
+              <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
+                [class]="serieMensual() === 'ingresos' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+                [attr.aria-checked]="serieMensual() === 'ingresos'" (click)="serieMensual.set('ingresos')">Ingresos</button>
+            </div>
+          }
+        </div>
+        <div class="mt-5">
+          <app-barras-mes [puntos]="porMes()" [resaltado]="periodo.mes()" [titulo]="(serieMensual() === 'ingresos' ? 'Ingresos' : 'Gastos') + ' por mes del año'" />
+        </div>
+      </section>
+    </div>
+
+    <div class="mt-4 grid gap-4" [class]="perfil.tieneRuc() ? 'lg:grid-cols-2' : ''">
+      @if (perfil.tieneRuc()) {
+        <section class="card p-5 sm:p-6" aria-labelledby="titulo-clientes">
+          <div class="flex items-center justify-between gap-4">
+            <h2 id="titulo-clientes" class="font-semibold">A quién facturaste este mes</h2>
+            <a routerLink="/clientes" class="text-sm font-medium text-accent hover:underline">Ver clientes</a>
+          </div>
+          @if (m.principalesClientes.length) {
+            <ul class="mt-4 divide-y divide-border">
+              @for (c of m.principalesClientes; track c.identificacion) {
+                <li>
+                  <a routerLink="/ingresos" [queryParams]="{ cliente: c.identificacion }" class="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted">
+                    <span class="min-w-0">
+                      <span class="block truncate text-sm font-medium">{{ c.razonSocial }}</span>
+                      <span class="text-xs text-muted-fg">{{ c.identificacion }} · {{ c.comprobantes }} {{ c.comprobantes === 1 ? 'factura' : 'facturas' }}</span>
+                    </span>
+                    <span class="money shrink-0 text-sm font-semibold">{{ c.total | dinero }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="py-8 text-center text-sm text-muted-fg">No hay facturas emitidas en este mes. Importa sus XML o claves de acceso.</p>
+          }
+        </section>
+      }
+
+      <section class="card p-5 sm:p-6" aria-labelledby="titulo-proveedores">
+        <div class="flex items-center justify-between gap-4">
+          <h2 id="titulo-proveedores" class="font-semibold">Dónde más gastaste este mes</h2>
+          <a routerLink="/gastos" class="text-sm font-medium text-accent hover:underline">Ver gastos</a>
+        </div>
+        @if (m.principalesProveedores.length) {
+          <ul class="mt-4 divide-y divide-border">
+            @for (p of m.principalesProveedores; track p.identificacion) {
+              <li>
+                <a routerLink="/gastos" [queryParams]="{ ruc: p.identificacion }" class="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted">
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-medium">{{ p.razonSocial }}</span>
+                    <span class="text-xs text-muted-fg">RUC {{ p.identificacion }} · {{ p.comprobantes }} {{ p.comprobantes === 1 ? 'comprobante' : 'comprobantes' }}</span>
+                  </span>
+                  <span class="money shrink-0 text-sm font-semibold">{{ p.total | dinero }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="py-8 text-center text-sm text-muted-fg">No hay gastos en este mes.</p>
+        }
+      </section>
+    </div>
+  </div>
+}

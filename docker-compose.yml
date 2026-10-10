@@ -1,0 +1,16 @@
+# PostgreSQL local para desarrollo: docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: facturas-db
+    environment:
+      POSTGRES_DB: facturas
+      POSTGRES_USER: facturas
+      POSTGRES_PASSWORD: facturas_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - facturas-data:/var/lib/postgresql/data
+
+volumes:
+  facturas-data:
