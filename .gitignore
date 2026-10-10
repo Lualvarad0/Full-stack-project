@@ -34,7 +34,7 @@ obj/
 *.publishsettings
 
 # ASP.NET Core
-appsettings*.json
+appsettings.*.json
 .vscode/
 .vs/
 project.lock.json
@@ -42,8 +42,6 @@ project.fragment.lock.json
 
 # Configuración específica para Visual Studio o Visual Studio Code
 .vscode/*
-*.sln
-*.csproj
 
 # Archivos de entorno y configuración
 .env

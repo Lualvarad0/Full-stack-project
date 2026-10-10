@@ -1,4 +1,6 @@
-﻿using Back.Interfaces;
+using Back.Dtos;
+using Back.Helpers;
+using Back.Interfaces;
 using Back.Models;
 
 namespace Back.Services
@@ -12,29 +14,43 @@ namespace Back.Services
             _productoRepository = productoRepository;
         }
 
-        public async Task<IEnumerable<Producto>> ObtenerProductosAsync()
-        {
-            return await _productoRepository.GetAllAsync();
-        }
+        public Task<List<Producto>> ObtenerProductosAsync(string? busqueda) =>
+            _productoRepository.GetAllAsync(busqueda);
 
-        public async Task<Producto> ObtenerProductoPorIdAsync(int id)
-        {
-            return await _productoRepository.GetByIdAsync(id);
-        }
+        public async Task<Producto> ObtenerProductoPorIdAsync(int id) =>
+            await _productoRepository.GetByIdAsync(id) ?? throw BusinessException.NotFound("Producto no encontrado.");
 
-        public async Task CrearProductoAsync(Producto producto)
+        public async Task<Producto> CrearProductoAsync(ProductoRequest request)
         {
+            var producto = new Producto();
+            Mapear(request, producto);
             await _productoRepository.AddAsync(producto);
+            return producto;
         }
 
-        public async Task ActualizarProductoAsync(Producto producto)
+        public async Task<Producto> ActualizarProductoAsync(int id, ProductoRequest request)
         {
+            var producto = await ObtenerProductoPorIdAsync(id);
+            Mapear(request, producto);
             await _productoRepository.UpdateAsync(producto);
+            return producto;
         }
 
         public async Task EliminarProductoAsync(int id)
         {
-            await _productoRepository.DeleteAsync(id);
+            var producto = await ObtenerProductoPorIdAsync(id);
+            if (await _productoRepository.TieneFacturasAsync(id))
+                throw BusinessException.Conflict("El producto aparece en facturas y no puede eliminarse.");
+
+            await _productoRepository.DeleteAsync(producto);
+        }
+
+        private static void Mapear(ProductoRequest request, Producto producto)
+        {
+            producto.Nombre = request.Nombre.Trim();
+            producto.Descripcion = request.Descripcion?.Trim();
+            producto.Precio = request.Precio;
+            producto.Stock = request.Stock;
         }
     }
 }

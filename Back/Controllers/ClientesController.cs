@@ -1,10 +1,13 @@
-﻿using Back.Models;
+using Back.Dtos;
+using Back.Models;
 using Back.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Back.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class ClientesController : ControllerBase
     {
@@ -15,44 +18,30 @@ namespace Back.Controllers
             _clienteService = clienteService;
         }
 
-        // Obtener todos los clientes
+        // GET api/clientes?q=texto  (busca por nombre o identificación)
         [HttpGet]
-        public async Task<IActionResult> GetClientes()
-        {
-            var clientes = await _clienteService.GetClientesAsync();
-            return Ok(clientes);
-        }
+        public async Task<ActionResult<List<Cliente>>> GetClientes([FromQuery] string? q) =>
+            Ok(await _clienteService.ObtenerClientesAsync(q));
 
-        // Obtener cliente por ID
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCliente(int id)
-        {
-            var cliente = await _clienteService.GetClienteByIdAsync(id);
-            return cliente != null ? Ok(cliente) : NotFound();
-        }
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Cliente>> GetCliente(int id) =>
+            Ok(await _clienteService.ObtenerClientePorIdAsync(id));
 
-        // Crear nuevo cliente
         [HttpPost]
-        public async Task<IActionResult> CreateCliente(Cliente cliente)
+        public async Task<ActionResult<Cliente>> CreateCliente(ClienteRequest request)
         {
-            await _clienteService.AddClienteAsync(cliente);
+            var cliente = await _clienteService.CrearClienteAsync(request);
             return CreatedAtAction(nameof(GetCliente), new { id = cliente.ClienteId }, cliente);
         }
 
-        // Actualizar cliente existente
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCliente(int id, Cliente cliente)
-        {
-            if (id != cliente.ClienteId) return BadRequest();
-            await _clienteService.UpdateClienteAsync(cliente);
-            return NoContent();
-        }
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<Cliente>> UpdateCliente(int id, ClienteRequest request) =>
+            Ok(await _clienteService.ActualizarClienteAsync(id, request));
 
-        // Eliminar cliente
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteCliente(int id)
         {
-            await _clienteService.DeleteClienteAsync(id);
+            await _clienteService.EliminarClienteAsync(id);
             return NoContent();
         }
     }

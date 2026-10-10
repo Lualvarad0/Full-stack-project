@@ -1,65 +1,48 @@
-﻿using Back.Interfaces;
+using Back.Data;
+using Back.Interfaces;
 using Back.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Back.Repositories
 {
     public class FacturaRepository : IFacturaRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public FacturaRepository(ApplicationDbContext context)
+        public FacturaRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<IEnumerable<Factura>> GetAllAsync()
+        private IQueryable<Factura> ConDetalles() => _context.Facturas
+            .Include(f => f.Cliente)
+            .Include(f => f.Usuario)
+            .Include(f => f.Detalles).ThenInclude(d => d.Producto);
+
+        public Task<List<Factura>> GetAllAsync(DateTime? desde, DateTime? hasta, int? clienteId)
         {
-            return await _context.Facturas.Include(f => f.Cliente)
-                                           .Include(f => f.Vendedor)
-                                           .ToListAsync();
+            var query = ConDetalles().AsNoTracking();
+            if (desde.HasValue) query = query.Where(f => f.Fecha >= desde.Value);
+            if (hasta.HasValue) query = query.Where(f => f.Fecha < hasta.Value);
+            if (clienteId.HasValue) query = query.Where(f => f.ClienteId == clienteId.Value);
+            return query.OrderByDescending(f => f.Fecha).ToListAsync();
         }
 
-        public async Task<Factura> GetByIdAsync(int id)
-        {
-            return await _context.Facturas.Include(f => f.Cliente)
-                                           .Include(f => f.Vendedor)
-                                           .FirstOrDefaultAsync(f => f.Id == id);
-        }
+        public Task<Factura?> GetByIdAsync(int id) =>
+            ConDetalles().FirstOrDefaultAsync(f => f.FacturaId == id);
 
+        // Un solo SaveChanges: la factura y el stock de los productos (cargados con tracking
+        // en el mismo DbContext) se guardan en la misma transacción.
         public async Task AddAsync(Factura factura)
         {
-            await _context.Facturas.AddAsync(factura);
+            _context.Facturas.Add(factura);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Factura factura)
+        public async Task DeleteAsync(Factura factura)
         {
-            _context.Facturas.Update(factura);
+            _context.Facturas.Remove(factura);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var factura = await GetByIdAsync(id);
-            if (factura != null)
-            {
-                _context.Facturas.Remove(factura);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<IEnumerable<Factura>> BuscarPorCriteriosAsync(DateTime? fecha, decimal? monto, int? numero)
-        {
-            var query = _context.Facturas.AsQueryable();
-
-            if (fecha.HasValue)
-                query = query.Where(f => f.Fecha == fecha.Value);
-            if (monto.HasValue)
-                query = query.Where(f => f.Total == monto.Value);
-            if (numero.HasValue)
-                query = query.Where(f => f.Id == numero.Value);
-
-            return await query.ToListAsync();
         }
     }
 }

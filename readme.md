@@ -1,62 +1,84 @@
-# Ingreso y Gestión de Facturas
+# Nudo — facturas, gastos y SRI
 
+SaaS para personas con RUC en Ecuador: importa y verifica con el SRI los comprobantes que recibes, categoriza tus gastos personales, controla el tope deducible y (próximamente) emite facturas electrónicas y prepara la declaración mensual de IVA.
 
-[![Angular|Project](https://i.ytimg.com/vi/9ZD7cKIaxdM/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLAQb1MLfIrKeAzWKkyZXJnganG8Ew)](https://blog.angular.dev/angular-v16-is-here-4d7a28ec680d)
+## Tecnologías
 
-Este es un sistema de **Ingreso y Gestión de Facturas** desarrollado con **Angular 16** para el frontend y **.NET 6** para el backend. La aplicación permite a los usuarios realizar el registro, consulta y gestión de facturas de manera intuitiva y eficiente.
+- **Frontend** (`Web/`): Angular 22 (standalone, signals, zoneless) + Tailwind CSS 4 + Lucide
+  - Modo claro/oscuro, diseño responsive
+  - Carpeta `Front/`: proyecto Angular 16 original, ya no se usa
 
-## Características
-
-- **Crear y Listar Facturas**: Permite registrar nuevas facturas con información detallada y consultar la lista de facturas existentes.
-- **Consulta y Búsqueda**: Opción para buscar facturas específicas mediante filtros.
-- **Gestión de Facturas**: Edición y eliminación de facturas existentes.
-- **Autenticación de Usuarios**: Seguridad integrada para controlar el acceso de usuarios.
-- **Dashboard Interactivo**: Visualización general de facturas e informes.
-
-## Tecnologías Utilizadas
-
-- **Frontend**: Angular 16
-  - Componentes reutilizables
-  - Formularios reactivos
-  - Servicios de conexión HTTP
-  - Interfaz de usuario moderna con Angular Material (opcional)
-  
-- **Backend**: .NET 6
-  - API RESTful para CRUD de facturas
-  - Control de acceso basado en roles
-  - Integración con base de datos (SQL Server, MySQL, etc.)
+- **Backend**: .NET 8 + PostgreSQL
+  - API RESTful (clientes, productos, facturas, usuarios)
+  - Autenticación JWT con roles (`admin`, `user`); el primer usuario registrado es `admin`
+  - Entity Framework Core con migraciones (Npgsql)
 
 ## Requisitos Previos
 
-Asegúrate de tener instalados los siguientes programas:
-
 - [Node.js y npm](https://nodejs.org/) (para Angular)
-- [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
-- [Git](https://git-scm.com/) (opcional para clonación del proyecto)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) y la herramienta `dotnet-ef` (`dotnet tool install -g dotnet-ef`)
+- [Docker](https://www.docker.com/) (para PostgreSQL local)
 
-## Instalación
+## Instalación y ejecución
 
-2. **Configurar el backend**:
-
-   - Navega a la carpeta de tu proyecto backend.
-   - Configura la conexión a la base de datos en el archivo `appsettings.json`.
-   - Ejecuta las migraciones (si es necesario) y prepara la base de datos.
-
-## Ejecución
-
-1. **Ejecución del frontend**:
-
-   Desde la carpeta `Front`, ejecuta el siguiente comando:
+1. **Levantar PostgreSQL** (desde la raíz del repo):
 
    ```bash
-   ng serve
+   docker compose up -d
+   ```
 
-2. **Ejecución del backend**:
-
-   Desde la carpeta del proyecto backend, ejecuta:
+2. **Configurar secretos del backend** (desde `Back/`; quedan fuera del repo):
 
    ```bash
+   dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=facturas;Username=facturas;Password=facturas_dev"
+   dotnet user-secrets set "Jwt:Key" "<una clave aleatoria de al menos 32 caracteres>"
+   ```
+
+3. **Crear las tablas y ejecutar el backend** (desde `Back/`):
+
+   ```bash
+   dotnet ef database update
    dotnet run
+   ```
+
+   La API queda en `http://localhost:5000` y Swagger en `http://localhost:5000/swagger`.
+
+4. **Ejecutar el frontend** (desde `Web/`):
+
+   ```bash
+   npm install
+   npm start
+   ```
+
+   La app queda en `http://localhost:4200` y usa la API de `http://localhost:5000/api` (`src/environments/environment.development.ts`). En producción usa `/api` del mismo dominio (`src/environments/environment.ts`).
+
+### Pruebas
+
+Con PostgreSQL levantado (`docker compose up -d`), desde la raíz:
+
+```bash
+dotnet test Back.Tests
+```
+
+Las pruebas de integración crean y borran su propia base `facturas_test` y usan un SRI simulado.
+
+## Perfil tributario, ingresos y gastos
+
+`GET/PUT /api/perfil` guarda cédula, RUC (se validan con el algoritmo del Registro Civil/SRI), razón social, régimen, cargas familiares y enfermedad catastrófica. Con el RUC registrado, cada comprobante importado cuyo emisor es tu RUC se guarda como **ingreso** (`direccion=Emitido`) y el resto como **gasto** (`Recibido`); al cambiar el RUC se reclasifica todo. Los gastos que no están a tu cédula/RUC se marcan (`aNombreDelUsuario=false`). Los clientes salen de las facturas emitidas: `GET /api/comprobantes/clientes`.
+
+## Gastos personales desde el SRI
+
+El módulo `api/comprobantes` importa tus facturas de consumo verificándolas contra el servicio web público de autorización del SRI (no requiere tu clave de SRI en Línea).
+
+1. En **SRI en Línea → Facturación electrónica → Comprobantes electrónicos recibidos**, consulta el mes y descarga el reporte `.txt`.
+2. Súbelo en `POST /api/comprobantes/importar` (también acepta los `.xml` que llegan al correo, varios a la vez), o pega claves de acceso en `POST /api/comprobantes/importar/claves`.
+3. La API extrae las claves de acceso (49 dígitos, validadas con módulo 11), consulta cada una en el SRI y guarda las facturas, notas de crédito y notas de débito autorizadas con su detalle e IVA. Las que ya existen no se vuelven a consultar.
+4. Asigna una categoría (Vivienda, Educacion, Salud, Alimentacion, Vestimenta, Turismo, NoDeducible) con `PUT /api/comprobantes/{id}/categoria`: se recuerda para el proveedor y se aplica a sus comprobantes actuales y futuros.
+5. `GET /api/comprobantes/resumen?anio=2026&mes=10` devuelve el gasto neto (las notas de crédito restan), IVA, total deducible, totales por categoría y principales proveedores; sin `mes`, el resumen anual con desglose mensual.
+
+### Producción
+
+Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend) y, si quieres que la API aplique las migraciones al arrancar, `Database__MigrateOnStartup=true`.
 
 
 ## Contribución

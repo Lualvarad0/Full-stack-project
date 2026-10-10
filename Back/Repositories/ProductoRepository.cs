@@ -1,7 +1,7 @@
-﻿using Back.Data;
+using Back.Data;
 using Back.Interfaces;
 using Back.Models;
-using System;
+using Microsoft.EntityFrameworkCore;
 
 namespace Back.Repositories
 {
@@ -14,36 +14,39 @@ namespace Back.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Producto>> GetAllAsync()
+        public Task<List<Producto>> GetAllAsync(string? busqueda)
         {
-            return await _context.Productos.ToListAsync();
+            var query = _context.Productos.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(busqueda))
+                query = query.Where(p => EF.Functions.ILike(p.Nombre, $"%{busqueda.Trim()}%"));
+            return query.OrderBy(p => p.Nombre).ToListAsync();
         }
 
-        public async Task<Producto> GetByIdAsync(int id)
+        public Task<Producto?> GetByIdAsync(int id) =>
+            _context.Productos.FirstOrDefaultAsync(p => p.ProductoId == id);
+
+        // Devuelve entidades con tracking: FacturaService descuenta stock sobre ellas.
+        public Task<List<Producto>> GetByIdsAsync(IEnumerable<int> ids)
         {
-            return await _context.Productos.FindAsync(id);
+            var lista = ids.Distinct().ToList();
+            return _context.Productos.Where(p => lista.Contains(p.ProductoId)).ToListAsync();
         }
+
+        public Task<bool> TieneFacturasAsync(int id) =>
+            _context.DetallesFactura.AnyAsync(d => d.ProductoId == id);
 
         public async Task AddAsync(Producto producto)
         {
-            await _context.Productos.AddAsync(producto);
+            _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Producto producto)
-        {
-            _context.Productos.Update(producto);
-            await _context.SaveChangesAsync();
-        }
+        public Task UpdateAsync(Producto producto) => _context.SaveChangesAsync();
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Producto producto)
         {
-            var producto = await _context.Productos.FindAsync(id);
-            if (producto != null)
-            {
-                _context.Productos.Remove(producto);
-                await _context.SaveChangesAsync();
-            }
+            _context.Productos.Remove(producto);
+            await _context.SaveChangesAsync();
         }
     }
 }
