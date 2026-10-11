@@ -4,6 +4,10 @@ namespace Back.Interfaces
 {
     /// <param name="Direccion">Null = ambos sentidos (gastos e ingresos).</param>
     /// <param name="Cliente">Identificación del comprador (para ingresos por cliente).</param>
+    /// <param name="Desde">Fecha de emisión desde (inclusive). Con Hasta, permite rangos que cruzan meses.</param>
+    /// <param name="Hasta">Fecha de emisión hasta (inclusive).</param>
+    /// <param name="MontoMinimo">Total mínimo del comprobante (inclusive).</param>
+    /// <param name="MontoMaximo">Total máximo del comprobante (inclusive).</param>
     public record FiltroComprobantes(
         Direccion? Direccion,
         int? Anio = null,
@@ -11,7 +15,11 @@ namespace Back.Interfaces
         CategoriaGasto? Categoria = null,
         string? Ruc = null,
         string? Busqueda = null,
-        string? Cliente = null);
+        string? Cliente = null,
+        DateOnly? Desde = null,
+        DateOnly? Hasta = null,
+        decimal? MontoMinimo = null,
+        decimal? MontoMaximo = null);
 
     public interface IComprobanteRepository
     {

@@ -55,7 +55,9 @@ namespace Back.Controllers
             Ok(await _comprobanteService.ImportarAsync(UsuarioId, request.Texto, ct));
 
         // GET api/comprobantes?direccion=Recibido&anio=2026&mes=10&categoria=Salud&ruc=1790012345001&q=farmacia
+        //     &desde=2026-01-01&hasta=2026-03-31&min=10&max=500
         // direccion: Recibido (gastos, por defecto) o Emitido (ingresos; admite cliente=<identificación>).
+        // desde/hasta filtran por fecha de emisión (inclusive) y min/max por total; se combinan con el resto.
         [HttpGet]
         public async Task<ActionResult<List<ComprobanteListaDto>>> GetComprobantes(
             [FromQuery] Direccion direccion,
@@ -64,11 +66,20 @@ namespace Back.Controllers
             [FromQuery] CategoriaGasto? categoria,
             [FromQuery] string? ruc,
             [FromQuery] string? q,
-            [FromQuery] string? cliente)
+            [FromQuery] string? cliente,
+            [FromQuery] DateOnly? desde,
+            [FromQuery] DateOnly? hasta,
+            [FromQuery, Range(0, 99_999_999)] decimal? min,
+            [FromQuery, Range(0, 99_999_999)] decimal? max)
         {
             if (mes.HasValue && !anio.HasValue)
                 throw new BusinessException("Para filtrar por mes indica también el año.");
-            var filtro = new FiltroComprobantes(direccion, anio, mes, categoria, ruc, q, cliente);
+            if (desde > hasta)
+                throw new BusinessException("La fecha inicial debe ser anterior a la fecha final.");
+            if (min > max)
+                throw new BusinessException("El monto mínimo no puede ser mayor que el máximo.");
+
+            var filtro = new FiltroComprobantes(direccion, anio, mes, categoria, ruc, q, cliente, desde, hasta, min, max);
             return Ok(await _comprobanteService.ObtenerComprobantesAsync(UsuarioId, filtro));
         }
 

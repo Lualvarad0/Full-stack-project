@@ -8,11 +8,14 @@ import { calcularTope } from '../../core/gastos-personales';
 import { RegimenTributario } from '../../core/models';
 import { PerfilService, REGIMENES, cedulaValida, rucValido, soloDigitos } from '../../core/perfil.service';
 import { DineroPipe } from '../../shared/formato';
+import { ActividadCuenta } from '../../shared/actividad-cuenta';
+import { Segmentado } from '../../shared/controles';
+import { BuzonTarjeta } from '../../shared/buzon-tarjeta';
 
 @Component({
   selector: 'app-configuracion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, ReactiveFormsModule, DineroPipe, LucideLoader, LucideCircleAlert],
+  imports: [Titulo, ReactiveFormsModule, DineroPipe, LucideLoader, LucideCircleAlert, BuzonTarjeta, ActividadCuenta, Segmentado],
   templateUrl: './configuracion.html',
 })
 export class Configuracion {
@@ -25,8 +28,8 @@ export class Configuracion {
   protected readonly regimenes = REGIMENES;
   protected readonly opcionesCargas = [0, 1, 2, 3, 4, 5];
   protected readonly temas = [
-    { valor: 'light', nombre: 'Claro' },
-    { valor: 'dark', nombre: 'Oscuro' },
+    { valor: 'light', etiqueta: 'Claro' },
+    { valor: 'dark', etiqueta: 'Oscuro' },
   ] as const;
 
   protected readonly guardando = signal(false);

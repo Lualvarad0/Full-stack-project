@@ -181,5 +181,9 @@ export interface FiltroComprobantes {
   categoria?: CategoriaGasto | '';
   ruc?: string;
   q?: string;
+  desde?: string;
+  hasta?: string;
+  min?: number;
+  max?: number;
   cliente?: string;
 }

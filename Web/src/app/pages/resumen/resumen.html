@@ -1,11 +1,20 @@
 <app-titulo linea1="Resumen de" [linea2]="nombreMes()" subtitulo="Lo que facturaste y lo que gastaste, verificado con el SRI.">
-  <a routerLink="/importar" class="btn btn-primary">
-    <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Importar del SRI
-  </a>
+  <div class="flex flex-wrap items-center gap-3">
+    @if (correoEstado().datos; as ce) {
+      @if (ce.ultimoCorreoEn) {
+        <a routerLink="/importar" class="pildora border border-border bg-card px-3 py-1.5 text-muted-fg hover:text-fg" [title]="ce.direccion ?? ''">
+          <svg lucideMail class="size-3.5" aria-hidden="true"></svg> Buzón: {{ hace(ce.ultimoCorreoEn) }}
+        </a>
+      }
+    }
+    <a routerLink="/importar" class="btn btn-primary">
+      <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Traer facturas
+    </a>
+  </div>
 </app-titulo>
 
 @if (!perfil.completo()) {
-  <a routerLink="/configuracion" class="mt-6 flex items-start gap-3 rounded-xl border border-accent/30 bg-primary-soft p-4 text-sm transition-colors hover:border-accent">
+  <a routerLink="/configuracion" class="mt-6 flex items-start gap-3 rounded-xl border border-border bg-primary-soft p-4 text-sm transition-colors hover:border-accent">
     <svg lucideIdCard class="mt-0.5 size-5 shrink-0 text-accent" aria-hidden="true"></svg>
     <span>
       <strong class="text-fg">Completa tu perfil tributario.</strong>
@@ -14,34 +23,29 @@
   </a>
 }
 
-@if (carga().error) {
-  <div class="aviso-error mt-6" role="alert">
-    <svg lucideCircleAlert class="mt-0.5 size-5 shrink-0 text-danger" aria-hidden="true"></svg>
-    <p>{{ carga().error }}</p>
-  </div>
-}
+<app-error-carga [mensaje]="carga().error" />
 
 @if (carga().cargando && !carga().datos) {
   <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true" aria-label="Cargando resumen">
     @for (i of [1, 2, 3, 4]; track i) {
-      <div class="card h-28 animate-pulse bg-muted"></div>
+      <div class="card h-32 animate-pulse bg-muted"></div>
     }
   </div>
 } @else if (sinDatos()) {
   <!-- Primer uso -->
   <section class="card mt-6 p-6 sm:p-10">
-    <h2 class="text-lg font-semibold">Empieza importando tus comprobantes de {{ periodo.anio() }}</h2>
-    <p class="mt-2 max-w-2xl text-sm text-muted-fg">
-      Descarga de SRI en Línea el reporte de comprobantes recibidos y súbelo aquí. Verificamos cada factura con el SRI
-      y armamos tu resumen de gastos, ingresos y deducibles automáticamente.
+    <h2 class="titular text-3xl">Trae tus facturas de <em class="italic">{{ periodo.anio() }}</em></h2>
+    <p class="mt-3 max-w-2xl text-sm leading-relaxed text-muted-fg">
+      Activa tu buzón: reenvía ahí tus facturas y Nudo las trae solas, las verifica con el SRI y arma tu resumen de
+      ingresos, gastos y deducibles.
     </p>
     <ol class="mt-6 grid gap-4 sm:grid-cols-3">
-      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">1.</span> Entra a SRI en Línea → Facturación electrónica → Comprobantes electrónicos recibidos.</li>
-      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">2.</span> Consulta el mes y descarga el reporte (.txt).</li>
-      <li class="rounded-lg bg-muted p-4 text-sm"><span class="font-semibold">3.</span> Súbelo en Nudo, junto con los XML de las facturas que emitiste.</li>
+      <li class="rounded-xl bg-muted p-4 text-sm"><span class="font-semibold">1.</span> Copia tu dirección de buzón en Traer facturas.</li>
+      <li class="rounded-xl bg-muted p-4 text-sm"><span class="font-semibold">2.</span> Crea en Gmail un filtro que reenvíe tus facturas: cada una se verifica con el SRI.</li>
+      <li class="rounded-xl bg-muted p-4 text-sm"><span class="font-semibold">3.</span> Al cierre de mes, sube el reporte del SRI para conciliar.</li>
     </ol>
     <a routerLink="/importar" class="btn btn-primary mt-6">
-      <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Importar mi primer reporte
+      <svg lucideMail class="size-4" aria-hidden="true"></svg> Activar mi buzón
     </a>
   </section>
 } @else if (mes(); as m) {
@@ -49,37 +53,60 @@
     <!-- Indicadores del mes -->
     <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Indicadores del mes">
       @if (perfil.tieneRuc()) {
-        <a routerLink="/ingresos" class="card p-5 transition-colors hover:border-success/50">
-          <p class="etiqueta flex items-center gap-1.5">
-            <svg lucideHandCoins class="size-4 text-success" aria-hidden="true"></svg> Ingresos del mes
-          </p>
+        <a routerLink="/ingresos" class="card p-5 transition-colors hover:border-accent/40">
+          <p class="etiqueta flex items-center gap-1.5"><svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos</p>
           <p class="mt-2"><app-monto [valor]="m.ingresos" /></p>
-          <p class="mt-1 text-xs text-muted-fg">{{ m.comprobantesEmitidos }} facturas emitidas · IVA cobrado {{ m.ivaCobrado | dinero }}</p>
+          @if (variacionIngresos(); as v) {
+            <p class="mt-2 inline-flex items-center gap-1 text-xs" [class.text-success]="v.sube" [class.text-muted-fg]="!v.sube">
+              @if (v.sube) { <svg lucideTrendingUp class="size-3.5" aria-hidden="true"></svg> } @else { <svg lucideTrendingDown class="size-3.5" aria-hidden="true"></svg> }
+              {{ v.sube ? 'Sube' : 'Baja' }} {{ v.porcentaje | number: '1.0-0' }} % vs {{ v.mesAnterior }}
+            </p>
+          } @else {
+            <p class="mt-2 text-xs text-muted-fg">{{ m.comprobantesEmitidos }} facturas emitidas</p>
+          }
         </a>
       } @else {
-        <a routerLink="/configuracion" class="card p-5 transition-colors hover:border-accent/50">
-          <p class="etiqueta flex items-center gap-1.5">
-            <svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos del mes
-          </p>
+        <a routerLink="/configuracion" class="card p-5 transition-colors hover:border-accent/40">
+          <p class="etiqueta flex items-center gap-1.5"><svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos</p>
           <p class="cifra mt-2 text-[28px] leading-none text-muted-fg">—</p>
-          <p class="mt-1 text-xs text-accent">Registra tu RUC para verlos →</p>
+          <p class="mt-2 text-xs text-accent">Registra tu RUC para verlos →</p>
         </a>
       }
-      <div class="card p-5">
-        <p class="etiqueta">Gastos del mes</p>
+
+      <a routerLink="/gastos" class="card p-5 transition-colors hover:border-accent/40">
+        <p class="etiqueta flex items-center gap-1.5"><svg lucideReceipt class="size-4" aria-hidden="true"></svg> Gastos</p>
         <p class="mt-2"><app-monto [valor]="m.total" /></p>
-        <p class="mt-1 text-xs text-muted-fg">{{ m.comprobantes }} comprobantes · netos de notas de crédito</p>
-      </div>
+        @if (variacionGastos(); as v) {
+          <p class="mt-2 inline-flex items-center gap-1 text-xs" [class.text-warning]="v.sube" [class.text-success]="!v.sube">
+            @if (v.sube) { <svg lucideTrendingUp class="size-3.5" aria-hidden="true"></svg> } @else { <svg lucideTrendingDown class="size-3.5" aria-hidden="true"></svg> }
+            {{ v.sube ? 'Sube' : 'Baja' }} {{ v.porcentaje | number: '1.0-0' }} % vs {{ v.mesAnterior }}
+          </p>
+        } @else {
+          <p class="mt-2 text-xs text-muted-fg">{{ m.comprobantes }} comprobantes</p>
+        }
+      </a>
+
+      @if (perfil.tieneRuc()) {
+        <div class="card p-5">
+          <p class="etiqueta flex items-center gap-1.5"><svg lucideScale class="size-4" aria-hidden="true"></svg> Balance</p>
+          <p class="mt-2" [class.text-danger]="balance() < 0"><app-monto [valor]="balance()" /></p>
+          <p class="mt-2 text-xs text-muted-fg">Ingresos menos gastos del mes</p>
+        </div>
+      }
+
       <div class="card p-5">
         <p class="etiqueta">Deducible del mes</p>
         <p class="mt-2"><app-monto [valor]="m.totalDeducible" /></p>
-        <p class="mt-1 text-xs text-muted-fg">Vivienda, alimentación, salud, educación, vestimenta y turismo</p>
+        <p class="mt-2 text-xs text-muted-fg">Cuenta para tu rebaja del impuesto a la renta</p>
       </div>
-      <div class="card p-5">
-        <p class="etiqueta">IVA pagado en compras</p>
-        <p class="mt-2"><app-monto [valor]="m.iva" /></p>
-        <p class="mt-1 text-xs text-muted-fg">Incluido en tus gastos del mes</p>
-      </div>
+
+      @if (!perfil.tieneRuc()) {
+        <div class="card p-5">
+          <p class="etiqueta">IVA pagado</p>
+          <p class="mt-2"><app-monto [valor]="m.iva" /></p>
+          <p class="mt-2 text-xs text-muted-fg">Incluido en tus gastos del mes</p>
+        </div>
+      }
     </section>
 
     <!-- Pendientes -->
@@ -106,6 +133,43 @@
       </section>
     }
 
+    <!-- Evolución anual + IVA -->
+    <div class="mt-4 grid gap-4" [class]="perfil.tieneRuc() ? 'lg:grid-cols-3' : ''">
+      <section class="card p-5 sm:p-6" [class]="perfil.tieneRuc() ? 'lg:col-span-2' : ''" aria-labelledby="titulo-meses">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="titulo-meses" class="font-semibold">{{ perfil.tieneRuc() ? 'Ingresos y gastos' : 'Gastos' }} de {{ periodo.anio() }}</h2>
+          <p class="text-sm text-muted-fg">
+            @if (perfil.tieneRuc()) {
+              Facturado <span class="money font-medium text-fg">{{ anual()?.ingresos | dinero }}</span> ·
+            }
+            Gastado <span class="money font-medium text-fg">{{ anual()?.total | dinero }}</span>
+          </p>
+        </div>
+        <div class="mt-5">
+          @if (perfil.tieneRuc()) {
+            <app-barras-comparadas [puntos]="comparado()" [resaltado]="periodo.mes()" titulo="Ingresos y gastos por mes" />
+          } @else {
+            <app-barras-mes [puntos]="porMes()" [resaltado]="periodo.mes()" titulo="Gastos por mes" />
+          }
+        </div>
+      </section>
+
+      @if (perfil.tieneRuc()) {
+        <section class="card flex flex-col p-5 sm:p-6" aria-labelledby="titulo-iva">
+          <h2 id="titulo-iva" class="font-semibold">IVA de {{ nombreMes() }}</h2>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex justify-between"><dt class="text-muted-fg">Cobrado en tus facturas</dt><dd class="money font-medium">{{ m.ivaCobrado | dinero }}</dd></div>
+            <div class="flex justify-between"><dt class="text-muted-fg">Pagado en tus compras</dt><dd class="money font-medium">{{ m.iva | dinero }}</dd></div>
+            <div class="flex justify-between border-t border-border pt-3"><dt class="font-medium">Diferencia</dt><dd class="money font-semibold">{{ m.ivaCobrado - m.iva | dinero }}</dd></div>
+          </dl>
+          <p class="mt-auto flex items-start gap-2 pt-4 text-xs leading-relaxed text-muted-fg">
+            <svg lucideInfo class="mt-0.5 size-3.5 shrink-0" aria-hidden="true"></svg>
+            Referencial: solo el IVA de compras relacionadas con tu actividad da crédito tributario. La declaración llegará pronto.
+          </p>
+        </section>
+      }
+    </div>
+
     <!-- Tope de gastos personales -->
     @if (tope(); as t) {
       <section class="card mt-4 p-5 sm:p-6" aria-labelledby="titulo-tope">
@@ -129,21 +193,11 @@
             <span><span class="money font-semibold">{{ t.deducible | dinero }}</span><span class="ml-1 text-muted-fg">de {{ t.tope | dinero }}</span></span>
             <span class="money font-medium">{{ t.porcentaje | number: '1.0-0' }} %</span>
           </div>
-          <div
-            class="mt-2 h-2.5 overflow-hidden rounded-full bg-muted"
-            role="progressbar"
-            aria-label="Avance hacia el tope de gastos personales"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            [attr.aria-valuenow]="t.porcentaje | number: '1.0-0'"
-          >
-            <div
-              class="h-full rounded-full transition-[width] duration-500"
-              [class.bg-bar]="t.estado === 'normal'"
-              [class.bg-warning]="t.estado === 'cerca'"
-              [class.bg-success]="t.estado === 'alcanzado'"
-              [style.width.%]="t.porcentaje > 100 ? 100 : t.porcentaje"
-            ></div>
+          <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Avance hacia el tope de gastos personales"
+            aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="t.porcentaje | number: '1.0-0'">
+            <div class="h-full rounded-full transition-[width] duration-500"
+              [class.bg-bar]="t.estado === 'normal'" [class.bg-warning]="t.estado === 'cerca'" [class.bg-success]="t.estado === 'alcanzado'"
+              [style.width.%]="t.porcentaje > 100 ? 100 : t.porcentaje"></div>
           </div>
         </div>
 
@@ -170,6 +224,7 @@
       </section>
     }
 
+    <!-- Categorías + últimos movimientos -->
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <section class="card p-5 sm:p-6" aria-labelledby="titulo-categorias">
         <h2 id="titulo-categorias" class="font-semibold">Gasto por categoría</h2>
@@ -183,46 +238,56 @@
         </div>
       </section>
 
-      <section class="card p-5 sm:p-6" aria-labelledby="titulo-meses">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 id="titulo-meses" class="font-semibold">{{ serieMensual() === 'ingresos' ? 'Ingresos' : 'Gastos' }} por mes</h2>
-            <p class="mt-1 text-sm text-muted-fg">
-              {{ periodo.anio() }} · total <span class="money font-medium text-fg">{{ totalAnualSerie() | dinero }}</span>
-            </p>
-          </div>
-          @if (perfil.tieneRuc()) {
-            <div class="inline-flex rounded-lg bg-muted p-1 text-sm" role="radiogroup" aria-label="Serie del gráfico">
-              <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
-                [class]="serieMensual() === 'gastos' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
-                [attr.aria-checked]="serieMensual() === 'gastos'" (click)="serieMensual.set('gastos')">Gastos</button>
-              <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
-                [class]="serieMensual() === 'ingresos' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
-                [attr.aria-checked]="serieMensual() === 'ingresos'" (click)="serieMensual.set('ingresos')">Ingresos</button>
-            </div>
-          }
+      <section class="card p-5 sm:p-6" aria-labelledby="titulo-recientes">
+        <div class="flex items-center justify-between gap-4">
+          <h2 id="titulo-recientes" class="font-semibold">Últimos movimientos</h2>
+          <a routerLink="/gastos" class="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
+            Ver todo <svg lucideArrowRight class="size-3.5" aria-hidden="true"></svg>
+          </a>
         </div>
-        <div class="mt-5">
-          <app-barras-mes [puntos]="porMes()" [resaltado]="periodo.mes()" [titulo]="(serieMensual() === 'ingresos' ? 'Ingresos' : 'Gastos') + ' por mes del año'" />
-        </div>
+        @if (recientes().length) {
+          <ul class="mt-3 divide-y divide-border">
+            @for (c of recientes(); track c.id) {
+              <li>
+                <a [routerLink]="['/comprobantes', c.id]" class="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted">
+                  <span class="w-12 shrink-0 text-xs text-muted-fg">{{ c.fechaEmision | fechaCorta | slice: 0 : 5 }}</span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-medium">{{ esIngreso(c) ? c.razonSocialComprador : (c.nombreComercial || c.razonSocialEmisor) }}</span>
+                    @if (esIngreso(c)) {
+                      <span class="text-xs text-muted-fg">Factura emitida</span>
+                    } @else {
+                      <app-categoria-badge [valor]="c.categoria" class="text-xs" />
+                    }
+                  </span>
+                  <span class="money shrink-0 text-sm font-semibold" [class.text-success]="esIngreso(c)">
+                    {{ esIngreso(c) ? '+' : '−' }}{{ c.total | dinero }}
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="py-8 text-center text-sm text-muted-fg">Sin movimientos en este mes.</p>
+        }
       </section>
     </div>
 
+    <!-- Clientes y proveedores -->
     <div class="mt-4 grid gap-4" [class]="perfil.tieneRuc() ? 'lg:grid-cols-2' : ''">
       @if (perfil.tieneRuc()) {
         <section class="card p-5 sm:p-6" aria-labelledby="titulo-clientes">
           <div class="flex items-center justify-between gap-4">
-            <h2 id="titulo-clientes" class="font-semibold">A quién facturaste este mes</h2>
+            <h2 id="titulo-clientes" class="font-semibold">A quién facturaste</h2>
             <a routerLink="/clientes" class="text-sm font-medium text-accent hover:underline">Ver clientes</a>
           </div>
           @if (m.principalesClientes.length) {
-            <ul class="mt-4 divide-y divide-border">
+            <ul class="mt-3 divide-y divide-border">
               @for (c of m.principalesClientes; track c.identificacion) {
                 <li>
                   <a routerLink="/ingresos" [queryParams]="{ cliente: c.identificacion }" class="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted">
                     <span class="min-w-0">
                       <span class="block truncate text-sm font-medium">{{ c.razonSocial }}</span>
-                      <span class="text-xs text-muted-fg">{{ c.identificacion }} · {{ c.comprobantes }} {{ c.comprobantes === 1 ? 'factura' : 'facturas' }}</span>
+                      <span class="text-xs text-muted-fg">{{ c.comprobantes }} {{ c.comprobantes === 1 ? 'factura' : 'facturas' }}</span>
                     </span>
                     <span class="money shrink-0 text-sm font-semibold">{{ c.total | dinero }}</span>
                   </a>
@@ -230,24 +295,24 @@
               }
             </ul>
           } @else {
-            <p class="py-8 text-center text-sm text-muted-fg">No hay facturas emitidas en este mes. Importa sus XML o claves de acceso.</p>
+            <p class="py-8 text-center text-sm text-muted-fg">No hay facturas emitidas en este mes.</p>
           }
         </section>
       }
 
       <section class="card p-5 sm:p-6" aria-labelledby="titulo-proveedores">
         <div class="flex items-center justify-between gap-4">
-          <h2 id="titulo-proveedores" class="font-semibold">Dónde más gastaste este mes</h2>
-          <a routerLink="/gastos" class="text-sm font-medium text-accent hover:underline">Ver gastos</a>
+          <h2 id="titulo-proveedores" class="font-semibold">Dónde más gastaste</h2>
+          <a routerLink="/proveedores" class="text-sm font-medium text-accent hover:underline">Ver proveedores</a>
         </div>
         @if (m.principalesProveedores.length) {
-          <ul class="mt-4 divide-y divide-border">
-            @for (p of m.principalesProveedores; track p.identificacion) {
+          <ul class="mt-3 divide-y divide-border">
+            @for (p of m.principalesProveedores.slice(0, 5); track p.identificacion) {
               <li>
                 <a routerLink="/gastos" [queryParams]="{ ruc: p.identificacion }" class="-mx-2 flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted">
                   <span class="min-w-0">
                     <span class="block truncate text-sm font-medium">{{ p.razonSocial }}</span>
-                    <span class="text-xs text-muted-fg">RUC {{ p.identificacion }} · {{ p.comprobantes }} {{ p.comprobantes === 1 ? 'comprobante' : 'comprobantes' }}</span>
+                    <span class="text-xs text-muted-fg">{{ p.comprobantes }} {{ p.comprobantes === 1 ? 'comprobante' : 'comprobantes' }}</span>
                   </span>
                   <span class="money shrink-0 text-sm font-semibold">{{ p.total | dinero }}</span>
                 </a>

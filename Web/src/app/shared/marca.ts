@@ -33,6 +33,23 @@ export class Marca {
   protected readonly nombre = NOMBRE_APP;
 }
 
+export const AUTORIA = { nombre: 'Cornerstone Develop', url: 'https://portafolio-hwaq.vercel.app/' };
+
+/** "Diseño y desarrollo: Cornerstone Develop", con enlace al portafolio. */
+@Component({
+  selector: 'app-credito',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <p class="text-xs text-muted-fg">
+      Diseño y desarrollo:
+      <a [href]="autoria.url" target="_blank" rel="noopener" class="font-medium text-fg underline-offset-2 hover:underline">{{ autoria.nombre }}</a>
+    </p>
+  `,
+})
+export class Credito {
+  protected readonly autoria = AUTORIA;
+}
+
 /** Titular de página en Instrument Serif; la segunda parte va en itálica. */
 @Component({
   selector: 'app-titulo',

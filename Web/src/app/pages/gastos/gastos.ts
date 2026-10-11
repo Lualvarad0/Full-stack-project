@@ -1,19 +1,21 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Titulo } from '../../shared/marca';
 import { Router, RouterLink } from '@angular/router';
-import { LucideCircleAlert, LucideFileUp, LucideSearch, LucideTriangleAlert, LucideX } from '@lucide/angular';
+import { LucideFileUp, LucideTriangleAlert, LucideX } from '@lucide/angular';
 import { cargar } from '../../core/carga';
+import { Buscador, ErrorCarga } from '../../shared/controles';
 import { CATEGORIAS, categoria } from '../../core/categorias';
 import { ComprobantesService } from '../../core/comprobantes.service';
 import { AvisosService, PeriodoService } from '../../core/estado';
 import { CategoriaGasto, ComprobanteLista } from '../../core/models';
 import { CategoriaSelect } from '../../shared/categoria';
 import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
+import { FILTRO_VACIO, Filtros, etiquetaRango, hayFiltroRango, parametrosFiltro } from '../../shared/filtros';
 
 @Component({
   selector: 'app-gastos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideSearch, LucideFileUp, LucideX, LucideCircleAlert, LucideTriangleAlert],
+  imports: [Buscador, ErrorCarga, Titulo, Filtros, RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideFileUp, LucideX, LucideTriangleAlert],
   templateUrl: './gastos.html',
 })
 export class Gastos {
@@ -35,10 +37,13 @@ export class Gastos {
   protected readonly guardando = signal<number | null>(null);
   private temporizador?: ReturnType<typeof setTimeout>;
 
+  /** Rango de fechas y montos (si hay rango, reemplaza al mes de la barra superior). */
+  protected readonly filtroRango = signal(FILTRO_VACIO);
+  protected readonly etiquetaPeriodo = computed(() => etiquetaRango(this.filtroRango()) ?? this.periodo.etiqueta());
+
   protected readonly carga = cargar(
     () => ({
-      anio: this.periodo.anio(),
-      mes: this.periodo.mes(),
+      ...parametrosFiltro(this.filtroRango(), this.periodo.anio(), this.periodo.mes()),
       categoria: this.categoria() || undefined,
       ruc: this.ruc(),
       q: this.busquedaAplicada() || undefined,
@@ -56,7 +61,7 @@ export class Gastos {
     const ruc = this.ruc();
     return ruc ? (this.lista().find((c) => c.rucEmisor === ruc)?.razonSocialEmisor ?? `RUC ${ruc}`) : null;
   });
-  protected readonly hayFiltros = computed(() => !!(this.categoria() || this.ruc() || this.ajenos() || this.busquedaAplicada()));
+  protected readonly hayFiltros = computed(() => !!(this.categoria() || this.ruc() || this.ajenos() || this.busquedaAplicada()) || hayFiltroRango(this.filtroRango()));
 
   protected buscar(texto: string): void {
     this.busqueda.set(texto);
@@ -71,6 +76,7 @@ export class Gastos {
   protected limpiarFiltros(): void {
     this.busqueda.set('');
     this.busquedaAplicada.set('');
+    this.filtroRango.set(FILTRO_VACIO);
     void this.router.navigate([], { queryParams: {} });
   }
 

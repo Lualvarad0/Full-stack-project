@@ -15,7 +15,7 @@
         formControlName="ruc"
         inputmode="numeric"
         autocomplete="off"
-        placeholder="0912345675001"
+        placeholder="13 dígitos"
         maxlength="15"
         [attr.aria-invalid]="rucInvalido()"
         aria-describedby="ruc-ayuda"
@@ -33,7 +33,7 @@
         formControlName="cedula"
         inputmode="numeric"
         autocomplete="off"
-        placeholder="0912345675"
+        placeholder="10 dígitos"
         maxlength="12"
         [attr.aria-invalid]="cedulaInvalida()"
         aria-describedby="cedula-ayuda"
@@ -115,18 +115,10 @@
   </div>
 </form>
 
+<app-buzon-tarjeta class="mt-4 block" />
+<app-actividad-cuenta class="mt-4 block max-w-3xl" />
+
 <section class="card mt-4 max-w-3xl p-5 sm:p-6" aria-labelledby="titulo-apariencia">
   <h2 id="titulo-apariencia" class="font-semibold">Apariencia</h2>
-  <div class="mt-4 inline-flex rounded-lg bg-muted p-1" role="radiogroup" aria-label="Tema">
-    @for (t of temas; track t.valor) {
-      <button
-        type="button"
-        role="radio"
-        class="min-h-9 rounded-md px-4 text-sm font-medium transition-colors"
-        [class]="preferencias.tema() === t.valor ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
-        [attr.aria-checked]="preferencias.tema() === t.valor"
-        (click)="preferencias.tema.set(t.valor)"
-      >{{ t.nombre }}</button>
-    }
-  </div>
+  <app-segmentado class="mt-4 block" [opciones]="temas" [(valor)]="preferencias.tema" etiqueta="Tema" />
 </section>

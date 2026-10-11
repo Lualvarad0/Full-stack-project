@@ -45,6 +45,9 @@ namespace Back.Tests
         private const string Servidor = "Host=localhost;Port=5432;Username=facturas;Password=facturas_dev";
         private const string BaseDatos = "facturas_test";
 
+        public const string DominioCorreo = "facturas.nudo.test";
+        public const string SecretoWebhook = "secreto-webhook-pruebas";
+
         public FakeSriHandler Sri { get; } = new();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -54,6 +57,8 @@ namespace Back.Tests
             builder.UseSetting("Jwt:Key", new string('k', 48));
             builder.UseSetting("Database:MigrateOnStartup", "true");
             builder.UseSetting("Sri:Reintentos", "2");
+            builder.UseSetting("Correo:DominioEntrante", DominioCorreo);
+            builder.UseSetting("Correo:SecretoWebhook", SecretoWebhook);
             builder.ConfigureServices(services =>
                 services.AddHttpClient<SriAutorizacionClient>().ConfigurePrimaryHttpMessageHandler(() => Sri));
         }
@@ -70,7 +75,7 @@ namespace Back.Tests
         Task IAsyncLifetime.DisposeAsync() => Task.CompletedTask;
     }
 
-    public class ImportacionSriTests : IClassFixture<ApiFactory>
+    public partial class ImportacionSriTests : IClassFixture<ApiFactory>
     {
         private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
 
