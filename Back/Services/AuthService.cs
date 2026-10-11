@@ -1,3 +1,4 @@
+using Back.Avisos;
 using Back.Dtos;
 using Back.Helpers;
 using Back.Interfaces;
@@ -9,11 +10,13 @@ namespace Back.Services
     public class AuthService
     {
         private readonly IUsuarioRepository _usuarioRepository;
+        private readonly AvisoService _avisos;
         private readonly JwtOptions _jwtOptions;
 
-        public AuthService(IUsuarioRepository usuarioRepository, IOptions<JwtOptions> jwtOptions)
+        public AuthService(IUsuarioRepository usuarioRepository, AvisoService avisos, IOptions<JwtOptions> jwtOptions)
         {
             _usuarioRepository = usuarioRepository;
+            _avisos = avisos;
             _jwtOptions = jwtOptions.Value;
         }
 
@@ -32,6 +35,8 @@ namespace Back.Services
                 Rol = await _usuarioRepository.AnyAsync() ? Roles.User : Roles.Admin,
             };
             await _usuarioRepository.AddAsync(usuario);
+            await _avisos.NotificarAsync(usuario.Id, TipoAviso.Registro, "Te damos la bienvenida a Nudo",
+                "Creaste tu cuenta. Te avisaremos por este medio cada vez que alguien ingrese o cambie la configuración.");
 
             return CrearRespuesta(usuario);
         }
@@ -42,6 +47,8 @@ namespace Back.Services
             if (usuario is null || !BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash))
                 throw new BusinessException("Correo o contraseña incorrectos.", StatusCodes.Status401Unauthorized);
 
+            await _avisos.NotificarAsync(usuario.Id, TipoAviso.Ingreso, "Nuevo ingreso a tu cuenta",
+                "Se inició sesión en tu cuenta de Nudo.");
             return CrearRespuesta(usuario);
         }
 

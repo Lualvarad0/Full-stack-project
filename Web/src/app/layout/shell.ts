@@ -25,13 +25,13 @@ import { AuthService } from '../core/auth';
 import { PeriodoService, PreferenciasService } from '../core/estado';
 import { PerfilService } from '../core/perfil.service';
 import { Avisos } from '../shared/avisos';
-import { Marca } from '../shared/marca';
+import { Credito, Marca } from '../shared/marca';
 
 @Component({
   selector: 'app-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, Avisos, Marca,
+    RouterOutlet, RouterLink, RouterLinkActive, Avisos, Marca, Credito,
     LucideLayoutDashboard, LucideReceipt, LucideFileUp, LucideStore, LucideFileText, LucideHandCoins,
     LucideUsers, LucideCalculator, LucideIdCard, LucideSettings, LucideLogOut, LucideMenu, LucideX,
     LucideMoon, LucideSun, LucideChevronLeft, LucideChevronRight,

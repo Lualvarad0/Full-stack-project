@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Titulo } from '../../shared/marca';
 import { RouterLink } from '@angular/router';
-import { LucideCircleAlert, LucideIdCard, LucideSearch } from '@lucide/angular';
+import { LucideIdCard } from '@lucide/angular';
 import { cargar } from '../../core/carga';
+import { Buscador, ErrorCarga, Segmentado } from '../../shared/controles';
 import { ComprobantesService } from '../../core/comprobantes.service';
 import { PeriodoService } from '../../core/estado';
 import { PerfilService } from '../../core/perfil.service';
@@ -12,7 +13,7 @@ import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
 @Component({
   selector: 'app-clientes',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, RouterLink, DineroPipe, FechaCortaPipe, LucideSearch, LucideCircleAlert, LucideIdCard],
+  imports: [Buscador, ErrorCarga, Segmentado, Titulo, RouterLink, DineroPipe, FechaCortaPipe, LucideIdCard],
   template: `
     <app-titulo linea1="Tus" linea2="clientes" subtitulo="Las personas y empresas a las que facturas, según tus facturas emitidas." />
 
@@ -25,27 +26,11 @@ import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
       </section>
     } @else {
       <div class="mt-6 flex flex-wrap items-center gap-3">
-        <div class="relative min-w-0 flex-1 basis-64">
-          <svg lucideSearch class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-fg" aria-hidden="true"></svg>
-          <input type="search" class="input pl-9" placeholder="Buscar por nombre o identificación" aria-label="Buscar cliente"
-            [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
-        </div>
-        <div class="inline-flex rounded-lg bg-muted p-1 text-sm" role="radiogroup" aria-label="Período">
-          <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
-            [class]="!soloAnio() ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
-            [attr.aria-checked]="!soloAnio()" (click)="soloAnio.set(false)">Histórico</button>
-          <button type="button" role="radio" class="min-h-8 rounded-md px-3 font-medium transition-colors"
-            [class]="soloAnio() ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
-            [attr.aria-checked]="soloAnio()" (click)="soloAnio.set(true)">{{ periodo.anio() }}</button>
-        </div>
+        <app-buscador placeholder="Buscar por nombre o identificación" [valor]="busqueda()" (valorChange)="busqueda.set($event)" />
+        <app-segmentado [opciones]="periodos()" [(valor)]="soloAnio" etiqueta="Período" />
       </div>
 
-      @if (carga().error) {
-        <div class="aviso-error mt-6" role="alert">
-          <svg lucideCircleAlert class="mt-0.5 size-5 shrink-0 text-danger" aria-hidden="true"></svg>
-          <p>{{ carga().error }}</p>
-        </div>
-      }
+      <app-error-carga [mensaje]="carga().error" />
 
       <section class="card mt-4 overflow-hidden" [attr.aria-busy]="carga().cargando">
         @if (carga().cargando && !carga().datos) {
@@ -83,6 +68,10 @@ export class Clientes {
 
   protected readonly busqueda = signal('');
   protected readonly soloAnio = signal(false);
+  protected readonly periodos = computed(() => [
+    { valor: false, etiqueta: 'Histórico' },
+    { valor: true, etiqueta: String(this.periodo.anio()) },
+  ]);
 
   protected readonly carga = cargar(
     () => ({ anio: this.soloAnio() ? this.periodo.anio() : undefined, ruc: this.perfil.perfil()?.ruc }),

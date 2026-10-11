@@ -36,6 +36,10 @@ namespace Back.Repositories
                 var hasta = filtro.Mes.HasValue ? desde.AddMonths(1) : desde.AddYears(1);
                 query = query.Where(c => c.FechaEmision >= desde && c.FechaEmision < hasta);
             }
+            if (filtro.Desde.HasValue) query = query.Where(c => c.FechaEmision >= filtro.Desde.Value);
+            if (filtro.Hasta.HasValue) query = query.Where(c => c.FechaEmision <= filtro.Hasta.Value);
+            if (filtro.MontoMinimo.HasValue) query = query.Where(c => c.Total >= filtro.MontoMinimo.Value);
+            if (filtro.MontoMaximo.HasValue) query = query.Where(c => c.Total <= filtro.MontoMaximo.Value);
             if (filtro.Categoria.HasValue) query = query.Where(c => c.Categoria == filtro.Categoria.Value);
             if (!string.IsNullOrWhiteSpace(filtro.Ruc)) query = query.Where(c => c.RucEmisor == filtro.Ruc);
             if (!string.IsNullOrWhiteSpace(filtro.Busqueda))

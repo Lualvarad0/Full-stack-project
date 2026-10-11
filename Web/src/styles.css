@@ -4,7 +4,9 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ---- Tokens Nudo: blanco, tinta carbón, acento índigo; Instrument Serif + Inter ---- */
-:root {
+/* .tema-claro fuerza los tokens claros en una sección (la landing es siempre clara). */
+:root,
+.tema-claro {
   color-scheme: light;
   --bg: #fafafa;
   --bg-2: #ffffff;
@@ -152,11 +154,120 @@
 
   --shadow-dashboard: var(--shadow-dashboard);
   --shadow-card: var(--shadow-card);
+
+  /* Animaciones de la landing y del acceso (respetan prefers-reduced-motion, ver al final). */
+  --animate-aparecer: aparecer 0.6s ease-out both;
+  --animate-deriva: deriva 18s ease-in-out infinite alternate;
+  --animate-flotar: flotar 6s ease-in-out infinite alternate;
+  --animate-llegar: llegar 9s ease-in-out infinite;
+  /* Demo de la landing: fila nueva resaltada, línea que se dibuja, aviso que entra, onda del clic. */
+  --animate-resaltar: resaltar 2.4s ease-out both;
+  --animate-trazar: trazar 1.4s ease-out both;
+  --animate-deslizar: deslizar 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-onda: onda 0.6s ease-out both;
+  /* Flujo de facturas: guiones que avanzan por los hilos y destello de las tarjetas (ciclo de 4,5 s). */
+  --animate-corriente: corriente 1.2s linear infinite;
+  --animate-destello: destello 4.5s ease-out infinite;
+
+  @keyframes corriente {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+  @keyframes destello {
+    0% {
+      opacity: 1;
+    }
+    18%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes resaltar {
+    from {
+      background-color: var(--primary-soft);
+      transform: translateY(-6px);
+      opacity: 0;
+    }
+    20% {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  @keyframes trazar {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes deslizar {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.96);
+    }
+  }
+  @keyframes onda {
+    from {
+      opacity: 0.5;
+      transform: scale(0.3);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.6);
+    }
+  }
+
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(var(--desde, 16px));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes deriva {
+    to {
+      transform: translate(40px, -30px) scale(1.1);
+    }
+  }
+  @keyframes flotar {
+    to {
+      transform: translateY(-10px);
+    }
+  }
+  /* Tarjeta que entra, se queda y sale: simula facturas llegando al buzón. */
+  @keyframes llegar {
+    0% {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+    }
+    10%,
+    80% {
+      opacity: 1;
+      transform: none;
+    }
+    92%,
+    100% {
+      opacity: 0;
+      transform: translateY(-16px);
+    }
+  }
 }
 
 /* Avisos: ámbar (atención), verde (bien), rojo (error). */
 @utility aviso {
   @apply flex items-start gap-3 rounded-xl border p-4 text-sm;
+}
+
+/* Fondo de puntos suaves (landing y acceso). */
+@utility fondo-puntos {
+  background-image: radial-gradient(color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 @layer base {
@@ -266,12 +377,77 @@
   }
 }
 
+/* Transición entre páginas (View Transitions del router): fundido con un leve desplazamiento. */
+::view-transition-old(root) {
+  animation: 180ms ease-in both salir-vista;
+}
+::view-transition-new(root) {
+  animation: 320ms ease-out both entrar-vista;
+}
+@keyframes salir-vista {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes entrar-vista {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Con "reducir movimiento" se conservan los fundidos (sin desplazamientos), para que nada quede invisible. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes llegar {
+    0%,
+    92%,
+    100% {
+      opacity: 0;
+    }
+    10%,
+    80% {
+      opacity: 1;
+    }
+  }
+  @keyframes deriva {
+    to {
+      transform: none;
+    }
+  }
+  @keyframes flotar {
+    to {
+      transform: none;
+    }
+  }
+  @keyframes resaltar {
+    from {
+      background-color: var(--primary-soft);
+    }
+  }
+  @keyframes deslizar {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes salir-vista {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes entrar-vista {
+    from {
+      opacity: 0;
+    }
   }
 }

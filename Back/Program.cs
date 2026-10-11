@@ -1,3 +1,5 @@
+using Back.Avisos;
+using Back.Correo;
 using Back.Data;
 using Back.Helpers;
 using Back.Interfaces;
@@ -39,6 +41,19 @@ builder.Services.AddScoped<PerfilService>();
 builder.Services.Configure<SriOptions>(builder.Configuration.GetSection(SriOptions.Section));
 builder.Services.AddHttpClient<SriAutorizacionClient>(http =>
     http.Timeout = TimeSpan.FromSeconds(builder.Configuration.GetValue("Sri:TimeoutSegundos", 30)));
+
+// Buzón de reenvío: correo entrante por webhook, procesado en segundo plano.
+builder.Services.AddScoped<IBuzonRepository, BuzonRepository>();
+builder.Services.AddScoped<BuzonService>();
+builder.Services.AddSingleton<SenalCorreos>();
+builder.Services.AddHostedService<ProcesadorCorreosWorker>();
+
+// Avisos de seguridad (ingresos y cambios de configuración), también por correo si hay SMTP.
+builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.Section));
+builder.Services.AddSingleton<ColaCorreoSaliente>();
+builder.Services.AddHostedService<EnvioCorreosWorker>();
+builder.Services.AddScoped<AvisoService>();
 
 // Autenticación JWT
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();

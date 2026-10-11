@@ -15,6 +15,7 @@ import {
   LucideX,
 } from '@lucide/angular';
 import { ComprobantesService } from '../../core/comprobantes.service';
+import { BuzonTarjeta } from '../../shared/buzon-tarjeta';
 import { mensajeDeError } from '../../core/estado';
 import { ImportacionResponse, ResultadoImportacion } from '../../core/models';
 
@@ -34,7 +35,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 @Component({
   selector: 'app-importar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, 
+  imports: [BuzonTarjeta, Titulo, 
     RouterLink, LucideUpload, LucideFileUp, LucideClipboardPaste, LucideLoader, LucideX,
     LucideCircleCheck, LucideCircleMinus, LucideCircleDashed, LucideCircleX, LucideCircleAlert,
   ],

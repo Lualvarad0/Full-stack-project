@@ -76,9 +76,30 @@ El módulo `api/comprobantes` importa tus facturas de consumo verificándolas co
 4. Asigna una categoría (Vivienda, Educacion, Salud, Alimentacion, Vestimenta, Turismo, NoDeducible) con `PUT /api/comprobantes/{id}/categoria`: se recuerda para el proveedor y se aplica a sus comprobantes actuales y futuros.
 5. `GET /api/comprobantes/resumen?anio=2026&mes=10` devuelve el gasto neto (las notas de crédito restan), IVA, total deducible, totales por categoría y principales proveedores; sin `mes`, el resumen anual con desglose mensual.
 
+## Buzón de reenvío (facturas automáticas desde el correo)
+
+Cada usuario tiene una dirección propia `<código>@<Correo:DominioEntrante>` (`GET /api/correo`). Reenvía ahí sus facturas con un filtro de Gmail (`has:attachment filename:xml`); Nudo lee los XML (y ZIP), los verifica con el SRI y los registra como gasto o ingreso. Cuando Gmail pide confirmar la dirección de reenvío, Nudo detecta el código y lo muestra en pantalla. No se guardan contraseñas de correo.
+
+Para activarlo en un dominio (ejemplo con Cloudflare, gratis):
+
+1. Agrega un subdominio de facturas (p. ej. `facturas.tudominio.com`) a **Cloudflare Email Routing**.
+2. Crea un **Email Worker** con [infra/cloudflare-email-worker.js](infra/cloudflare-email-worker.js) y sus variables `NUDO_WEBHOOK_URL` (`https://<api>/api/correo/entrante`) y `NUDO_WEBHOOK_SECRET`.
+3. En Email Routing, regla **catch-all** → enviar al Worker.
+4. En la API: `Correo:DominioEntrante=facturas.tudominio.com` y `Correo:SecretoWebhook=<el mismo secreto>`.
+
+El webhook también acepta formularios multipart de Mailgun o SendGrid Inbound Parse (campo `recipient`/`to` y adjuntos).
+
+## Avisos de seguridad
+
+Cada ingreso al sistema y cada cambio de configuración (perfil, RUC, dirección del buzón) queda en **Configuración → Actividad de tu cuenta** (`GET /api/avisos`) y se envía por correo al usuario si hay SMTP configurado (`Smtp:Host`, `Smtp:Puerto`, `Smtp:Usuario`, `Smtp:Clave`, `Smtp:Remitente`). Sin SMTP, el envío solo se registra en el log.
+
 ### Producción
 
-Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend) y, si quieres que la API aplique las migraciones al arrancar, `Database__MigrateOnStartup=true`.
+Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend), `Correo__DominioEntrante`, `Correo__SecretoWebhook`, `Smtp__*`, `Frontend__Url` y, si quieres que la API aplique las migraciones al arrancar, `Database__MigrateOnStartup=true`.
+
+---
+
+Diseño y desarrollo: [Cornerstone Develop](https://portafolio-hwaq.vercel.app/)
 
 
 ## Contribución

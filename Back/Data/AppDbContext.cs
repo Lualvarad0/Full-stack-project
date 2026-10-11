@@ -15,6 +15,9 @@ namespace Back.Data
         public DbSet<Comprobante> Comprobantes => Set<Comprobante>();
         public DbSet<ComprobanteXml> ComprobantesXml => Set<ComprobanteXml>();
         public DbSet<ProveedorCategoria> ProveedoresCategoria => Set<ProveedorCategoria>();
+        public DbSet<BuzonCorreo> BuzonesCorreo => Set<BuzonCorreo>();
+        public DbSet<CorreoRecibido> CorreosRecibidos => Set<CorreoRecibido>();
+        public DbSet<AvisoCuenta> AvisosCuenta => Set<AvisoCuenta>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -113,6 +116,41 @@ namespace Back.Data
             {
                 e.ToTable("comprobantes_xml");
                 e.HasKey(x => x.ComprobanteId);
+            });
+
+            modelBuilder.Entity<BuzonCorreo>(e =>
+            {
+                e.ToTable("buzones_correo");
+                e.Property(b => b.Codigo).HasMaxLength(20);
+                e.Property(b => b.ConfirmacionGmailCodigo).HasMaxLength(20);
+                e.Property(b => b.ConfirmacionGmailEnlace).HasMaxLength(1000);
+                e.HasIndex(b => b.UsuarioId).IsUnique();
+                e.HasIndex(b => b.Codigo).IsUnique();
+                e.HasOne<Usuario>().WithMany().HasForeignKey(b => b.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<CorreoRecibido>(e =>
+            {
+                e.ToTable("correos_recibidos");
+                e.Property(c => c.Remitente).HasMaxLength(254);
+                e.Property(c => c.Asunto).HasMaxLength(300);
+                e.Property(c => c.Detalle).HasMaxLength(500);
+                e.Property(c => c.Estado).HasConversion<string>().HasMaxLength(20);
+                e.HasIndex(c => new { c.UsuarioId, c.RecibidoEn });
+                e.HasIndex(c => c.Estado);
+                e.HasOne<Usuario>().WithMany().HasForeignKey(c => c.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<AvisoCuenta>(e =>
+            {
+                e.ToTable("avisos_cuenta");
+                e.Property(a => a.Titulo).HasMaxLength(200);
+                e.Property(a => a.Detalle).HasMaxLength(1000);
+                e.Property(a => a.Ip).HasMaxLength(64);
+                e.Property(a => a.Dispositivo).HasMaxLength(100);
+                e.Property(a => a.Tipo).HasConversion<string>().HasMaxLength(30);
+                e.HasIndex(a => new { a.UsuarioId, a.Fecha });
+                e.HasOne<Usuario>().WithMany().HasForeignKey(a => a.UsuarioId).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<ProveedorCategoria>(e =>

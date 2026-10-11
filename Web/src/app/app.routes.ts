@@ -1,20 +1,13 @@
 import { Routes } from '@angular/router';
 import { authGuard, invitadoGuard } from './core/auth';
-import { Shell } from './layout/shell';
 
 export const routes: Routes = [
   {
-    path: 'login',
-    title: 'Iniciar sesión · Nudo',
+    // /login y /registro son la misma ruta para que el panel de acceso se deslice sin recrear la página.
+    matcher: (url) =>
+      url.length === 1 && (url[0].path === 'login' || url[0].path === 'registro') ? { consumed: url, posParams: { modo: url[0] } } : null,
+    title: (ruta) => (ruta.params['modo'] === 'registro' ? 'Crear cuenta · Nudo' : 'Iniciar sesión · Nudo'),
     canActivate: [invitadoGuard],
-    data: { modo: 'login' },
-    loadComponent: () => import('./pages/auth/acceso').then((m) => m.Acceso),
-  },
-  {
-    path: 'registro',
-    title: 'Crear cuenta · Nudo',
-    canActivate: [invitadoGuard],
-    data: { modo: 'registro' },
     loadComponent: () => import('./pages/auth/acceso').then((m) => m.Acceso),
   },
   {
@@ -27,7 +20,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    component: Shell,
+    loadComponent: () => import('./layout/shell').then((m) => m.Shell),
     canActivate: [authGuard],
     children: [
       { path: 'resumen', title: 'Resumen · Nudo', loadComponent: () => import('./pages/resumen/resumen').then((m) => m.Resumen) },
@@ -36,7 +29,7 @@ export const routes: Routes = [
       { path: 'ingresos', title: 'Ingresos · Nudo', loadComponent: () => import('./pages/ingresos/ingresos').then((m) => m.Ingresos) },
       { path: 'clientes', title: 'Clientes · Nudo', loadComponent: () => import('./pages/clientes/clientes').then((m) => m.Clientes) },
       { path: 'comprobantes/:id', title: 'Comprobante · Nudo', loadComponent: () => import('./pages/comprobante/comprobante').then((m) => m.ComprobantePagina) },
-      { path: 'importar', title: 'Importar del SRI · Nudo', loadComponent: () => import('./pages/importar/importar').then((m) => m.Importar) },
+      { path: 'importar', title: 'Traer facturas · Nudo', loadComponent: () => import('./pages/importar/importar').then((m) => m.Importar) },
       { path: 'proveedores', title: 'Proveedores · Nudo', loadComponent: () => import('./pages/proveedores/proveedores').then((m) => m.Proveedores) },
       { path: 'configuracion', title: 'Configuración · Nudo', loadComponent: () => import('./pages/configuracion/configuracion').then((m) => m.Configuracion) },
       proximamente('facturacion', 'Emitir facturas electrónicas', 'Emite facturas firmadas y autorizadas por el SRI directamente desde Nudo.', [

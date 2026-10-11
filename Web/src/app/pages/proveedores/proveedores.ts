@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Titulo } from '../../shared/marca';
 import { RouterLink } from '@angular/router';
-import { LucideCircleAlert, LucideSearch } from '@lucide/angular';
+import { LucideCircleAlert } from '@lucide/angular';
 import { cargar } from '../../core/carga';
+import { Buscador, ErrorCarga } from '../../shared/controles';
 import { categoria } from '../../core/categorias';
 import { ComprobantesService } from '../../core/comprobantes.service';
 import { AvisosService } from '../../core/estado';
@@ -13,27 +14,19 @@ import { DineroPipe } from '../../shared/formato';
 @Component({
   selector: 'app-proveedores',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, RouterLink, DineroPipe, CategoriaSelect, LucideSearch, LucideCircleAlert],
+  imports: [Buscador, ErrorCarga, Titulo, RouterLink, DineroPipe, CategoriaSelect],
   template: `
     <app-titulo linea1="Tus" linea2="proveedores" subtitulo="Asigna una categoría a cada proveedor una sola vez: se aplica a todos sus comprobantes, incluidos los que importes después." />
 
     <div class="mt-6 flex flex-wrap items-center gap-3">
-      <div class="relative min-w-0 flex-1 basis-64">
-        <svg lucideSearch class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-fg" aria-hidden="true"></svg>
-        <input type="search" class="input pl-9" placeholder="Buscar por nombre o RUC" aria-label="Buscar proveedor" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
-      </div>
+      <app-buscador placeholder="Buscar por nombre o RUC" [valor]="busqueda()" (valorChange)="busqueda.set($event)" />
       <label class="inline-flex min-h-10 items-center gap-2 text-sm">
         <input type="checkbox" class="size-4 accent-[var(--accent)]" [checked]="soloSinCategoria()" (change)="soloSinCategoria.set($any($event.target).checked)" />
         Solo sin categoría
       </label>
     </div>
 
-    @if (carga().error) {
-      <div class="aviso-error mt-6" role="alert">
-        <svg lucideCircleAlert class="mt-0.5 size-5 shrink-0 text-danger" aria-hidden="true"></svg>
-        <p>{{ carga().error }}</p>
-      </div>
-    }
+    <app-error-carga [mensaje]="carga().error" />
 
     <section class="card mt-4 overflow-hidden" [attr.aria-busy]="carga().cargando">
       @if (carga().cargando && !carga().datos) {

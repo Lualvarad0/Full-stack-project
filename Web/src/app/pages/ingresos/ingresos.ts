@@ -1,19 +1,21 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Monto, Titulo } from '../../shared/marca';
 import { Router, RouterLink } from '@angular/router';
-import { LucideCircleAlert, LucideFileUp, LucideIdCard, LucideSearch, LucideX } from '@lucide/angular';
+import { LucideFileUp, LucideIdCard, LucideX } from '@lucide/angular';
 import { cargar } from '../../core/carga';
+import { Buscador, ErrorCarga } from '../../shared/controles';
 import { ComprobantesService } from '../../core/comprobantes.service';
 import { PeriodoService } from '../../core/estado';
 import { ComprobanteLista } from '../../core/models';
 import { PerfilService } from '../../core/perfil.service';
 import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
+import { FILTRO_VACIO, Filtros, etiquetaRango, hayFiltroRango, parametrosFiltro } from '../../shared/filtros';
 
 /** Facturas emitidas por el usuario (ingresos) en el mes seleccionado. */
 @Component({
   selector: 'app-ingresos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, Monto, RouterLink, DineroPipe, FechaCortaPipe, LucideSearch, LucideFileUp, LucideX, LucideCircleAlert, LucideIdCard],
+  imports: [Buscador, ErrorCarga, Titulo, Filtros, Monto, RouterLink, DineroPipe, FechaCortaPipe, LucideFileUp, LucideX, LucideIdCard],
   templateUrl: './ingresos.html',
 })
 export class Ingresos {
@@ -29,10 +31,13 @@ export class Ingresos {
   private readonly busquedaAplicada = signal('');
   private temporizador?: ReturnType<typeof setTimeout>;
 
+  /** Rango de fechas y montos (si hay rango, reemplaza al mes de la barra superior). */
+  protected readonly filtroRango = signal(FILTRO_VACIO);
+  protected readonly etiquetaPeriodo = computed(() => etiquetaRango(this.filtroRango()) ?? this.periodo.etiqueta());
+
   protected readonly carga = cargar(
     () => ({
-      anio: this.periodo.anio(),
-      mes: this.periodo.mes(),
+      ...parametrosFiltro(this.filtroRango(), this.periodo.anio(), this.periodo.mes()),
       cliente: this.cliente(),
       q: this.busquedaAplicada() || undefined,
       ruc: this.perfil.perfil()?.ruc,
@@ -47,7 +52,7 @@ export class Ingresos {
     const id = this.cliente();
     return id ? (this.lista().find((c) => c.identificacionComprador === id)?.razonSocialComprador ?? id) : null;
   });
-  protected readonly hayFiltros = computed(() => !!(this.cliente() || this.busquedaAplicada()));
+  protected readonly hayFiltros = computed(() => !!(this.cliente() || this.busquedaAplicada()) || hayFiltroRango(this.filtroRango()));
 
   protected buscar(texto: string): void {
     this.busqueda.set(texto);
@@ -58,6 +63,7 @@ export class Ingresos {
   protected limpiarFiltros(): void {
     this.busqueda.set('');
     this.busquedaAplicada.set('');
+    this.filtroRango.set(FILTRO_VACIO);
     void this.router.navigate([], { queryParams: {} });
   }
 

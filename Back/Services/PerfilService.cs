@@ -1,3 +1,4 @@
+using Back.Avisos;
 using Back.Dtos;
 using Back.Helpers;
 using Back.Interfaces;
@@ -10,11 +11,13 @@ namespace Back.Services
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IComprobanteRepository _comprobanteRepository;
+        private readonly AvisoService _avisos;
 
-        public PerfilService(IUsuarioRepository usuarioRepository, IComprobanteRepository comprobanteRepository)
+        public PerfilService(IUsuarioRepository usuarioRepository, IComprobanteRepository comprobanteRepository, AvisoService avisos)
         {
             _usuarioRepository = usuarioRepository;
             _comprobanteRepository = comprobanteRepository;
+            _avisos = avisos;
         }
 
         public async Task<PerfilDto> ObtenerAsync(int usuarioId) => PerfilDto.From(await ObtenerUsuarioAsync(usuarioId));
@@ -39,9 +42,19 @@ namespace Back.Services
 
             var usuario = await ObtenerUsuarioAsync(usuarioId);
             var rucAnterior = usuario.Ruc;
+            var razonSocial = string.IsNullOrWhiteSpace(request.RazonSocial) ? null : request.RazonSocial.Trim().ToUpperInvariant();
+
+            var cambios = new List<string>();
+            if (usuario.Ruc != ruc) cambios.Add("RUC");
+            if (usuario.Cedula != cedula) cambios.Add("cédula");
+            if (usuario.RazonSocial != razonSocial) cambios.Add("razón social");
+            if (usuario.Regimen != request.Regimen) cambios.Add("régimen");
+            if (usuario.CargasFamiliares != request.CargasFamiliares) cambios.Add("cargas familiares");
+            if (usuario.EnfermedadCatastrofica != request.EnfermedadCatastrofica) cambios.Add("enfermedad catastrófica");
+
             usuario.Cedula = cedula;
             usuario.Ruc = ruc;
-            usuario.RazonSocial = string.IsNullOrWhiteSpace(request.RazonSocial) ? null : request.RazonSocial.Trim().ToUpperInvariant();
+            usuario.RazonSocial = razonSocial;
             usuario.Regimen = request.Regimen;
             usuario.CargasFamiliares = request.CargasFamiliares;
             usuario.EnfermedadCatastrofica = request.EnfermedadCatastrofica;
@@ -51,6 +64,10 @@ namespace Back.Services
             var (emitidos, recibidos) = rucAnterior == ruc
                 ? (-1, -1)
                 : await _comprobanteRepository.ReclasificarAsync(usuarioId, ruc);
+
+            if (cambios.Count > 0)
+                await _avisos.NotificarAsync(usuarioId, TipoAviso.PerfilActualizado, "Se actualizó tu perfil tributario",
+                    $"Cambios: {string.Join(", ", cambios)}.");
 
             return new PerfilActualizadoDto(PerfilDto.From(usuario), emitidos, recibidos);
         }
