@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideArrowRight, LucideCircleCheck, LucideShieldCheck } from '@lucide/angular';
-import { Credito, Marca } from '../../shared/marca';
-import { FormularioAcceso, ModoAcceso } from './formulario-acceso';
+import { ModoAcceso } from '@core/models';
+import { Credito, Marca } from '@shared/components';
+import { FormularioAcceso } from './formulario-acceso';
 
 /**
  * Pantalla de acceso: iniciar sesión a la izquierda, registro a la derecha y un panel que se
@@ -20,6 +21,8 @@ export class Acceso {
   readonly modo = input<ModoAcceso>('login');
   /** Query param ?volver= que deja el guard. */
   readonly volver = input<string | undefined>();
+  /** Query param ?plan= que deja la landing al elegir un plan. */
+  readonly plan = input<string | undefined>();
 
   /** El panel tapa el formulario que no se usa e invita a cambiar al otro. */
   protected readonly paneles = [

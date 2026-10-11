@@ -3,9 +3,10 @@ using Back.Models;
 
 namespace Back.Dtos
 {
-    public record UsuarioDto(int Id, string Nombre, string Email, string Rol)
+    /// <summary>Nombre: nombre y apellido juntos, para mostrar.</summary>
+    public record UsuarioDto(int Id, string Nombre, string Email, string Rol, PlanSuscripcion Plan)
     {
-        public static UsuarioDto From(Usuario u) => new(u.Id, u.Nombre, u.Correo, u.Rol);
+        public static UsuarioDto From(Usuario u) => new(u.Id, $"{u.Nombre} {u.Apellido}".Trim(), u.Correo, u.Rol, u.Plan);
     }
 
     public record UsuarioRequest(

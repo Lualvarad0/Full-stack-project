@@ -1,58 +1,30 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Titulo } from '../../shared/marca';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
-import {
-  LucideCircleAlert,
-  LucideCircleCheck,
-  LucideCircleDashed,
-  LucideCircleMinus,
-  LucideCircleX,
-  LucideClipboardPaste,
-  LucideFileUp,
-  LucideLoader,
-  LucideUpload,
-  LucideX,
-} from '@lucide/angular';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { BuzonTarjeta } from '../../shared/buzon-tarjeta';
-import { mensajeDeError } from '../../core/estado';
-import { ImportacionResponse, ResultadoImportacion } from '../../core/models';
-
-type Modo = 'archivos' | 'claves';
-
-const ESTADOS: Record<ResultadoImportacion, { texto: string; tono: 'exito' | 'neutro' | 'aviso' | 'error' }> = {
-  Importado: { texto: 'Importado', tono: 'exito' },
-  YaExistia: { texto: 'Ya estaba', tono: 'neutro' },
-  NoSoportado: { texto: 'Omitido', tono: 'neutro' },
-  NoEncontrado: { texto: 'No encontrado', tono: 'aviso' },
-  NoAutorizado: { texto: 'No autorizado', tono: 'error' },
-  Error: { texto: 'Error', tono: 'error' },
-};
-
-const MAX_BYTES = 10 * 1024 * 1024;
+import { LucideCircleCheck, LucideCircleDashed, LucideCircleMinus, LucideCircleX, LucideClipboardPaste, LucideFileUp, LucideLoader, LucideX } from '@lucide/angular';
+import { ESTADOS_IMPORTACION, MAX_BYTES_IMPORTACION } from '@core/constants';
+import { ImportacionResponse, ModoImportacion } from '@core/models';
+import { ComprobantesService } from '@core/services';
+import { mensajeDeError } from '@core/utils';
+import { BuzonTarjeta, MensajeError, Titulo, UsoPlanAviso, ZonaArchivos } from '@shared/components';
 
 @Component({
   selector: 'app-importar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [BuzonTarjeta, Titulo, 
-    RouterLink, LucideUpload, LucideFileUp, LucideClipboardPaste, LucideLoader, LucideX,
-    LucideCircleCheck, LucideCircleMinus, LucideCircleDashed, LucideCircleX, LucideCircleAlert,
-  ],
+  imports: [MensajeError, ZonaArchivos, BuzonTarjeta, UsoPlanAviso, Titulo, RouterLink, LucideFileUp, LucideClipboardPaste, LucideLoader, LucideX, LucideCircleCheck, LucideCircleMinus, LucideCircleDashed, LucideCircleX],
   templateUrl: './importar.html',
 })
 export class Importar {
   private readonly comprobantes = inject(ComprobantesService);
 
-  protected readonly modo = signal<Modo>('archivos');
+  protected readonly modo = signal<ModoImportacion>('archivos');
   protected readonly archivos = signal<File[]>([]);
   protected readonly texto = signal('');
-  protected readonly arrastrando = signal(false);
   protected readonly importando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly resultado = signal<ImportacionResponse | null>(null);
 
-  protected readonly estados = ESTADOS;
+  protected readonly estados = ESTADOS_IMPORTACION;
   protected readonly pesoTotal = computed(() => this.archivos().reduce((s, a) => s + a.size, 0));
   protected readonly puedeImportar = computed(() =>
     !this.importando() && (this.modo() === 'archivos' ? this.archivos().length > 0 : this.texto().trim().length > 0),
@@ -61,29 +33,22 @@ export class Importar {
     (this.resultado()?.claves ?? []).filter((c) => c.resultado !== 'Importado' && c.resultado !== 'YaExistia'),
   );
 
-  protected agregar(lista: FileList | null): void {
-    if (!lista) return;
-    const validos = Array.from(lista).filter((a) => /\.(txt|xml|csv)$/i.test(a.name));
+  protected agregar(lista: File[]): void {
+    const validos = lista.filter((a) => /\.(txt|xml|csv)$/i.test(a.name));
     if (validos.length < lista.length) this.error.set('Solo se aceptan archivos .txt o .xml (el reporte del SRI o los XML de tus facturas).');
     else this.error.set(null);
 
     const nombres = new Set(this.archivos().map((a) => a.name));
     this.archivos.update((actuales) => [...actuales, ...validos.filter((a) => !nombres.has(a.name))]);
-    if (this.pesoTotal() > MAX_BYTES) this.error.set('Los archivos superan 10 MB en total. Súbelos en partes.');
+    if (this.pesoTotal() > MAX_BYTES_IMPORTACION) this.error.set('Los archivos superan 10 MB en total. Súbelos en partes.');
   }
 
   protected quitar(archivo: File): void {
     this.archivos.update((lista) => lista.filter((a) => a !== archivo));
   }
 
-  protected soltar(evento: DragEvent): void {
-    evento.preventDefault();
-    this.arrastrando.set(false);
-    this.agregar(evento.dataTransfer?.files ?? null);
-  }
-
   protected importar(): void {
-    if (!this.puedeImportar() || this.pesoTotal() > MAX_BYTES) return;
+    if (!this.puedeImportar() || this.pesoTotal() > MAX_BYTES_IMPORTACION) return;
     const peticion: Observable<ImportacionResponse> = this.modo() === 'archivos'
       ? this.comprobantes.importarArchivos(this.archivos())
       : this.comprobantes.importarTexto(this.texto());

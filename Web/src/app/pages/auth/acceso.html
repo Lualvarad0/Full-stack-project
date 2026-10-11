@@ -19,7 +19,7 @@
     <section class="flex-col justify-center p-6 transition-opacity duration-500 sm:p-8 sm:flex lg:p-10"
       [class]="modo() === 'registro' ? 'flex opacity-100' : 'hidden opacity-0'"
       [inert]="modo() !== 'registro'" aria-label="Crear cuenta">
-      <app-formulario-acceso modo="registro" />
+      <app-formulario-acceso modo="registro" [planInicial]="plan()" />
     </section>
 
     <!-- Panel deslizante: viaja al lado del formulario que no se usa -->

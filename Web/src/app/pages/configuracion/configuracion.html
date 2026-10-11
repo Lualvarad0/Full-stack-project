@@ -96,11 +96,7 @@
     <p class="aviso-atencion mt-5">Aún no está registrada la canasta básica de enero de {{ periodo.anio() }}.</p>
   }
 
-  @if (error()) {
-    <p class="aviso-error mt-5 py-3" role="alert">
-      <svg lucideCircleAlert class="mt-0.5 size-4 shrink-0 text-danger" aria-hidden="true"></svg> {{ error() }}
-    </p>
-  }
+  <app-mensaje-error class="mt-5 block" [mensaje]="error()" />
 
   <div class="mt-6 flex items-center gap-3">
     <button type="submit" class="btn btn-primary" [disabled]="guardando() || !perfilService.perfil()">
@@ -114,6 +110,13 @@
     }
   </div>
 </form>
+
+<app-plan-tarjeta class="mt-4 block max-w-3xl" />
+
+<div id="facturacion" class="mt-4 grid max-w-3xl scroll-mt-20 gap-4">
+  <app-firma-tarjeta />
+  <app-datos-emisor-tarjeta />
+</div>
 
 <app-buzon-tarjeta class="mt-4 block" />
 <app-actividad-cuenta class="mt-4 block max-w-3xl" />

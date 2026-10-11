@@ -14,6 +14,9 @@ namespace Back.Repositories
             _context = context;
         }
 
+        public Task<int> ContarImportadosDesdeAsync(int usuarioId, DateTime desdeUtc) =>
+            _context.Comprobantes.CountAsync(c => c.UsuarioId == usuarioId && c.FechaImportacion >= desdeUtc);
+
         public async Task<HashSet<string>> GetClavesExistentesAsync(int usuarioId, IEnumerable<string> claves)
         {
             var lista = claves.ToList();

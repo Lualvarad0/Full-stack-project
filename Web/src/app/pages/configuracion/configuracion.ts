@@ -1,21 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
-import { Titulo } from '../../shared/marca';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { LucideCircleAlert, LucideLoader } from '@lucide/angular';
-import { AvisosService, PeriodoService, PreferenciasService, mensajeDeError } from '../../core/estado';
-import { calcularTope } from '../../core/gastos-personales';
-import { RegimenTributario } from '../../core/models';
-import { PerfilService, REGIMENES, cedulaValida, rucValido, soloDigitos } from '../../core/perfil.service';
-import { DineroPipe } from '../../shared/formato';
-import { ActividadCuenta } from '../../shared/actividad-cuenta';
-import { Segmentado } from '../../shared/controles';
-import { BuzonTarjeta } from '../../shared/buzon-tarjeta';
+import { LucideLoader } from '@lucide/angular';
+import { REGIMENES } from '@core/constants';
+import { RegimenTributario } from '@core/models';
+import { AvisosService, PerfilService, PeriodoService, PreferenciasService } from '@core/services';
+import { calcularTope, cedulaValida, mensajeDeError, rucValido, soloDigitos } from '@core/utils';
+import { ActividadCuenta, BuzonTarjeta, DatosEmisorTarjeta, FirmaTarjeta, MensajeError, PlanTarjeta, Segmentado, Titulo } from '@shared/components';
+import { DineroPipe } from '@shared/pipes';
 
 @Component({
   selector: 'app-configuracion',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Titulo, ReactiveFormsModule, DineroPipe, LucideLoader, LucideCircleAlert, BuzonTarjeta, ActividadCuenta, Segmentado],
+  imports: [MensajeError, Titulo, ReactiveFormsModule, DineroPipe, LucideLoader, BuzonTarjeta, ActividadCuenta, Segmentado, FirmaTarjeta, DatosEmisorTarjeta, PlanTarjeta],
   templateUrl: './configuracion.html',
 })
 export class Configuracion {

@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, map, of } from 'rxjs';
 import {
   LucideArrowRight,
-  LucideCircleAlert,
   LucideCircleCheck,
   LucideFileUp,
   LucideHandCoins,
@@ -17,25 +16,12 @@ import {
   LucideTrendingUp,
   LucideTriangleAlert,
 } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { ErrorCarga } from '../../shared/controles';
-import { categoria } from '../../core/categorias';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { CorreoService } from '../../core/correo.service';
-import { PeriodoService, capitalizar, nombreMes } from '../../core/estado';
-import { calcularTope, rebajaEstimada } from '../../core/gastos-personales';
-import { ComprobanteLista } from '../../core/models';
-import { PerfilService } from '../../core/perfil.service';
-import { CategoriaBadge } from '../../shared/categoria';
-import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
-import { Barra, BarrasComparadas, BarrasHorizontales, BarrasMes, PuntoComparado, PuntoMes } from '../../shared/graficos';
-import { Monto, Titulo } from '../../shared/marca';
-
-interface Variacion {
-  porcentaje: number;
-  sube: boolean;
-  mesAnterior: string;
-}
+import { categoria } from '@core/constants';
+import { Barra, ComprobanteLista, PuntoComparado, PuntoMes, VariacionMensual } from '@core/models';
+import { AuthService, ComprobantesService, CorreoService, PerfilService, PeriodoService } from '@core/services';
+import { calcularTope, capitalizar, cargar, nombreMes, rebajaEstimada } from '@core/utils';
+import { BarrasComparadas, BarrasHorizontales, BarrasMes, CategoriaBadge, ErrorCarga, Monto, Titulo } from '@shared/components';
+import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 
 @Component({
   selector: 'app-resumen',
@@ -53,16 +39,19 @@ export class Resumen {
   private readonly correo = inject(CorreoService);
   protected readonly periodo = inject(PeriodoService);
   protected readonly perfil = inject(PerfilService);
+  private readonly auth = inject(AuthService);
+  /** Ingresos, clientes e IVA cobrado: necesitan RUC y el plan Profesional. */
+  protected readonly verIngresos = computed(() => this.perfil.tieneRuc() && this.auth.esProfesional());
 
   protected readonly carga = cargar(
-    () => ({ anio: this.periodo.anio(), mes: this.periodo.mes(), ruc: this.perfil.perfil()?.ruc }),
-    ({ anio, mes, ruc }) => forkJoin({
+    () => ({ anio: this.periodo.anio(), mes: this.periodo.mes(), conIngresos: this.verIngresos() }),
+    ({ anio, mes, conIngresos }) => forkJoin({
       mes: this.comprobantes.resumen(anio, mes),
       anual: this.comprobantes.resumen(anio),
       // Últimos movimientos del mes: gastos e ingresos mezclados por fecha.
       recientes: forkJoin([
         this.comprobantes.listar({ direccion: 'Recibido', anio, mes }),
-        ruc ? this.comprobantes.listar({ direccion: 'Emitido', anio, mes }) : of([] as ComprobanteLista[]),
+        conIngresos ? this.comprobantes.listar({ direccion: 'Emitido', anio, mes }) : of([] as ComprobanteLista[]),
       ]).pipe(map(([g, i]) => [...g, ...i]
         .sort((a, b) => b.fechaEmision.localeCompare(a.fechaEmision) || b.id - a.id)
         .slice(0, 6))),
@@ -141,7 +130,7 @@ export class Resumen {
     return horas < 48 ? `último correo hace ${horas} h` : `último correo hace ${Math.round(horas / 24)} días`;
   }
 
-  private variacion(valor: (p: { ingresos: number; total: number }) => number): Variacion | null {
+  private variacion(valor: (p: { ingresos: number; total: number }) => number): VariacionMensual | null {
     const mes = this.periodo.mes();
     const porMes = this.anual()?.porMes;
     if (!porMes || mes === 1) return null;

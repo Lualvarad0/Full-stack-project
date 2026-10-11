@@ -37,13 +37,21 @@
       <p class="seccion mt-6 mb-2 px-3">Lo que facturas</p>
       <ul class="space-y-1">
         <li>
+          <a routerLink="/facturacion" routerLinkActive="nav-activo" class="nav-item">
+            <svg lucideFileText class="size-5" aria-hidden="true"></svg> <span class="flex-1">Emitir facturas</span>
+            @if (!auth.esProfesional()) { <app-insignia-pro /> }
+          </a>
+        </li>
+        <li>
           <a routerLink="/ingresos" routerLinkActive="nav-activo" class="nav-item">
-            <svg lucideHandCoins class="size-5" aria-hidden="true"></svg> Ingresos
+            <svg lucideHandCoins class="size-5" aria-hidden="true"></svg> <span class="flex-1">Ingresos</span>
+            @if (!auth.esProfesional()) { <app-insignia-pro /> }
           </a>
         </li>
         <li>
           <a routerLink="/clientes" routerLinkActive="nav-activo" class="nav-item">
-            <svg lucideUsers class="size-5" aria-hidden="true"></svg> Clientes
+            <svg lucideUsers class="size-5" aria-hidden="true"></svg> <span class="flex-1">Clientes</span>
+            @if (!auth.esProfesional()) { <app-insignia-pro /> }
           </a>
         </li>
       </ul>
@@ -68,7 +76,6 @@
           <li>
             <a [routerLink]="item.ruta" routerLinkActive="nav-activo" class="nav-item">
               @switch (item.icono) {
-                @case ('factura') { <svg lucideFileText class="size-5" aria-hidden="true"></svg> }
                 @case ('declaracion') { <svg lucideCalculator class="size-5" aria-hidden="true"></svg> }
                 @case ('ruc') { <svg lucideIdCard class="size-5" aria-hidden="true"></svg> }
               }
@@ -81,6 +88,11 @@
     </nav>
 
     <div class="border-t border-border p-3">
+      @if (auth.usuario()?.rol === 'admin') {
+        <a routerLink="/admin" routerLinkActive="nav-activo" class="nav-item mb-1">
+          <svg lucideShieldUser class="size-5" aria-hidden="true"></svg> Administración
+        </a>
+      }
       <a routerLink="/configuracion" routerLinkActive="nav-activo" class="nav-item">
         <svg lucideSettings class="size-5" aria-hidden="true"></svg>
         <span class="flex-1">Configuración</span>
@@ -118,7 +130,8 @@
       </button>
 
       <div class="flex items-center gap-1" role="group" aria-label="Mes de trabajo">
-        <button type="button" class="btn btn-ghost px-2" aria-label="Mes anterior" (click)="periodo.mover(-1)">
+        <button type="button" class="btn btn-ghost px-2 disabled:opacity-40" aria-label="Mes anterior" [disabled]="!puedeRetroceder()"
+          [attr.title]="puedeRetroceder() ? null : 'El plan Personal muestra los últimos 3 meses'" (click)="periodo.mover(-1)">
           <svg lucideChevronLeft class="size-5" aria-hidden="true"></svg>
         </button>
         <span class="min-w-36 text-center text-sm font-semibold" aria-live="polite">{{ periodo.etiqueta() }}</span>

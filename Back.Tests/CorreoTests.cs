@@ -16,6 +16,7 @@ namespace Back.Tests
         public async Task Filtros_PorRangoDeFechasYMontos()
         {
             var http = await ClienteAutenticadoAsync("filtros@test.ec");
+            await ActivarPlanAsync("filtros@test.ec");
             var enero = new DateOnly(2026, 1, 20);
             var marzo = new DateOnly(2026, 3, 5);
             var abril = new DateOnly(2026, 4, 2);
@@ -83,6 +84,7 @@ namespace Back.Tests
         public async Task Buzon_CorreoReenviadoConXmlYZipSeImportaComoGastoEIngreso()
         {
             var http = await ClienteAutenticadoAsync("buzon@test.ec");
+            await ActivarPlanAsync("buzon@test.ec");
             await LeerAsync<PerfilActualizadoDto>(await http.PutAsJsonAsync("/api/perfil", new { ruc = SriFixtures.MiRuc, regimen = "General", cargasFamiliares = 0 }));
 
             var buzon = await LeerAsync<BuzonDto>(await http.GetAsync("/api/correo"));

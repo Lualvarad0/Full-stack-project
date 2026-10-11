@@ -1,13 +1,16 @@
 using Back.Avisos;
 using Back.Correo;
 using Back.Data;
+using Back.Facturacion;
 using Back.Helpers;
+using Back.Pagos;
 using Back.Interfaces;
 using Back.Repositories;
 using Back.Services;
 using Back.Sri;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -55,6 +58,19 @@ builder.Services.AddSingleton<ColaCorreoSaliente>();
 builder.Services.AddHostedService<EnvioCorreosWorker>();
 builder.Services.AddScoped<AvisoService>();
 
+// Facturación electrónica. La firma (.p12) y su contraseña se cifran con Data Protection; en producción define
+// DataProtection:RutaClaves (carpeta persistente y privada) para que las claves sobrevivan a los reinicios.
+var proteccion = builder.Services.AddDataProtection().SetApplicationName("nudo");
+if (builder.Configuration["DataProtection:RutaClaves"] is { Length: > 0 } rutaClaves)
+    proteccion.PersistKeysToFileSystem(new DirectoryInfo(rutaClaves));
+builder.Services.AddScoped<FacturacionService>();
+
+// Planes de pago con Kushki (claves en Kushki:ClavePublica, Kushki:ClavePrivada y Kushki:FirmaWebhook).
+builder.Services.Configure<KushkiOptions>(builder.Configuration.GetSection(KushkiOptions.Section));
+builder.Services.AddHttpClient<KushkiClient>(http => http.Timeout = TimeSpan.FromSeconds(30));
+builder.Services.AddScoped<SuscripcionService>();
+builder.Services.AddScoped<AdminService>();
+
 // Autenticación JWT
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.Section).Get<JwtOptions>() ?? new JwtOptions();
 if (jwtOptions.Key.Length < 32)
@@ -64,6 +80,17 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Una cuenta suspendida por el administrador deja de funcionar aunque su token siga vigente.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async contexto =>
+            {
+                var id = JwtHelper.GetUsuarioId(contexto.Principal!);
+                var db = contexto.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                if (!await db.Usuarios.AnyAsync(u => u.Id == id && u.Activo))
+                    contexto.Fail("Cuenta suspendida o eliminada.");
+            },
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
