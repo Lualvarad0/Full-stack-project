@@ -21,10 +21,29 @@ namespace Back.Tests
         public Dictionary<string, string> Respuestas { get; } = new();
         public HashSet<string> ClavesQueFallan { get; } = new();
         public List<(string Url, string Clave, string? SoapAction)> Llamadas { get; } = new();
+        public Dictionary<string, string> Recibidos { get; } = new();
+        /// <summary>Si se define, la recepción responde con este SOAP (por ejemplo, DEVUELTA).</summary>
+        public string? RecepcionDevuelta { get; set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
             var cuerpo = await request.Content!.ReadAsStringAsync(ct);
+
+            // Recepción: guarda el comprobante para que la consulta de autorización lo devuelva AUTORIZADO.
+            var enviado = Regex.Match(cuerpo, "<xml>([^<]+)</xml>");
+            if (enviado.Success)
+            {
+                var xmlRecibido = Encoding.UTF8.GetString(Convert.FromBase64String(enviado.Groups[1].Value));
+                var claveRecibida = Regex.Match(xmlRecibido, @"<claveAcceso>(\d{49})</claveAcceso>").Groups[1].Value;
+                lock (Llamadas)
+                {
+                    Llamadas.Add((request.RequestUri!.ToString(), claveRecibida, "recepcion"));
+                    Recibidos[claveRecibida] = xmlRecibido;
+                    Respuestas.TryAdd(claveRecibida, SriFixtures.RespuestaAutorizada(claveRecibida, xmlRecibido));
+                }
+                var respuesta = RecepcionDevuelta ?? SriFixtures.RespuestaRecibida();
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(respuesta, Encoding.UTF8, "text/xml") };
+            }
             var clave = Regex.Match(cuerpo, "<claveAccesoComprobante>(\\d+)</claveAccesoComprobante>").Groups[1].Value;
             lock (Llamadas)
                 Llamadas.Add((request.RequestUri!.ToString(), clave, request.Headers.TryGetValues("SOAPAction", out var v) ? v.First() : null));
@@ -49,6 +68,8 @@ namespace Back.Tests
         public const string SecretoWebhook = "secreto-webhook-pruebas";
 
         public FakeSriHandler Sri { get; } = new();
+        public FakeKushkiHandler Kushki { get; } = new();
+        public const string FirmaWebhookKushki = "firma-webhook-kushki-pruebas";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -59,8 +80,14 @@ namespace Back.Tests
             builder.UseSetting("Sri:Reintentos", "2");
             builder.UseSetting("Correo:DominioEntrante", DominioCorreo);
             builder.UseSetting("Correo:SecretoWebhook", SecretoWebhook);
+            builder.UseSetting("Kushki:ClavePublica", "publica-pruebas");
+            builder.UseSetting("Kushki:ClavePrivada", "privada-pruebas");
+            builder.UseSetting("Kushki:FirmaWebhook", FirmaWebhookKushki);
             builder.ConfigureServices(services =>
-                services.AddHttpClient<SriAutorizacionClient>().ConfigurePrimaryHttpMessageHandler(() => Sri));
+            {
+                services.AddHttpClient<SriAutorizacionClient>().ConfigurePrimaryHttpMessageHandler(() => Sri);
+                services.AddHttpClient<Back.Pagos.KushkiClient>().ConfigurePrimaryHttpMessageHandler(() => Kushki);
+            });
         }
 
         public async Task InitializeAsync()
@@ -89,7 +116,7 @@ namespace Back.Tests
         private async Task<HttpClient> ClienteAutenticadoAsync(string correo)
         {
             var http = _factory.CreateClient();
-            var registro = await http.PostAsJsonAsync("/api/auth/register", new { username = "Usuario", email = correo, password = "Secreta123" });
+            var registro = await http.PostAsJsonAsync("/api/auth/register", new { nombre = "Usuario", apellido = "Prueba", fechaNacimiento = "1990-05-20", plan = "Personal", email = correo, password = "Secreta123" });
             registro.EnsureSuccessStatusCode();
             var auth = await registro.Content.ReadFromJsonAsync<AuthResponse>(Json);
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
@@ -257,6 +284,7 @@ namespace Back.Tests
         public async Task Perfil_SeparaIngresosDeGastosYMarcaFacturasAjenas()
         {
             var http = await ClienteAutenticadoAsync("ingresos@test.ec");
+            await ActivarPlanAsync("ingresos@test.ec");
             var fecha = new DateOnly(2026, 10, 12);
 
             // Factura que yo emití a un cliente, importada ANTES de registrar mi RUC: entra como gasto.

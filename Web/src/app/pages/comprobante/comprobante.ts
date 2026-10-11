@@ -1,18 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, numberAttribute, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { LucideArrowLeft, LucideCircleAlert, LucideDownload, LucideLoader, LucideTrash, LucideTriangleAlert } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { categoria } from '../../core/categorias';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { AvisosService } from '../../core/estado';
-import { CategoriaGasto } from '../../core/models';
-import { CategoriaSelect } from '../../shared/categoria';
-import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
+import { LucideArrowLeft, LucideDownload, LucideLoader, LucideTrash, LucideTriangleAlert } from '@lucide/angular';
+import { categoria } from '@core/constants';
+import { CategoriaGasto } from '@core/models';
+import { AvisosService, ComprobantesService } from '@core/services';
+import { cargar, descargarArchivo } from '@core/utils';
+import { CategoriaSelect, MensajeError } from '@shared/components';
+import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 
 @Component({
   selector: 'app-comprobante',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideArrowLeft, LucideDownload, LucideTrash, LucideLoader, LucideCircleAlert, LucideTriangleAlert],
+  imports: [MensajeError, RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideArrowLeft, LucideDownload, LucideTrash, LucideLoader, LucideTriangleAlert],
   templateUrl: './comprobante.html',
 })
 export class ComprobantePagina {
@@ -61,12 +60,7 @@ export class ComprobantePagina {
     this.comprobantes.descargarXml(actual.id).subscribe({
       next: (blob) => {
         this.descargando.set(false);
-        const url = URL.createObjectURL(blob);
-        const enlace = document.createElement('a');
-        enlace.href = url;
-        enlace.download = `${actual.claveAcceso}.xml`;
-        enlace.click();
-        URL.revokeObjectURL(url);
+        descargarArchivo(blob, `${actual.claveAcceso}.xml`);
       },
       error: (e) => {
         this.descargando.set(false);

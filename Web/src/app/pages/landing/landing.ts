@@ -15,13 +15,13 @@ import {
   LucideSlidersHorizontal,
   LucideSparkles,
 } from '@lucide/angular';
-import { CANASTA_ENERO, calcularTope } from '../../core/gastos-personales';
-import { DineroPipe } from '../../shared/formato';
-import { AUTORIA, Credito, Marca, NOMBRE_APP } from '../../shared/marca';
+import { AVISO_LANZAMIENTO, CANASTA_ENERO, NOMBRE_APP, PLANES } from '@core/constants';
+import { IconoFuncion } from '@core/models';
+import { calcularTope } from '@core/utils';
+import { Credito, Marca } from '@shared/components';
+import { DineroPipe } from '@shared/pipes';
 import { DemoPanel } from './demo-panel';
 import { FlujoFacturas } from './flujo-facturas';
-
-type IconoFuncion = 'ingresos' | 'categorias' | 'tope' | 'iva' | 'conciliacion' | 'filtros';
 
 /** Landing pública: hero con vista previa del panel + secciones de producto (todo en código, sin imágenes). */
 @Component({
@@ -63,39 +63,8 @@ export class Landing {
     { titulo: 'Avisos de cada ingreso', texto: 'Te avisamos por correo cada vez que alguien entra a tu cuenta o cambia su configuración.' },
   ];
 
-  protected readonly planes = [
-    {
-      nombre: 'Personal',
-      precio: 'Gratis',
-      periodo: '',
-      descripcion: 'Para ordenar tus gastos y tu deducible.',
-      destacado: false,
-      cta: 'Empezar gratis',
-      incluye: ['Buzón de facturas propio', 'Verificación con el SRI', 'Gastos por categoría y proveedores', 'Tope deducible y rebaja estimada', 'Conciliación con el reporte del SRI', 'Avisos de seguridad'],
-      pronto: [] as string[],
-    },
-    {
-      nombre: 'Profesional',
-      precio: '$9',
-      periodo: '/mes + IVA',
-      descripcion: 'Para quien factura con su RUC.',
-      destacado: true,
-      cta: 'Probar Profesional',
-      incluye: ['Todo lo de Personal', 'Ingresos y clientes', 'IVA del mes: cobrado vs pagado', 'Filtros por fecha y monto'],
-      pronto: ['Emitir facturas electrónicas', 'Declaración de IVA (formulario 104)'],
-    },
-    {
-      nombre: 'Contadores',
-      precio: 'A medida',
-      periodo: '',
-      descripcion: 'Para estudios que llevan varios RUC.',
-      destacado: false,
-      cta: 'Conversemos',
-      incluye: ['Varios RUC en una cuenta', 'Panel por cliente', 'Acompañamiento en la puesta en marcha'],
-      pronto: [] as string[],
-    },
-  ];
-  protected readonly autoria = AUTORIA;
+  protected readonly planes = PLANES;
+  protected readonly avisoLanzamiento = AVISO_LANZAMIENTO;
 
   protected readonly preguntas = [
     {
@@ -108,7 +77,7 @@ export class Landing {
     },
     {
       pregunta: '¿Cuánto cuesta?',
-      respuesta: 'Empezar es gratis. Durante el lanzamiento todas las funciones disponibles son gratis; el plan Profesional se cobrará cuando lleguen la facturación electrónica y la declaración de IVA.',
+      respuesta: 'El plan Personal es gratis. Profesional cuesta $14,99 al mes + IVA (o $149 al año) e incluye la facturación electrónica; Contadores, $49 al mes + IVA para hasta 10 RUC. Los planes de pago tienen 14 días gratis y se pagan con tarjeta.',
     },
     {
       pregunta: '¿Qué pasa con las facturas que no llegan a mi correo?',
@@ -120,7 +89,7 @@ export class Landing {
     },
     {
       pregunta: '¿Puedo emitir facturas desde la plataforma?',
-      respuesta: 'Está en desarrollo, junto con la preparación de la declaración de IVA. Por ahora registramos las facturas que emites desde tu sistema actual.',
+      respuesta: 'Sí, con el plan Profesional: subes tu firma electrónica (.p12), creas la factura y Nudo la firma, la envía al SRI y te muestra su autorización. La declaración de IVA llega pronto.',
     },
   ];
 }

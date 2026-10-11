@@ -52,7 +52,7 @@
   <div class="transition-opacity duration-200" [class.opacity-60]="carga().cargando">
     <!-- Indicadores del mes -->
     <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Indicadores del mes">
-      @if (perfil.tieneRuc()) {
+      @if (verIngresos()) {
         <a routerLink="/ingresos" class="card p-5 transition-colors hover:border-accent/40">
           <p class="etiqueta flex items-center gap-1.5"><svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos</p>
           <p class="mt-2"><app-monto [valor]="m.ingresos" /></p>
@@ -66,10 +66,11 @@
           }
         </a>
       } @else {
-        <a routerLink="/configuracion" class="card p-5 transition-colors hover:border-accent/40">
+        <a [routerLink]="perfil.tieneRuc() ? '/suscripcion' : '/configuracion'" [queryParams]="perfil.tieneRuc() ? { plan: 'Profesional' } : null"
+          class="card p-5 transition-colors hover:border-accent/40">
           <p class="etiqueta flex items-center gap-1.5"><svg lucideHandCoins class="size-4" aria-hidden="true"></svg> Ingresos</p>
           <p class="cifra mt-2 text-[28px] leading-none text-muted-fg">—</p>
-          <p class="mt-2 text-xs text-accent">Registra tu RUC para verlos →</p>
+          <p class="mt-2 text-xs text-accent">{{ perfil.tieneRuc() ? 'Disponible en el plan Profesional →' : 'Registra tu RUC para verlos →' }}</p>
         </a>
       }
 
@@ -86,7 +87,7 @@
         }
       </a>
 
-      @if (perfil.tieneRuc()) {
+      @if (verIngresos()) {
         <div class="card p-5">
           <p class="etiqueta flex items-center gap-1.5"><svg lucideScale class="size-4" aria-hidden="true"></svg> Balance</p>
           <p class="mt-2" [class.text-danger]="balance() < 0"><app-monto [valor]="balance()" /></p>
@@ -100,7 +101,7 @@
         <p class="mt-2 text-xs text-muted-fg">Cuenta para tu rebaja del impuesto a la renta</p>
       </div>
 
-      @if (!perfil.tieneRuc()) {
+      @if (!verIngresos()) {
         <div class="card p-5">
           <p class="etiqueta">IVA pagado</p>
           <p class="mt-2"><app-monto [valor]="m.iva" /></p>
@@ -134,19 +135,19 @@
     }
 
     <!-- Evolución anual + IVA -->
-    <div class="mt-4 grid gap-4" [class]="perfil.tieneRuc() ? 'lg:grid-cols-3' : ''">
-      <section class="card p-5 sm:p-6" [class]="perfil.tieneRuc() ? 'lg:col-span-2' : ''" aria-labelledby="titulo-meses">
+    <div class="mt-4 grid gap-4" [class]="verIngresos() ? 'lg:grid-cols-3' : ''">
+      <section class="card p-5 sm:p-6" [class]="verIngresos() ? 'lg:col-span-2' : ''" aria-labelledby="titulo-meses">
         <div class="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="titulo-meses" class="font-semibold">{{ perfil.tieneRuc() ? 'Ingresos y gastos' : 'Gastos' }} de {{ periodo.anio() }}</h2>
+          <h2 id="titulo-meses" class="font-semibold">{{ verIngresos() ? 'Ingresos y gastos' : 'Gastos' }} de {{ periodo.anio() }}</h2>
           <p class="text-sm text-muted-fg">
-            @if (perfil.tieneRuc()) {
+            @if (verIngresos()) {
               Facturado <span class="money font-medium text-fg">{{ anual()?.ingresos | dinero }}</span> ·
             }
             Gastado <span class="money font-medium text-fg">{{ anual()?.total | dinero }}</span>
           </p>
         </div>
         <div class="mt-5">
-          @if (perfil.tieneRuc()) {
+          @if (verIngresos()) {
             <app-barras-comparadas [puntos]="comparado()" [resaltado]="periodo.mes()" titulo="Ingresos y gastos por mes" />
           } @else {
             <app-barras-mes [puntos]="porMes()" [resaltado]="periodo.mes()" titulo="Gastos por mes" />
@@ -154,7 +155,7 @@
         </div>
       </section>
 
-      @if (perfil.tieneRuc()) {
+      @if (verIngresos()) {
         <section class="card flex flex-col p-5 sm:p-6" aria-labelledby="titulo-iva">
           <h2 id="titulo-iva" class="font-semibold">IVA de {{ nombreMes() }}</h2>
           <dl class="mt-4 space-y-3 text-sm">
@@ -273,8 +274,8 @@
     </div>
 
     <!-- Clientes y proveedores -->
-    <div class="mt-4 grid gap-4" [class]="perfil.tieneRuc() ? 'lg:grid-cols-2' : ''">
-      @if (perfil.tieneRuc()) {
+    <div class="mt-4 grid gap-4" [class]="verIngresos() ? 'lg:grid-cols-2' : ''">
+      @if (verIngresos()) {
         <section class="card p-5 sm:p-6" aria-labelledby="titulo-clientes">
           <div class="flex items-center justify-between gap-4">
             <h2 id="titulo-clientes" class="font-semibold">A quién facturaste</h2>

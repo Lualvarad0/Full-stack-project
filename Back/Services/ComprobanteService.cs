@@ -4,6 +4,7 @@ using Back.Dtos;
 using Back.Helpers;
 using Back.Interfaces;
 using Back.Models;
+using Back.Pagos;
 using Back.Sri;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -67,6 +68,17 @@ namespace Back.Services
                     resultados[clave] = new(clave, ResultadoImportacion.NoSoportado, $"{TiposComprobante.Nombre(tipo)}: todavía no se procesa.");
                 else
                     porConsultar.Add(clave);
+            }
+
+            // Plan Personal: hasta LimiteComprobantesPersonal comprobantes nuevos por mes; el resto queda pendiente.
+            if (!AccesoPlan.TieneProfesional(perfil) && porConsultar.Count > 0)
+            {
+                var usados = await _repository.ContarImportadosDesdeAsync(usuarioId, AccesoPlan.InicioMesUtc());
+                var disponibles = Math.Max(0, AccesoPlan.LimiteComprobantesPersonal - usados);
+                foreach (var clave in porConsultar.Skip(disponibles))
+                    resultados[clave] = new(clave, ResultadoImportacion.LimiteDelPlan,
+                        $"El plan Personal incluye {AccesoPlan.LimiteComprobantesPersonal} comprobantes al mes. Pasa a Profesional para importar sin límite.");
+                porConsultar = porConsultar.Take(disponibles).ToList();
             }
 
             var nuevos = new ConcurrentBag<Comprobante>();
@@ -155,7 +167,15 @@ namespace Back.Services
         public async Task<List<ComprobanteListaDto>> ObtenerComprobantesAsync(int usuarioId, FiltroComprobantes filtro)
         {
             var perfil = await ObtenerPerfilAsync(usuarioId);
-            return (await _repository.GetAllAsync(usuarioId, filtro)).Select(c => ComprobanteListaDto.From(c, perfil)).ToList();
+            if (filtro.Direccion == Direccion.Emitido) AccesoPlan.ExigirProfesional(perfil, "Tus ingresos y clientes");
+            if (filtro.Desde is not null || filtro.Hasta is not null || filtro.MontoMinimo is not null || filtro.MontoMaximo is not null)
+                AccesoPlan.ExigirProfesional(perfil, "Los filtros por fecha y monto");
+            AccesoPlan.ValidarPeriodo(perfil, filtro.Anio, filtro.Mes);
+
+            var comprobantes = await _repository.GetAllAsync(usuarioId, filtro);
+            if (!AccesoPlan.TieneProfesional(perfil))
+                comprobantes = comprobantes.Where(c => c.FechaEmision >= AccesoPlan.InicioHistorial()).ToList();
+            return comprobantes.Select(c => ComprobanteListaDto.From(c, perfil)).ToList();
         }
 
         public async Task<ComprobanteDto> ObtenerComprobanteAsync(int usuarioId, int id) =>
@@ -205,6 +225,7 @@ namespace Back.Services
         /// <summary>Clientes a los que el usuario facturó (comprobantes emitidos), opcionalmente en un año/mes.</summary>
         public async Task<List<ClienteFacturadoDto>> ObtenerClientesAsync(int usuarioId, int? anio, int? mes)
         {
+            AccesoPlan.ExigirProfesional(await ObtenerPerfilAsync(usuarioId), "Tus ingresos y clientes");
             var emitidos = await _repository.GetAllAsync(usuarioId, new FiltroComprobantes(Direccion.Emitido, anio, mes));
             return emitidos
                 .GroupBy(c => c.IdentificacionComprador)
@@ -223,8 +244,12 @@ namespace Back.Services
         {
             var perfil = await ObtenerPerfilAsync(usuarioId);
             var todos = await _repository.GetAllAsync(usuarioId, new FiltroComprobantes(null, anio, mes));
+            AccesoPlan.ValidarPeriodo(perfil, anio, mes);
+            if (!AccesoPlan.TieneProfesional(perfil))
+                todos = todos.Where(c => c.FechaEmision >= AccesoPlan.InicioHistorial()).ToList();
             var gastos = todos.Where(c => c.Direccion == Direccion.Recibido).ToList();
-            var ingresos = todos.Where(c => c.Direccion == Direccion.Emitido).ToList();
+            // En el plan Personal el resumen solo trae gastos (ingresos, clientes e IVA cobrado son del plan Profesional).
+            var ingresos = AccesoPlan.TieneProfesional(perfil) ? todos.Where(c => c.Direccion == Direccion.Emitido).ToList() : new List<Comprobante>();
 
             var porCategoria = gastos
                 .GroupBy(c => c.Categoria)

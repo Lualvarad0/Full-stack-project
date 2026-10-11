@@ -4,6 +4,8 @@
   subtitulo="Tus facturas llegan solas desde tu correo y cada una se verifica con el SRI. Con tu RUC sabemos cuáles son ingresos y cuáles gastos."
 />
 
+<app-uso-plan class="mt-6 block" />
+
 <!-- Paso 1: automático -->
 <div class="mt-6 flex items-center gap-2">
   <span class="pildora bg-brand text-brand-ink">Automático</span>
@@ -59,19 +61,10 @@
     </div>
 
     @if (modo() === 'archivos') {
-      <label
-        for="archivos"
-        class="mt-5 flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors"
-        [class]="arrastrando() ? 'border-accent bg-primary-soft' : 'border-border hover:border-accent hover:bg-muted/50'"
-        (dragover)="$event.preventDefault(); arrastrando.set(true)"
-        (dragleave)="arrastrando.set(false)"
-        (drop)="soltar($event)"
-      >
-        <svg lucideUpload class="size-8 text-muted-fg" aria-hidden="true"></svg>
-        <span class="mt-3 font-medium">Arrastra aquí tus archivos o <span class="text-accent underline">elígelos</span></span>
-        <span class="mt-1 text-sm text-muted-fg">Reporte .txt del SRI y/o archivos .xml · hasta 10 MB</span>
-      </label>
-      <input id="archivos" type="file" class="sr-only" multiple accept=".txt,.xml,.csv,text/plain,application/xml,text/xml" (change)="agregar($any($event.target).files); $any($event.target).value = ''" />
+      <app-zona-archivos class="mt-5" idCampo="archivos" [multiple]="true" accept=".txt,.xml,.csv,text/plain,application/xml,text/xml" (archivos)="agregar($event)">
+        <span class="font-medium">Arrastra aquí tus archivos o <span class="text-accent underline">elígelos</span></span>
+        <span class="text-sm text-muted-fg">Reporte .txt del SRI y/o archivos .xml · hasta 10 MB</span>
+      </app-zona-archivos>
 
       @if (archivos().length) {
         <ul class="mt-4 divide-y divide-border rounded-lg border border-border">
@@ -103,11 +96,7 @@
       </div>
     }
 
-    @if (error()) {
-      <p class="aviso-error mt-4 py-3" role="alert">
-        <svg lucideCircleAlert class="mt-0.5 size-4 shrink-0 text-danger" aria-hidden="true"></svg> {{ error() }}
-      </p>
-    }
+    <app-mensaje-error class="mt-4 block" [mensaje]="error()" />
 
     <div class="mt-5 flex flex-wrap items-center gap-3">
       <button type="button" class="btn btn-primary" [disabled]="!puedeImportar()" (click)="importar()">

@@ -479,6 +479,78 @@ namespace Back.Data.Migrations
                     b.ToTable("correos_recibidos", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.DatosEmisor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ambiente")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("ambiente");
+
+                    b.Property<string>("ContribuyenteEspecial")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("contribuyente_especial");
+
+                    b.Property<string>("DireccionEstablecimiento")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("direccion_establecimiento");
+
+                    b.Property<string>("DireccionMatriz")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("direccion_matriz");
+
+                    b.Property<string>("Establecimiento")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("establecimiento")
+                        .IsFixedLength();
+
+                    b.Property<string>("NombreComercial")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("nombre_comercial");
+
+                    b.Property<bool>("ObligadoContabilidad")
+                        .HasColumnType("boolean")
+                        .HasColumnName("obligado_contabilidad");
+
+                    b.Property<string>("PuntoEmision")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("punto_emision")
+                        .IsFixedLength();
+
+                    b.Property<int>("SiguienteSecuencial")
+                        .HasColumnType("integer")
+                        .HasColumnName("siguiente_secuencial");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_datos_emisor");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_datos_emisor_usuario_id");
+
+                    b.ToTable("datos_emisor", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.DetalleFactura", b =>
                 {
                     b.Property<int>("DetalleFacturaId")
@@ -569,6 +641,337 @@ namespace Back.Data.Migrations
                     b.ToTable("facturas", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.FacturaEmitida", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ambiente")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("ambiente");
+
+                    b.Property<string>("ClaveAcceso")
+                        .IsRequired()
+                        .HasMaxLength(49)
+                        .HasColumnType("character(49)")
+                        .HasColumnName("clave_acceso")
+                        .IsFixedLength();
+
+                    b.Property<string>("CorreoComprador")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("correo_comprador");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creada_en");
+
+                    b.Property<decimal>("Descuento")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("descuento");
+
+                    b.Property<string>("DireccionComprador")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("direccion_comprador");
+
+                    b.Property<string>("Establecimiento")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("establecimiento")
+                        .IsFixedLength();
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime?>("FechaAutorizacion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_autorizacion");
+
+                    b.Property<DateOnly>("FechaEmision")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_emision");
+
+                    b.Property<string>("FormaPago")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character(2)")
+                        .HasColumnName("forma_pago")
+                        .IsFixedLength();
+
+                    b.Property<string>("IdentificacionComprador")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("identificacion_comprador");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("iva");
+
+                    b.Property<string>("Mensajes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("mensajes");
+
+                    b.Property<string>("NumeroAutorizacion")
+                        .HasMaxLength(49)
+                        .HasColumnType("character varying(49)")
+                        .HasColumnName("numero_autorizacion");
+
+                    b.Property<string>("PuntoEmision")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("punto_emision")
+                        .IsFixedLength();
+
+                    b.Property<string>("RazonSocialComprador")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("razon_social_comprador");
+
+                    b.Property<int>("Secuencial")
+                        .HasColumnType("integer")
+                        .HasColumnName("secuencial");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<string>("TipoIdentificacionComprador")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character(2)")
+                        .HasColumnName("tipo_identificacion_comprador")
+                        .IsFixedLength();
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("total");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("XmlFirmado")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("xml_firmado");
+
+                    b.HasKey("Id")
+                        .HasName("pk_facturas_emitidas");
+
+                    b.HasIndex("ClaveAcceso")
+                        .IsUnique()
+                        .HasDatabaseName("ix_facturas_emitidas_clave_acceso");
+
+                    b.HasIndex("UsuarioId", "CreadaEn")
+                        .HasDatabaseName("ix_facturas_emitidas_usuario_id_creada_en");
+
+                    b.HasIndex("UsuarioId", "Ambiente", "Establecimiento", "PuntoEmision", "Secuencial")
+                        .IsUnique()
+                        .HasDatabaseName("ix_facturas_emitidas_usuario_id_ambiente_establecimiento_punto");
+
+                    b.ToTable("facturas_emitidas", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.FacturaEmitidaDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("cantidad");
+
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("descripcion");
+
+                    b.Property<decimal>("Descuento")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("descuento");
+
+                    b.Property<int>("FacturaEmitidaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("factura_emitida_id");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("iva");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("precio_unitario");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<string>("Tarifa")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("tarifa");
+
+                    b.HasKey("Id")
+                        .HasName("pk_facturas_emitidas_detalle");
+
+                    b.HasIndex("FacturaEmitidaId")
+                        .HasDatabaseName("ix_facturas_emitidas_detalle_factura_emitida_id");
+
+                    b.ToTable("facturas_emitidas_detalle", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.FirmaElectronica", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("ArchivoCifrado")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("archivo_cifrado");
+
+                    b.Property<byte[]>("ClaveCifrada")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("clave_cifrada");
+
+                    b.Property<string>("Emisor")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("emisor");
+
+                    b.Property<string>("Identificacion")
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("identificacion");
+
+                    b.Property<string>("NumeroSerie")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("numero_serie");
+
+                    b.Property<DateTime>("SubidaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("subida_en");
+
+                    b.Property<string>("Titular")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("titular");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<DateTime>("ValidaDesde")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valida_desde");
+
+                    b.Property<DateTime>("ValidaHasta")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("valida_hasta");
+
+                    b.HasKey("Id")
+                        .HasName("pk_firmas_electronicas");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_firmas_electronicas_usuario_id");
+
+                    b.ToTable("firmas_electronicas", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.PagoSuscripcion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Aprobado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("aprobado");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("detalle");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("monto");
+
+                    b.Property<int>("SuscripcionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("suscripcion_id");
+
+                    b.Property<string>("Ticket")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ticket");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pagos_suscripcion");
+
+                    b.HasIndex("SuscripcionId")
+                        .HasDatabaseName("ix_pagos_suscripcion_suscripcion_id");
+
+                    b.HasIndex("Ticket")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pagos_suscripcion_ticket");
+
+                    b.ToTable("pagos_suscripcion", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.Producto", b =>
                 {
                     b.Property<int>("ProductoId")
@@ -649,6 +1052,145 @@ namespace Back.Data.Migrations
                     b.ToTable("proveedores_categoria", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.ServicioFacturable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasColumnName("codigo");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("descripcion");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)")
+                        .HasColumnName("precio_unitario");
+
+                    b.Property<string>("Tarifa")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("tarifa");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_servicios_facturables");
+
+                    b.HasIndex("UsuarioId", "Descripcion")
+                        .HasDatabaseName("ix_servicios_facturables_usuario_id_descripcion");
+
+                    b.ToTable("servicios_facturables", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.Suscripcion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CanceladaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelada_en");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creada_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("iva");
+
+                    b.Property<string>("KushkiId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("kushki_id");
+
+                    b.Property<string>("MarcaTarjeta")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("marca_tarjeta");
+
+                    b.Property<string>("Periodicidad")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("periodicidad");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("plan");
+
+                    b.Property<DateOnly>("ProximoCobro")
+                        .HasColumnType("date")
+                        .HasColumnName("proximo_cobro");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("total");
+
+                    b.Property<DateTime?>("UltimoPagoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultimo_pago_en");
+
+                    b.Property<string>("UltimosDigitos")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("ultimos_digitos");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_suscripciones");
+
+                    b.HasIndex("KushkiId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_suscripciones_kushki_id");
+
+                    b.HasIndex("UsuarioId", "Estado")
+                        .HasDatabaseName("ix_suscripciones_usuario_id_estado");
+
+                    b.ToTable("suscripciones", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -657,6 +1199,16 @@ namespace Back.Data.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activo");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("apellido");
 
                     b.Property<int>("CargasFamiliares")
                         .HasColumnType("integer")
@@ -681,6 +1233,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_creacion");
 
+                    b.Property<DateOnly?>("FechaNacimiento")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_nacimiento");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -691,6 +1247,12 @@ namespace Back.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("plan");
 
                     b.Property<string>("RazonSocial")
                         .HasMaxLength(300)
@@ -712,6 +1274,10 @@ namespace Back.Data.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("character varying(13)")
                         .HasColumnName("ruc");
+
+                    b.Property<DateTime?>("UltimoIngresoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ultimo_ingreso_en");
 
                     b.HasKey("Id")
                         .HasName("pk_usuarios");
@@ -785,6 +1351,16 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_correos_recibidos_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.DatosEmisor", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_datos_emisor_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.DetalleFactura", b =>
                 {
                     b.HasOne("Back.Models.Factura", "Factura")
@@ -827,6 +1403,46 @@ namespace Back.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("Back.Models.FacturaEmitida", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_facturas_emitidas_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.FacturaEmitidaDetalle", b =>
+                {
+                    b.HasOne("Back.Models.FacturaEmitida", null)
+                        .WithMany("Detalles")
+                        .HasForeignKey("FacturaEmitidaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_facturas_emitidas_detalle_facturas_emitidas_factura_emitida");
+                });
+
+            modelBuilder.Entity("Back.Models.FirmaElectronica", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_firmas_electronicas_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PagoSuscripcion", b =>
+                {
+                    b.HasOne("Back.Models.Suscripcion", null)
+                        .WithMany()
+                        .HasForeignKey("SuscripcionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_pagos_suscripcion_suscripciones_suscripcion_id");
+                });
+
             modelBuilder.Entity("Back.Models.ProveedorCategoria", b =>
                 {
                     b.HasOne("Back.Models.Usuario", null)
@@ -837,6 +1453,26 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_proveedores_categoria_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.ServicioFacturable", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_servicios_facturables_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.Suscripcion", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_suscripciones_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.Comprobante", b =>
                 {
                     b.Navigation("Detalles");
@@ -845,6 +1481,11 @@ namespace Back.Data.Migrations
                 });
 
             modelBuilder.Entity("Back.Models.Factura", b =>
+                {
+                    b.Navigation("Detalles");
+                });
+
+            modelBuilder.Entity("Back.Models.FacturaEmitida", b =>
                 {
                     b.Navigation("Detalles");
                 });

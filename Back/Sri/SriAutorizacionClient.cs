@@ -11,12 +11,18 @@ namespace Back.Sri
 
         public string UrlProduccion { get; set; } = "https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline";
         public string UrlPruebas { get; set; } = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline";
+        public string UrlRecepcionProduccion { get; set; } = "https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline";
+        public string UrlRecepcionPruebas { get; set; } = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline";
         public int TimeoutSegundos { get; set; } = 30;
         public int Reintentos { get; set; } = 3;
         public int ConsultasEnParalelo { get; set; } = 4;
     }
 
-    public enum EstadoAutorizacion { Autorizado, NoAutorizado, NoEncontrado }
+    /// <summary>EnProceso: el SRI recibió el comprobante pero aún no termina de autorizarlo.</summary>
+    public enum EstadoAutorizacion { Autorizado, NoAutorizado, NoEncontrado, EnProceso }
+
+    /// <summary>Respuesta de la recepción: RECIBIDA o DEVUELTA (con los motivos).</summary>
+    public record SriRecepcion(bool Recibida, string? Mensajes);
 
     public record SriAutorizacion(
         EstadoAutorizacion Estado,
@@ -47,6 +53,34 @@ namespace Back.Sri
                 $"<claveAccesoComprobante>{claveAcceso}</claveAccesoComprobante>" +
                 "</ec:autorizacionComprobante></soapenv:Body></soapenv:Envelope>";
 
+            return Interpretar(await EnviarSoapAsync(url, envelope, ct));
+        }
+
+        /// <summary>Envía un comprobante firmado al servicio de recepción del ambiente indicado.</summary>
+        public async Task<SriRecepcion> EnviarAsync(string xmlFirmado, bool produccion, CancellationToken ct = default)
+        {
+            var url = produccion ? _options.UrlRecepcionProduccion : _options.UrlRecepcionPruebas;
+            var envelope =
+                "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ec=\"http://ec.gob.sri.ws.recepcion\">" +
+                "<soapenv:Header/><soapenv:Body><ec:validarComprobante>" +
+                $"<xml>{Convert.ToBase64String(Encoding.UTF8.GetBytes(xmlFirmado))}</xml>" +
+                "</ec:validarComprobante></soapenv:Body></soapenv:Envelope>";
+            return InterpretarRecepcion(await EnviarSoapAsync(url, envelope, ct));
+        }
+
+        public static SriRecepcion InterpretarRecepcion(string respuestaSoap)
+        {
+            var raiz = XDocument.Parse(respuestaSoap).Root!;
+            var estado = raiz.Descendants().FirstOrDefault(e => e.Name.LocalName == "estado")?.Value.Trim();
+            var mensajes = raiz.Descendants()
+                .Where(e => e.Name.LocalName == "mensaje" && e.HasElements)
+                .Select(m => $"{Texto(m, "identificador")}: {Texto(m, "mensaje")} {Texto(m, "informacionAdicional")}".Trim())
+                .ToList();
+            return new SriRecepcion(estado == "RECIBIDA", mensajes.Count > 0 ? string.Join(" | ", mensajes) : null);
+        }
+
+        private async Task<string> EnviarSoapAsync(string url, string envelope, CancellationToken ct)
+        {
             for (var intento = 1; ; intento++)
             {
                 try
@@ -59,7 +93,7 @@ namespace Back.Sri
 
                     using var response = await _http.SendAsync(request, ct);
                     response.EnsureSuccessStatusCode();
-                    return Interpretar(await response.Content.ReadAsStringAsync(ct));
+                    return await response.Content.ReadAsStringAsync(ct);
                 }
                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException
                                            && intento < _options.Reintentos && !ct.IsCancellationRequested)
@@ -82,6 +116,8 @@ namespace Back.Sri
             var autorizada = autorizaciones.FirstOrDefault(a => Texto(a, "estado") == "AUTORIZADO");
             if (autorizada is null)
             {
+                if (autorizaciones.All(a => Texto(a, "estado") == "EN PROCESO"))
+                    return new SriAutorizacion(EstadoAutorizacion.EnProceso, Mensaje: "El SRI está procesando el comprobante.");
                 var mensajes = autorizaciones[0].Descendants()
                     .Where(e => e.Name.LocalName == "mensaje" && e.HasElements)
                     .Select(m => $"{Texto(m, "identificador")}: {Texto(m, "mensaje")} {Texto(m, "informacionAdicional")}".Trim());

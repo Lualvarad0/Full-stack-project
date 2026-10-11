@@ -1,34 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { LucideChartPie, LucideFileText, LucideHandCoins, LucideMail, LucideScale, LucideShieldCheck, LucideCalculator } from '@lucide/angular';
-
-type Tono = 'gasto' | 'ingreso' | 'sri';
-type Icono = 'correo' | 'factura' | 'sri' | 'gastos' | 'ingresos' | 'tope' | 'iva';
-
-interface Nodo {
-  icono: Icono;
-  titulo: string;
-  detalle: string;
-  tono: Tono;
-  x: number;
-  y: number;
-}
-
-interface Cable {
-  d: string;
-  tono: Tono;
-  /** Segundo del ciclo en el que el punto de luz sale por este cable. */
-  inicio: number;
-}
-
-interface Diagrama {
-  ancho: number;
-  alto: number;
-  centro: { x: number; y: number };
-  fuentes: Nodo[];
-  salidas: Nodo[];
-  cables: Cable[];
-}
+import {
+  LucideCalculator,
+  LucideChartPie,
+  LucideFileText,
+  LucideHandCoins,
+  LucideMail,
+  LucideScale,
+  LucideShieldCheck,
+} from '@lucide/angular';
+import { CableFlujo, DiagramaFlujo, NodoFlujo, TonoFlujo } from '@core/models';
 
 /** Duración del ciclo completo: los puntos entran, el nudo se ilumina y salen hacia los resultados. */
 const CICLO = 4.5;
@@ -57,18 +38,18 @@ function curva(x1: number, y1: number, x2: number, y2: number, horizontal: boole
 }
 
 /** Arma el diagrama con las mismas piezas en horizontal (escritorio) o vertical (celular). */
-function diagrama(horizontal: boolean): Diagrama {
+function diagrama(horizontal: boolean): DiagramaFlujo {
   const ancho = horizontal ? 960 : 360;
   const alto = horizontal ? 400 : 720;
   const centro = horizontal ? { x: 480, y: 200 } : { x: 180, y: 330 };
-  const fuentes: Nodo[] = FUENTES.map((f, i) =>
+  const fuentes: NodoFlujo[] = FUENTES.map((f, i) =>
     horizontal ? { ...f, x: 125, y: 80 + i * 120 } : { ...f, x: 150, y: 40 + i * 70 },
   );
-  const salidas: Nodo[] = SALIDAS.map((s, i) =>
+  const salidas: NodoFlujo[] = SALIDAS.map((s, i) =>
     horizontal ? { ...s, x: 835, y: 55 + i * 97 } : { ...s, x: i % 2 ? 268 : 92, y: 520 + Math.floor(i / 2) * 150 },
   );
 
-  const cables: Cable[] = [
+  const cables: CableFlujo[] = [
     ...fuentes.map((f, i) => ({
       d: horizontal ? curva(f.x + 105, f.y, centro.x - 70, centro.y, true) : `M272,${f.y} C335,${f.y} 335,${centro.y - 90} ${centro.x + 20 + i * 12},${centro.y - 68}`,
       tono: f.tono,
@@ -196,15 +177,15 @@ export class FlujoFacturas {
     { x: 25, y: 17.5, r: 1.9, color: '#a5a8ff', inicio: 2.0 },
   ];
 
-  protected color(tono: Tono): string {
+  protected color(tono: TonoFlujo): string {
     return tono === 'ingreso' ? 'var(--success)' : tono === 'sri' ? 'var(--brand)' : '#ffffff';
   }
 
-  protected anillo(tono: Tono): string {
+  protected anillo(tono: TonoFlujo): string {
     return tono === 'ingreso' ? 'ring-success bg-success/10' : tono === 'sri' ? 'ring-brand bg-brand/15' : 'ring-white/60 bg-white/10';
   }
 
-  protected fondoIcono(tono: Tono): string {
+  protected fondoIcono(tono: TonoFlujo): string {
     return tono === 'ingreso' ? 'bg-success/15 text-success' : tono === 'sri' ? 'bg-brand/25 text-[#a5a8ff]' : 'bg-white/10 text-white';
   }
 }

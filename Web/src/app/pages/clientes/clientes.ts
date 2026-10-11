@@ -1,13 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Titulo } from '../../shared/marca';
 import { RouterLink } from '@angular/router';
 import { LucideIdCard } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { Buscador, ErrorCarga, Segmentado } from '../../shared/controles';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { PeriodoService } from '../../core/estado';
-import { PerfilService } from '../../core/perfil.service';
-import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
+import { ComprobantesService, PerfilService, PeriodoService } from '@core/services';
+import { cargar } from '@core/utils';
+import { Buscador, ErrorCarga, Segmentado, Titulo } from '@shared/components';
+import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 
 /** Clientes a los que el usuario factura, a partir de sus facturas emitidas. */
 @Component({

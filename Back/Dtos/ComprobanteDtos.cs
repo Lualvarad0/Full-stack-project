@@ -3,7 +3,7 @@ using Back.Models;
 
 namespace Back.Dtos
 {
-    public enum ResultadoImportacion { Importado, YaExistia, NoAutorizado, NoEncontrado, NoSoportado, Error }
+    public enum ResultadoImportacion { Importado, YaExistia, NoAutorizado, NoEncontrado, NoSoportado, Error, LimiteDelPlan }
 
     public record ClaveImportada(string ClaveAcceso, ResultadoImportacion Resultado, string? Detalle = null, Direccion? Direccion = null);
 

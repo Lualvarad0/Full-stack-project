@@ -3,10 +3,7 @@
 </a>
 
 @if (carga().error && !c()) {
-  <div class="aviso-error mt-4" role="alert">
-    <svg lucideCircleAlert class="mt-0.5 size-5 shrink-0 text-danger" aria-hidden="true"></svg>
-    <p>{{ carga().error }}</p>
-  </div>
+  <app-mensaje-error class="mt-4 block" [mensaje]="carga().error" />
 } @else if (!c()) {
   <div class="card mt-4 h-64 animate-pulse bg-muted" aria-label="Cargando comprobante"></div>
 } @else if (c(); as c) {

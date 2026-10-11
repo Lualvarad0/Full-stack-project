@@ -1,15 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Titulo } from '../../shared/marca';
 import { RouterLink } from '@angular/router';
-import { LucideCircleAlert } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { Buscador, ErrorCarga } from '../../shared/controles';
-import { categoria } from '../../core/categorias';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { AvisosService } from '../../core/estado';
-import { CategoriaGasto, Proveedor } from '../../core/models';
-import { CategoriaSelect } from '../../shared/categoria';
-import { DineroPipe } from '../../shared/formato';
+import { categoria } from '@core/constants';
+import { CategoriaGasto, Proveedor } from '@core/models';
+import { AvisosService, ComprobantesService } from '@core/services';
+import { cargar } from '@core/utils';
+import { Buscador, CategoriaSelect, ErrorCarga, Titulo } from '@shared/components';
+import { DineroPipe } from '@shared/pipes';
 
 @Component({
   selector: 'app-proveedores',

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { PreferenciasService } from './core/estado';
+import { PreferenciasService } from '@core/services';
 
 @Component({
   selector: 'app-root',

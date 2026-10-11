@@ -24,6 +24,7 @@ namespace Back.Interfaces
     public interface IComprobanteRepository
     {
         Task<HashSet<string>> GetClavesExistentesAsync(int usuarioId, IEnumerable<string> claves);
+        Task<int> ContarImportadosDesdeAsync(int usuarioId, DateTime desdeUtc);
         Task<List<Comprobante>> GetAllAsync(int usuarioId, FiltroComprobantes filtro);
         Task<Comprobante?> GetByIdAsync(int usuarioId, int id, bool conDetalles = false);
         Task<string?> GetXmlAsync(int usuarioId, int id);

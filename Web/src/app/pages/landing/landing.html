@@ -186,10 +186,10 @@
   <div class="mx-auto max-w-5xl">
     <p class="text-sm font-medium text-primary">Planes</p>
     <h2 class="titular mt-3 max-w-2xl text-4xl text-fg md:text-5xl">Empieza gratis, <em class="italic">crece cuando factures</em></h2>
-    <p class="mt-4 max-w-2xl text-muted-fg">Durante el lanzamiento, todas las funciones disponibles son gratis. Precios referenciales de lanzamiento.</p>
+    <p class="mt-4 max-w-2xl text-muted-fg">{{ avisoLanzamiento }} Precios referenciales.</p>
 
     <div class="mt-12 grid gap-5 lg:grid-cols-3">
-      @for (p of planes; track p.nombre) {
+      @for (p of planes; track p.id) {
         <article class="relative flex flex-col rounded-2xl border p-6"
           [class]="p.destacado ? 'border-ink bg-ink text-ink-fg shadow-dashboard' : 'border-border bg-card'">
           @if (p.destacado) {
@@ -215,11 +215,7 @@
             }
           </ul>
 
-          @if (p.nombre === 'Contadores') {
-            <a [href]="autoria.url" target="_blank" rel="noopener" class="btn btn-secondary mt-8 min-h-11">{{ p.cta }}</a>
-          } @else {
-            <a routerLink="/registro" class="btn mt-8 min-h-11" [class]="p.destacado ? 'bg-white text-ink hover:bg-white/90' : 'btn-primary'">{{ p.cta }}</a>
-          }
+          <a routerLink="/registro" [queryParams]="{ plan: p.id }" class="btn mt-8 min-h-11" [class]="p.destacado ? 'bg-white text-ink hover:bg-white/90' : 'btn-primary'">{{ p.cta }}</a>
         </article>
       }
     </div>

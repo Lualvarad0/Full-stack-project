@@ -1,15 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { Monto, Titulo } from '../../shared/marca';
 import { Router, RouterLink } from '@angular/router';
 import { LucideFileUp, LucideIdCard, LucideX } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { Buscador, ErrorCarga } from '../../shared/controles';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { PeriodoService } from '../../core/estado';
-import { ComprobanteLista } from '../../core/models';
-import { PerfilService } from '../../core/perfil.service';
-import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
-import { FILTRO_VACIO, Filtros, etiquetaRango, hayFiltroRango, parametrosFiltro } from '../../shared/filtros';
+import { FILTRO_VACIO } from '@core/constants';
+import { ComprobanteLista } from '@core/models';
+import { ComprobantesService, PerfilService, PeriodoService } from '@core/services';
+import { cargar, etiquetaRango, hayFiltroRango, parametrosFiltro } from '@core/utils';
+import { Buscador, ErrorCarga, Filtros, Monto, Titulo } from '@shared/components';
+import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 
 /** Facturas emitidas por el usuario (ingresos) en el mes seleccionado. */
 @Component({

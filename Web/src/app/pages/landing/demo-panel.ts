@@ -1,11 +1,11 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
-  ElementRef,
-  afterNextRender,
   computed,
+  DestroyRef,
   effect,
+  ElementRef,
   inject,
   input,
   signal,
@@ -23,8 +23,9 @@ import {
   LucideReceipt,
   LucideSearch,
 } from '@lucide/angular';
+import { MONEDA } from '@core/utils';
+import { CategoriaDemo, LlegadaDemo, MovimientoDemo, VistaDemo } from '@core/models';
 
-const MONEDA = new Intl.NumberFormat('es-EC', { style: 'currency', currency: 'USD' });
 const sinMovimiento = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Muestra un monto que sube o baja hasta su nuevo valor (sin animación si se pide reducir movimiento). */
@@ -60,43 +61,28 @@ export class Contador {
   }
 }
 
-type Vista = 'resumen' | 'gastos' | 'ingresos' | 'buzon';
-type Categoria = 'Vivienda' | 'Salud' | 'Alimentación' | 'Educación' | 'Vestimenta';
+const CATEGORIAS: CategoriaDemo[] = ['Vivienda', 'Salud', 'Alimentación', 'Educación', 'Vestimenta'];
 
-interface Movimiento {
-  id: number;
-  fecha: string;
-  nombre: string;
-  monto: number;
-  ingreso: boolean;
-  categoria: Categoria | null;
-}
-
-interface Llegada {
-  id: number;
-  movimiento: Movimiento;
-  /** 0 correo recibido · 1 XML leído · 2 verificado con el SRI · 3 registrado */
-  paso: number;
-}
-
-const CATEGORIAS: Categoria[] = ['Vivienda', 'Salud', 'Alimentación', 'Educación', 'Vestimenta'];
 const PASOS = ['Correo recibido', 'XML leído', 'Verificado con el SRI', 'Registrado'];
+
 /** Montos del mes anteriores a los movimientos visibles (datos ilustrativos). */
 const BASE = {
   ingresos: 11503,
   gastos: 1890.35,
-  deducibles: { Vivienda: 1350, Salud: 600, Alimentación: 520, Educación: 300, Vestimenta: 90 } as Record<Categoria, number>,
+  deducibles: { Vivienda: 1350, Salud: 600, Alimentación: 520, Educación: 300, Vestimenta: 90 } as Record<CategoriaDemo, number>,
   clientes: { 'Constructora del Pacífico': 3200, 'Estudio Andrade & Asoc.': 2100, 'Comercial Ríos': 1450 } as Record<string, number>,
 };
+
 const TOPE = 5752.6;
 
-const INICIALES: Movimiento[] = [
+const INICIALES: MovimientoDemo[] = [
   { id: 1, fecha: '09 oct', nombre: 'Constructora del Pacífico', monto: 977.5, ingreso: true, categoria: null },
   { id: 2, fecha: '08 oct', nombre: 'De Prati', monto: 91.89, ingreso: false, categoria: 'Vestimenta' },
   { id: 3, fecha: '05 oct', nombre: 'Inmobiliaria Los Ceibos', monto: 450, ingreso: false, categoria: 'Vivienda' },
   { id: 4, fecha: '03 oct', nombre: 'Fybeca', monto: 43.92, ingreso: false, categoria: 'Salud' },
 ];
-const POR_LLEGAR: Omit<Movimiento, 'id'>[] = [
+
+const POR_LLEGAR: Omit<MovimientoDemo, 'id'>[] = [
   { fecha: '10 oct', nombre: 'Supermaxi', monto: 101.68, ingreso: false, categoria: 'Alimentación' },
   { fecha: '10 oct', nombre: 'Estudio Andrade & Asoc.', monto: 640, ingreso: true, categoria: null },
   { fecha: '10 oct', nombre: 'Farmacias Cruz Azul', monto: 23.4, ingreso: false, categoria: 'Salud' },
@@ -104,7 +90,8 @@ const POR_LLEGAR: Omit<Movimiento, 'id'>[] = [
   { fecha: '10 oct', nombre: 'Comercial Ríos', monto: 1215.3, ingreso: true, categoria: null },
   { fecha: '10 oct', nombre: 'Etafashion', monto: 64.9, ingreso: false, categoria: 'Vestimenta' },
 ];
-const RECORRIDO: Vista[] = ['buzon', 'resumen', 'gastos', 'ingresos', 'resumen'];
+
+const RECORRIDO: VistaDemo[] = ['buzon', 'resumen', 'gastos', 'ingresos', 'resumen'];
 
 /**
  * Demo interactiva del panel para la landing: se puede navegar con clics, las facturas
@@ -381,20 +368,20 @@ const RECORRIDO: Vista[] = ['buzon', 'resumen', 'gastos', 'ingresos', 'resumen']
 export class DemoPanel {
   private readonly marco = viewChild.required<ElementRef<HTMLElement>>('marco');
 
-  protected readonly secciones: { vista: Vista; nombre: string }[] = [
+  protected readonly secciones: { vista: VistaDemo; nombre: string }[] = [
     { vista: 'resumen', nombre: 'Resumen' },
     { vista: 'gastos', nombre: 'Gastos' },
     { vista: 'ingresos', nombre: 'Ingresos' },
     { vista: 'buzon', nombre: 'Buzón' },
   ];
   protected readonly pasos = PASOS;
-  protected readonly filtrosGasto: ('Todas' | Categoria)[] = ['Todas', ...CATEGORIAS];
+  protected readonly filtrosGasto: ('Todas' | CategoriaDemo)[] = ['Todas', ...CATEGORIAS];
 
-  protected readonly vista = signal<Vista>('resumen');
-  protected readonly filtro = signal<'Todas' | Categoria>('Todas');
-  private readonly movimientos = signal<Movimiento[]>(INICIALES);
-  protected readonly llegadas = signal<Llegada[]>([]);
-  protected readonly aviso = signal<Llegada[]>([]);
+  protected readonly vista = signal<VistaDemo>('resumen');
+  protected readonly filtro = signal<'Todas' | CategoriaDemo>('Todas');
+  private readonly movimientos = signal<MovimientoDemo[]>(INICIALES);
+  protected readonly llegadas = signal<LlegadaDemo[]>([]);
+  protected readonly aviso = signal<LlegadaDemo[]>([]);
   protected readonly nuevas = signal(0);
   protected readonly cursor = signal<{ x: number; y: number; clic: boolean } | null>(null);
 
@@ -462,7 +449,7 @@ export class DemoPanel {
     });
   }
 
-  protected ir(vista: Vista): void {
+  protected ir(vista: VistaDemo): void {
     this.vista.set(vista);
     if (vista === 'buzon') this.nuevas.set(0);
   }
@@ -473,11 +460,11 @@ export class DemoPanel {
     this.cursor.set(null);
   }
 
-  protected signo(m: Movimiento): string {
+  protected signo(m: MovimientoDemo): string {
     return (m.ingreso ? '+' : '−') + MONEDA.format(m.monto);
   }
 
-  private suma(filtro: (m: Movimiento) => boolean): number {
+  private suma(filtro: (m: MovimientoDemo) => boolean): number {
     return this.movimientos().reduce((total, m) => (filtro(m) ? total + m.monto : total), 0);
   }
 
@@ -495,7 +482,7 @@ export class DemoPanel {
       return;
     }
     const id = 101 + this.siguienteLlegada;
-    const movimiento: Movimiento = { ...POR_LLEGAR[this.siguienteLlegada++], id };
+    const movimiento: MovimientoDemo = { ...POR_LLEGAR[this.siguienteLlegada++], id };
     this.llegadas.update((l) => [{ id, movimiento, paso: 0 }, ...l].slice(0, 3));
     for (const paso of [1, 2, 3]) {
       this.esperar(paso * 650, () => this.llegadas.update((l) => l.map((x) => (x.id === id ? { ...x, paso } : x))));

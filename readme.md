@@ -93,6 +93,14 @@ El webhook también acepta formularios multipart de Mailgun o SendGrid Inbound P
 
 Cada ingreso al sistema y cada cambio de configuración (perfil, RUC, dirección del buzón) queda en **Configuración → Actividad de tu cuenta** (`GET /api/avisos`) y se envía por correo al usuario si hay SMTP configurado (`Smtp:Host`, `Smtp:Puerto`, `Smtp:Usuario`, `Smtp:Clave`, `Smtp:Remitente`). Sin SMTP, el envío solo se registra en el log.
 
+## Planes y pagos (Kushki)
+
+Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49/mes o $490/año + IVA) se cobran con tarjeta mediante suscripciones de [Kushki](https://docs.kushki.com/ec/recurring-payments/overview), con 14 días gratis. Emitir facturas electrónicas requiere un plan de pago (el administrador está exento). Los precios están en `Back/Pagos/CatalogoPlanes.cs` y los textos en `Web/src/app/core/planes.ts`.
+
+1. En la consola de Kushki (UAT para pruebas), copia la clave pública, la privada y la firma de webhooks (Desarrolladores → Webhooks).
+2. Configura `Kushki:ClavePublica`, `Kushki:ClavePrivada`, `Kushki:FirmaWebhook` y `Kushki:Pruebas` (`true` en UAT).
+3. Registra el webhook `https://<api>/api/pagos/kushki/webhook` para los eventos de suscripciones con tarjeta.
+
 ### Producción
 
 Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend), `Correo__DominioEntrante`, `Correo__SecretoWebhook`, `Smtp__*`, `Frontend__Url` y, si quieres que la API aplique las migraciones al arrancar, `Database__MigrateOnStartup=true`.

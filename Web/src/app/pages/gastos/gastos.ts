@@ -1,21 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { Titulo } from '../../shared/marca';
 import { Router, RouterLink } from '@angular/router';
 import { LucideFileUp, LucideTriangleAlert, LucideX } from '@lucide/angular';
-import { cargar } from '../../core/carga';
-import { Buscador, ErrorCarga } from '../../shared/controles';
-import { CATEGORIAS, categoria } from '../../core/categorias';
-import { ComprobantesService } from '../../core/comprobantes.service';
-import { AvisosService, PeriodoService } from '../../core/estado';
-import { CategoriaGasto, ComprobanteLista } from '../../core/models';
-import { CategoriaSelect } from '../../shared/categoria';
-import { DineroPipe, FechaCortaPipe } from '../../shared/formato';
-import { FILTRO_VACIO, Filtros, etiquetaRango, hayFiltroRango, parametrosFiltro } from '../../shared/filtros';
+import { categoria, CATEGORIAS, FILTRO_VACIO } from '@core/constants';
+import { CategoriaGasto, ComprobanteLista } from '@core/models';
+import { AuthService, AvisosService, ComprobantesService, PeriodoService } from '@core/services';
+import { cargar, etiquetaRango, hayFiltroRango, parametrosFiltro } from '@core/utils';
+import { Buscador, CategoriaSelect, ErrorCarga, Filtros, InsigniaPro, Titulo, UsoPlanAviso } from '@shared/components';
+import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 
 @Component({
   selector: 'app-gastos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Buscador, ErrorCarga, Titulo, Filtros, RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideFileUp, LucideX, LucideTriangleAlert],
+  imports: [Buscador, ErrorCarga, InsigniaPro, UsoPlanAviso, Titulo, Filtros, RouterLink, DineroPipe, FechaCortaPipe, CategoriaSelect, LucideFileUp, LucideX, LucideTriangleAlert],
   templateUrl: './gastos.html',
 })
 export class Gastos {
@@ -29,6 +25,7 @@ export class Gastos {
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
   protected readonly periodo = inject(PeriodoService);
+  protected readonly auth = inject(AuthService);
 
   protected readonly categorias = CATEGORIAS;
   protected readonly busqueda = signal('');

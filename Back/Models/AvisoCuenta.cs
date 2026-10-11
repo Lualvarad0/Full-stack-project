@@ -23,5 +23,8 @@ namespace Back.Models
         Ingreso,
         PerfilActualizado,
         BuzonRegenerado,
+        FirmaElectronica,
+        DatosFacturacion,
+        PlanCambiado,
     }
 }
