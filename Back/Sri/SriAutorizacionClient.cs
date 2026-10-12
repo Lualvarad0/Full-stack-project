@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.Globalization;
 using System.Text;
 using System.Xml.Linq;
@@ -45,6 +46,8 @@ namespace Back.Sri
 
         public async Task<SriAutorizacion> ConsultarAsync(string claveAcceso, CancellationToken ct = default)
         {
+            if (!ClaveAcceso.EsValida(claveAcceso))
+                throw new ArgumentException("Clave de acceso inválida.", nameof(claveAcceso));
             // El dígito de ambiente de la clave indica a qué servidor pertenece el comprobante.
             var url = ClaveAcceso.Ambiente(claveAcceso) == "1" ? _options.UrlPruebas : _options.UrlProduccion;
             var envelope =
@@ -70,7 +73,7 @@ namespace Back.Sri
 
         public static SriRecepcion InterpretarRecepcion(string respuestaSoap)
         {
-            var raiz = XDocument.Parse(respuestaSoap).Root!;
+            var raiz = XmlSeguro.Documento(respuestaSoap).Root!;
             var estado = raiz.Descendants().FirstOrDefault(e => e.Name.LocalName == "estado")?.Value.Trim();
             var mensajes = raiz.Descendants()
                 .Where(e => e.Name.LocalName == "mensaje" && e.HasElements)
@@ -106,7 +109,7 @@ namespace Back.Sri
 
         public static SriAutorizacion Interpretar(string respuestaSoap)
         {
-            var autorizaciones = XDocument.Parse(respuestaSoap).Descendants()
+            var autorizaciones = XmlSeguro.Documento(respuestaSoap).Descendants()
                 .Where(e => e.Name.LocalName == "autorizacion")
                 .ToList();
             if (autorizaciones.Count == 0)

@@ -1,5 +1,5 @@
+import { PlanSuscripcion } from '../../suscripcion/models/suscripcion.model';
 // Sesión, usuario y registro (contratos de /api/auth).
-import { PlanSuscripcion } from './suscripcion.model';
 
 export interface RegistroRequest {
   nombre: string;

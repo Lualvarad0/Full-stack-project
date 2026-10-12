@@ -26,5 +26,9 @@ namespace Back.Models
         FirmaElectronica,
         DatosFacturacion,
         PlanCambiado,
+        ClaveCambiada,
+        CorreoVerificado,
+        SesionesRevocadas,
+        AccesoContador,
     }
 }

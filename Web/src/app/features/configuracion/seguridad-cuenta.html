@@ -1,0 +1,27 @@
+<section class="card p-5 sm:p-6" aria-labelledby="titulo-seguridad">
+  <h2 id="titulo-seguridad" class="font-semibold">Seguridad de tu cuenta</h2>
+  @if (estado().datos; as e) {
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm"><p>{{ e.correo }} · {{ e.correoVerificado ? 'Verificado' : 'Pendiente de verificar' }}</p>
+      @if (!e.correoVerificado) { <button class="btn btn-secondary" type="button" [disabled]="ocupado()" (click)="verificar()">Enviar enlace de verificación</button> }
+    </div>
+  }
+  <app-error-carga [mensaje]="estado().error" />
+  <h3 class="mt-6 font-medium">Cambiar contraseña</h3>
+  <p class="mt-1 text-sm text-muted-fg">Al cambiarla, se cerrarán todas tus sesiones y tendrás que ingresar de nuevo.</p>
+  <form class="mt-4 grid gap-4" [formGroup]="form" (ngSubmit)="cambiar()">
+    <div><label class="field-label" for="clave-actual">Contraseña actual</label><app-campo-clave idCampo="clave-actual" autocomplete="current-password" formControlName="actual" /></div>
+    <div><label class="field-label" for="clave-nueva-cuenta">Nueva contraseña</label><app-campo-clave idCampo="clave-nueva-cuenta" autocomplete="new-password" formControlName="password" /></div>
+    <div><label class="field-label" for="clave-confirmar-cuenta">Repite la nueva contraseña</label><app-campo-clave idCampo="clave-confirmar-cuenta" autocomplete="new-password" formControlName="confirmacion" /></div>
+    @if (form.touched && form.invalid) { <p class="field-error">Completa la contraseña actual y usa una nueva de al menos 8 caracteres (máximo 72 bytes). Ambas deben coincidir.</p> }
+    <button class="btn btn-primary justify-self-start" type="submit" [disabled]="ocupado()">Guardar nueva contraseña</button>
+  </form>
+  <div class="mt-6 flex flex-wrap items-center justify-between gap-3"><h3 class="font-medium">Sesiones activas</h3><button class="btn btn-secondary" type="button" [disabled]="ocupado()" (click)="cerrarOtras()">Cerrar otras sesiones</button></div>
+  <app-error-carga [mensaje]="sesiones().error" />
+  <ul class="mt-3 divide-y divide-border">
+    @for (s of sesiones().datos ?? []; track s.id) {
+      <li class="flex items-center justify-between gap-3 py-3 text-sm"><div><p>{{ s.dispositivo || 'Dispositivo no identificado' }} {{ s.actual ? '· Esta sesión' : '' }}</p><p class="text-xs text-muted-fg">Inicio: {{ s.creadaEn | date: 'dd/MM/yyyy HH:mm' }}</p></div>
+        @if (!s.actual) { <button class="btn btn-ghost" type="button" [disabled]="ocupado()" (click)="revocar(s.id)">Cerrar</button> }
+      </li>
+    }
+  </ul>
+</section>

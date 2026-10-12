@@ -15,6 +15,11 @@ namespace Back.Models
         /// <summary>false: cuenta suspendida por el administrador (no puede ingresar).</summary>
         public bool Activo { get; set; } = true;
         public DateTime? UltimoIngresoEn { get; set; }
+        public int VersionSeguridad { get; set; }
+        public bool CorreoVerificado { get; set; }
+        /// <summary>Solo durante una petición delegada autorizada; nunca se persiste ni concede acceso por sí sola.</summary>
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public bool AccesoContador { get; set; }
 
         // Perfil tributario
         public string? Cedula { get; set; }
