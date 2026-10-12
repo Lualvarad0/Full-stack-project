@@ -28,6 +28,10 @@
           tema = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.dataset.theme = tema;
+        var id = sesion && sesion.usuario ? 'usuario:' + sesion.usuario.id : 'publico';
+        document.documentElement.dataset.texto = localStorage.getItem('texto:' + id) === 'grande' ? 'grande' : 'normal';
+        document.documentElement.dataset.movimiento =
+          localStorage.getItem('movimiento:' + id) === 'reducido' ? 'reducido' : 'normal';
       } catch (e) {}
     </script>
   </head>

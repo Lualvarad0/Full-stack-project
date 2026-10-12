@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { AuthService } from '@core/auth';
 import { capitalizar, nombreMes } from '@core/utils';
 /** Mes de trabajo seleccionado en la barra superior; lo comparten todas las páginas. */
@@ -10,12 +10,15 @@ export class PeriodoService {
 
   constructor() {
     const auth = inject(AuthService);
+    // Al entrar (o cambiar de contribuyente): el mes actual, o el anterior si así lo eligió en Configuración.
+    // Solo depende de la clave de datos, para no reiniciar el mes cuando se edita el perfil.
     effect(() => {
-      auth.usuario()?.id;
-      auth.claveDatos?.();
+      auth.claveDatos?.() ?? auth.usuario()?.id; // (algunas pruebas simulan AuthService sin claveDatos)
+      const anterior = untracked(() => auth.usuario()?.mesAlEntrar === 'Anterior');
       const hoy = new Date();
-      this.anio.set(hoy.getFullYear());
-      this.mes.set(hoy.getMonth() + 1);
+      const inicio = new Date(hoy.getFullYear(), hoy.getMonth() - (anterior ? 1 : 0), 1);
+      this.anio.set(inicio.getFullYear());
+      this.mes.set(inicio.getMonth() + 1);
     });
   }
 

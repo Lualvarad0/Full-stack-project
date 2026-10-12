@@ -62,6 +62,8 @@ namespace Back.Services
                 throw new BusinessException($"Se encontraron {claves.Count} claves; el máximo por importación es {MaxClavesPorImportacion}.");
 
             var perfil = await ObtenerPerfilAsync(usuarioId);
+            if (!AccesoPlan.TieneProfesional(perfil))
+                throw new BusinessException(AccesoPlan.MensajeSubirFacturas, StatusCodes.Status403Forbidden);
             var resultados = new ConcurrentDictionary<string, ClaveImportada>();
             var existentes = await _repository.GetClavesExistentesAsync(usuarioId, claves);
             var porConsultar = new List<string>();
@@ -74,17 +76,6 @@ namespace Back.Services
                     resultados[clave] = new(clave, ResultadoImportacion.NoSoportado, $"{TiposComprobante.Nombre(tipo)}: todavía no se procesa.");
                 else
                     porConsultar.Add(clave);
-            }
-
-            // Plan Personal: hasta LimiteComprobantesPersonal comprobantes nuevos por mes; el resto queda pendiente.
-            if (!AccesoPlan.TieneProfesional(perfil) && porConsultar.Count > 0)
-            {
-                var usados = await _repository.ContarImportadosDesdeAsync(usuarioId, AccesoPlan.InicioMesUtc());
-                var disponibles = Math.Max(0, AccesoPlan.LimiteComprobantesPersonal - usados);
-                foreach (var clave in porConsultar.Skip(disponibles))
-                    resultados[clave] = new(clave, ResultadoImportacion.LimiteDelPlan,
-                        $"El plan Personal incluye {AccesoPlan.LimiteComprobantesPersonal} comprobantes al mes. Pasa a Profesional para importar sin límite.");
-                porConsultar = porConsultar.Take(disponibles).ToList();
             }
 
             var nuevos = new ConcurrentBag<Comprobante>();

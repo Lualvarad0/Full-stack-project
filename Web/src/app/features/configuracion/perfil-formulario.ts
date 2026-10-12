@@ -15,6 +15,7 @@ import {
   PerfilService,
   calcularTope,
   cedulaValida,
+  rucCoincideConCedula,
   rucValido,
 } from '@core/perfil';
 import { AvisosService } from '@core/ui';
@@ -63,6 +64,16 @@ export class PerfilFormulario {
     const cedula = soloDigitos(this.valores().cedula ?? '');
     return cedula.length > 0 && !cedulaValida(cedula);
   });
+  /** RUC de persona natural que no empieza con la cédula escrita (el backend también lo rechaza). */
+  protected readonly rucNoCoincide = computed(
+    () =>
+      !this.rucInvalido() &&
+      !this.cedulaInvalida() &&
+      !rucCoincideConCedula(
+        soloDigitos(this.valores().ruc ?? ''),
+        soloDigitos(this.valores().cedula ?? ''),
+      ),
+  );
 
   protected readonly tope = computed(() =>
     calcularTope(
@@ -101,6 +112,10 @@ export class PerfilFormulario {
     this.error.set(null);
     if (this.rucInvalido() || this.cedulaInvalida()) {
       this.error.set('Revisa la cédula y el RUC antes de guardar.');
+      return;
+    }
+    if (this.rucNoCoincide()) {
+      this.error.set('El RUC de persona natural debe empezar con tu número de cédula.');
       return;
     }
     const v = this.form.getRawValue();

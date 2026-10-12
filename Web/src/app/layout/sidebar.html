@@ -5,7 +5,7 @@
   aria-label="Navegación principal"
 >
   <div class="flex h-16 items-center justify-between gap-2 px-5">
-    <a routerLink="/resumen" class="rounded-md" aria-label="Nudo, ir al resumen">
+    <a [routerLink]="auth.esProfesional() ? '/resumen' : '/cuentas'" class="rounded-md" aria-label="Nudo, ir al inicio">
       <app-marca [tamano]="28" />
     </a>
     <button
@@ -20,14 +20,25 @@
 
   <nav class="flex-1 overflow-y-auto px-3 pb-4">
     <ul class="space-y-1">
+      @if (auth.esProfesional()) {
+        <li>
+          <a routerLink="/resumen" routerLinkActive="nav-activo" class="nav-item">
+            <svg lucideLayoutDashboard class="size-5" aria-hidden="true"></svg> Resumen
+          </a>
+        </li>
+      }
       <li>
-        <a routerLink="/resumen" routerLinkActive="nav-activo" class="nav-item">
-          <svg lucideLayoutDashboard class="size-5" aria-hidden="true"></svg> Resumen
+        <a routerLink="/cuentas" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideWallet class="size-5" aria-hidden="true"></svg> Mis cuentas
         </a>
       </li>
       <li>
         <a routerLink="/importar" routerLinkActive="nav-activo" class="nav-item">
-          <svg lucideFileUp class="size-5" aria-hidden="true"></svg> Traer facturas
+          <svg lucideFileUp class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Traer facturas</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
         </a>
       </li>
     </ul>
@@ -63,16 +74,24 @@
       </li>
     </ul>
 
-    <p class="seccion mt-6 mb-2 px-3">Lo que gastas</p>
+    <p class="seccion mt-6 mb-2 px-3">Gastos con facturas</p>
     <ul class="space-y-1">
       <li>
         <a routerLink="/gastos" routerLinkActive="nav-activo" class="nav-item">
-          <svg lucideReceipt class="size-5" aria-hidden="true"></svg> Gastos
+          <svg lucideReceipt class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Gastos</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
         </a>
       </li>
       <li>
         <a routerLink="/proveedores" routerLinkActive="nav-activo" class="nav-item">
-          <svg lucideStore class="size-5" aria-hidden="true"></svg> Proveedores
+          <svg lucideStore class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Proveedores</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
         </a>
       </li>
     </ul>

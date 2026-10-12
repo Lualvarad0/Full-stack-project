@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '@env/environment';
+import { CupoPlan } from '@core/suscripcion';
 import {
   DatosEmisor,
   DatosEmisorRequest,
@@ -15,6 +16,11 @@ import {
 export class FacturacionService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/facturacion`;
+
+  /** Facturas electrónicas emitidas este mes frente al límite del plan. */
+  cupo(): Observable<CupoPlan> {
+    return this.http.get<CupoPlan>(`${this.url}/cupo`);
+  }
 
   /** null si aún no subió su firma. */
   firma(): Observable<FirmaElectronica | null> {

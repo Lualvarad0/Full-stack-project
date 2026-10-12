@@ -12,12 +12,15 @@ import {
   LucideMail,
   LucideScale,
   LucideShieldCheck,
-  LucideSlidersHorizontal,
+  LucideLandmark,
+  LucideFileText,
   LucideSparkles,
+  LucideUsers,
+  LucideWallet,
 } from '@lucide/angular';
 import { CANASTA_ENERO, calcularTope } from '@core/perfil';
 import { NOMBRE_APP } from '@core/ui';
-import { IconoFuncion } from '@features/landing/models/landing.model';
+import { FuncionLanding } from '@features/landing/models/landing.model';
 import { Credito, Marca } from '@shared/components';
 import { DineroPipe } from '@shared/pipes';
 import { DemoPanel } from './demo-panel';
@@ -43,7 +46,10 @@ import { FlujoFacturas } from './flujo-facturas';
     LucideScale,
     LucideCalculator,
     LucideCalendarCheck,
-    LucideSlidersHorizontal,
+    LucideWallet,
+    LucideFileText,
+    LucideLandmark,
+    LucideUsers,
     LucideShieldCheck,
     LucideLock,
   ],
@@ -62,58 +68,94 @@ export class Landing {
 
   protected readonly pasos = [
     {
-      titulo: 'Activa tu buzón',
+      titulo: 'Empieza gratis',
       texto:
-        'Te damos una dirección propia. Reenvía ahí tus facturas con un filtro de Gmail o dala al comprar. Sin contraseñas.',
+        'Dinos cuánto ganas y anota tus cuentas del mes. Marca el día en que pagas cada una y mira cuánto te queda.',
     },
     {
-      titulo: 'Verificamos con el SRI',
+      titulo: 'Trae tus facturas',
       texto:
-        'Cada XML que llega se valida en el servicio oficial del SRI. Solo entran comprobantes autorizados.',
+        'Con Profesional reenvías tus facturas a tu buzón propio o subes el reporte del SRI. Cada XML se verifica con el SRI.',
     },
     {
       titulo: 'Tu mes, en orden',
       texto:
-        'Ingresos, gastos, clientes, IVA y deducibles listos. Al cierre, concilia con el reporte del SRI.',
+        'Ingresos, gastos, clientes, IVA y deducibles listos. Al cierre, concilia y prepara tu declaración.',
     },
   ];
 
-  protected readonly funciones: { icono: IconoFuncion; titulo: string; texto: string }[] = [
+  /** Cada función con el plan desde el que se incluye (los planes superiores incluyen lo de los inferiores). */
+  protected readonly funciones: FuncionLanding[] = [
+    {
+      icono: 'cuentas',
+      plan: 'Personal',
+      titulo: 'Mis cuentas del mes',
+      texto:
+        'Anota arriendo, servicios y deudas; marca el día en que pagas cada una y ve cuánto te queda de lo que ganas.',
+    },
+    {
+      icono: 'factura',
+      plan: 'Profesional',
+      titulo: 'Facturación electrónica',
+      texto:
+        'Emite facturas, notas de crédito y retenciones firmadas con tu firma electrónica y autorizadas por el SRI.',
+    },
     {
       icono: 'ingresos',
+      plan: 'Profesional',
       titulo: 'Ingresos y clientes',
       texto:
         'Lo que facturas con tu RUC se separa solo, con tus clientes y lo que te compró cada uno.',
     },
     {
       icono: 'categorias',
+      plan: 'Profesional',
       titulo: 'Gastos por categoría',
       texto:
-        'Vivienda, salud, educación, alimentación, vestimenta y turismo. Categoriza un proveedor una vez y listo.',
+        'Sube tus facturas o tráelas por correo: vivienda, salud, educación, alimentación, vestimenta y turismo.',
     },
     {
       icono: 'tope',
+      plan: 'Profesional',
       titulo: 'Alerta de tope deducible',
       texto:
         'Ve cuánto te falta para la rebaja máxima del impuesto a la renta según tus cargas familiares.',
     },
     {
       icono: 'iva',
-      titulo: 'IVA del mes',
-      texto: 'IVA cobrado en tus facturas frente al IVA pagado en tus compras, mes a mes.',
+      plan: 'Profesional',
+      titulo: 'IVA y declaraciones',
+      texto:
+        'IVA cobrado frente a pagado, vencimientos según tu RUC y la preparación de tus declaraciones.',
     },
     {
       icono: 'conciliacion',
+      plan: 'Profesional',
       titulo: 'Conciliación con el SRI',
       texto:
         'Sube el reporte mensual del SRI y detecta las facturas que nunca llegaron a tu correo.',
     },
     {
-      icono: 'filtros',
-      titulo: 'Filtros por fecha y monto',
-      texto: 'Encuentra cualquier comprobante por rango de fechas, montos, proveedor o cliente.',
+      icono: 'bancos',
+      plan: 'Profesional',
+      titulo: 'Cobros, pagos y bancos',
+      texto:
+        'Registra cobros y pagos, importa tu estado de cuenta y concilia cada movimiento con su factura.',
+    },
+    {
+      icono: 'cartera',
+      plan: 'Contadores',
+      titulo: 'Cartera de contribuyentes',
+      texto:
+        'Atiende varios RUC desde una cuenta: cada cliente te autoriza con permiso de consulta o edición.',
     },
   ];
+
+  protected readonly etiquetaPlan: Record<FuncionLanding['plan'], string> = {
+    Personal: 'Gratis',
+    Profesional: 'Profesional',
+    Contadores: 'Contadores',
+  };
 
   protected readonly seguridad = [
     {

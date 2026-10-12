@@ -23,6 +23,10 @@ export interface Usuario {
   email: string;
   rol: 'admin' | 'user';
   plan: PlanSuscripcion;
+  /** Pantalla al iniciar sesión (Configuración → Sistema). */
+  paginaInicio?: 'Resumen' | 'Cuentas';
+  /** Mes que se muestra al entrar. */
+  mesAlEntrar?: 'Actual' | 'Anterior';
 }
 
 export interface AuthResponse {

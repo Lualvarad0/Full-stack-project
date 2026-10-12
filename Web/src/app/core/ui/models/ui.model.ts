@@ -1,6 +1,9 @@
 // Tipos de la interfaz: cargas, avisos, tema, controles y gráficos.
 
 export type Tema = 'light' | 'dark';
+/** Lo que elige el usuario: claro, oscuro o el del sistema operativo. */
+export type ModoTema = Tema | 'sistema';
+export type TamanoTexto = 'normal' | 'grande';
 
 export interface Aviso {
   id: number;

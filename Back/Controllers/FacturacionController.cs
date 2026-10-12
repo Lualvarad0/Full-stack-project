@@ -23,6 +23,10 @@ namespace Back.Controllers
 
         private int UsuarioId => JwtHelper.GetContribuyenteId(User);
 
+        /// <summary>Facturas emitidas este mes frente al límite del plan.</summary>
+        [HttpGet("cupo")]
+        public Task<CupoPlanDto> GetCupo(CancellationToken ct) => _service.CupoFacturasAsync(UsuarioId, ct);
+
         // GET api/facturacion/firma  → 204 si aún no hay firma
         [HttpGet("firma")]
         public async Task<ActionResult<FirmaElectronicaDto>> GetFirma() =>

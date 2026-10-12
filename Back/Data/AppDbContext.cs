@@ -24,10 +24,22 @@ namespace Back.Data
         public DbSet<Suscripcion> Suscripciones => Set<Suscripcion>();
         public DbSet<ServicioFacturable> ServiciosFacturables => Set<ServicioFacturable>();
         public DbSet<PagoSuscripcion> PagosSuscripcion => Set<PagoSuscripcion>();
+        public DbSet<CuentaPersonal> CuentasPersonales => Set<CuentaPersonal>();
+        public DbSet<IngresoMensual> IngresosMensuales => Set<IngresoMensual>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<CuentaPersonal>(e => {
+                e.ToTable("cuentas_personales"); e.Property(x => x.Nombre).HasMaxLength(120); e.Property(x => x.Monto).HasPrecision(18, 2);
+                e.Property(x => x.Categoria).HasConversion<string>().HasMaxLength(30); e.HasIndex(x => new { x.UsuarioId, x.Anio, x.Mes });
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<IngresoMensual>(e => {
+                e.ToTable("ingresos_mensuales"); e.Property(x => x.Monto).HasPrecision(18, 2);
+                e.HasIndex(x => new { x.UsuarioId, x.Anio, x.Mes }).IsUnique();
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
             modelBuilder.Entity<CargaFamiliar>(e => {
                 e.ToTable("cargas_familiares"); e.Property(x => x.Identificacion).HasMaxLength(20); e.Property(x => x.Nombre).HasMaxLength(200);
                 e.Property(x => x.Parentesco).HasConversion<string>().HasMaxLength(30); e.Property(x => x.IngresosGravados).HasPrecision(18, 2);
@@ -172,6 +184,13 @@ namespace Back.Data
                 e.Property(u => u.Regimen).HasConversion<string>().HasMaxLength(30);
                 e.Property(u => u.Apellido).HasMaxLength(100);
                 e.Property(u => u.Plan).HasConversion<string>().HasMaxLength(20);
+                e.Property(u => u.Telefono).HasMaxLength(20);
+                e.Property(u => u.Ciudad).HasMaxLength(100);
+                e.Property(u => u.Direccion).HasMaxLength(300);
+                e.Property(u => u.Ocupacion).HasMaxLength(120);
+                e.Property(u => u.PaginaInicio).HasConversion<string>().HasMaxLength(20).HasDefaultValue(PaginaInicio.Resumen);
+                e.Property(u => u.MesAlEntrar).HasConversion<string>().HasMaxLength(20).HasDefaultValue(MesAlEntrar.Actual);
+                e.Property(u => u.AvisarIngresosPorCorreo).HasDefaultValue(true).HasSentinel(true); // false se guarda explícito
                 e.HasIndex(u => u.Correo).IsUnique();
             });
 

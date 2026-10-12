@@ -69,6 +69,10 @@ export class SuscripcionPagina implements OnInit {
           clientes: 'Tus ingresos y clientes son parte del plan Profesional.',
           facturacion: 'La facturación electrónica es parte del plan Profesional.',
           filtros: 'Los filtros por fecha y monto son parte del plan Profesional.',
+          importar:
+            'Subir tus facturas o traerlas del SRI es parte del plan Profesional. En el plan gratuito anotas tus cuentas a mano en Mis cuentas.',
+          gastos: 'Tus gastos con facturas del SRI son parte del plan Profesional.',
+          proveedores: 'Tus proveedores y sus categorías son parte del plan Profesional.',
         }) as Record<string, string>
       )[this.motivo() ?? ''] ?? null,
   );

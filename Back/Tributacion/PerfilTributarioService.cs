@@ -4,6 +4,7 @@ using Back.Data;
 using Back.Dtos;
 using Back.Helpers;
 using Back.Models;
+using Back.Sri;
 using Microsoft.EntityFrameworkCore;
 namespace Back.Tributacion;
 
@@ -17,6 +18,8 @@ public class PerfilTributarioService(AppDbContext db, ControlPeriodoService cont
     public async Task<int> CargaAsync(int uid, CargaFamiliarRequest r, CancellationToken ct)
     {
         ReglasTributarias.Anio(r.Anio); ImporteExacto(r.IngresosGravados);
+        r = r with { Identificacion = r.Identificacion.Trim().ToUpperInvariant() };
+        if (!Identificacion.EsCedulaOPasaporteValido(r.Identificacion)) throw new BusinessException("La cédula de la carga no es válida. Revisa los 10 dígitos.");
         if (!r.DependenciaConfirmada || r.IngresosGravados > ReglasTributarias.Sbu) throw new BusinessException("Confirma la dependencia económica y que sus ingresos gravados anuales no superan un salario básico unificado.");
         if (r.FechaNacimiento.Year < 1900 || r.FechaNacimiento > new DateOnly(r.Anio, 12, 31)) throw new BusinessException("Revisa la fecha de nacimiento.");
         if (r.Parentesco == ParentescoCarga.Hijo && r.Anio - r.FechaNacimiento.Year > 21 && !r.Discapacidad) throw new BusinessException("Los hijos mayores de 21 años necesitan la condición de discapacidad para registrarse como carga.");

@@ -64,3 +64,9 @@ export interface UsoPlan {
 export interface TarjetaKushki {
   requestToken(): Promise<{ token: string; cardInfo?: { brand: string; lastFourDigits: string } }>;
 }
+
+/** Cuánto se usó de un límite del plan (facturas del mes, cartera); limite null = sin límite. */
+export interface CupoPlan {
+  usados: number;
+  limite: number | null;
+}

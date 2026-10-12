@@ -44,8 +44,9 @@ namespace Back.Avisos
                 Dispositivo = DescribirDispositivo(peticion?.Request.Headers.UserAgent.ToString()),
             };
 
-            var correo = Componer(usuario, aviso);
-            aviso.EnviadoPorCorreo = _smtp.Configurado && _cola.Encolar(correo);
+            // El usuario puede apagar el correo de cada ingreso (Configuración → Sistema); el aviso queda en su actividad.
+            var enviar = tipo != TipoAviso.Ingreso || usuario.AvisarIngresosPorCorreo;
+            aviso.EnviadoPorCorreo = enviar && _smtp.Configurado && _cola.Encolar(Componer(usuario, aviso));
             _context.AvisosCuenta.Add(aviso);
             await _context.SaveChangesAsync();
         }
@@ -74,9 +75,9 @@ namespace Back.Avisos
                   <p>{e(aviso.Detalle)}</p>
                   <p style="color:#606b6c;font-size:13px">{e(hora)} (hora de Ecuador){(origen.Length > 0 ? " · " + e(origen) : "")}</p>
                   <p style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px;font-size:13px">
-                    ¿No fuiste tú? Ingresa a <a href="{e(app)}/configuracion">Nudo</a> y revisa la actividad de tu cuenta.
+                    ¿No fuiste tú? Ingresa a <a href="{e(app)}/configuracion?seccion=sistema">Nudo</a> y revisa la actividad de tu cuenta.
                   </p>
-                  <p style="color:#606b6c;font-size:12px;margin-top:24px">Nudo · Diseño y desarrollo: Cornerstone Develop</p>
+                  <p style="color:#606b6c;font-size:12px;margin-top:24px">Nudo · Diseño y desarrollo: <a href="https://www.alvarado-dev.com/" style="color:#606b6c">Cornerstone Develop</a></p>
                 </div>
                 """;
             var texto = $"Hola, {usuario.Nombre}:\n\n{aviso.Titulo}\n{aviso.Detalle}\n{hora} (hora de Ecuador) {origen}\n\n¿No fuiste tú? Revisa tu cuenta en {app}/configuracion\n\nNudo · Diseño y desarrollo: Cornerstone Develop";

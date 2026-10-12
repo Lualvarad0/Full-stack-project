@@ -153,6 +153,14 @@ namespace Back.Correo
                     correo.Contenido = null;
                     correo.ProcesadoEn = DateTime.UtcNow;
                 }
+                catch (BusinessException ex) when (ex.StatusCode == StatusCodes.Status403Forbidden)
+                {
+                    // Plan gratuito: no se importan facturas; reintentar no cambia nada.
+                    correo.Estado = EstadoCorreo.Error;
+                    correo.Detalle = ex.Message;
+                    correo.Contenido = null;
+                    correo.ProcesadoEn = DateTime.UtcNow;
+                }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     _logger.LogWarning(ex, "No se pudo procesar el correo {CorreoId}", correo.Id);

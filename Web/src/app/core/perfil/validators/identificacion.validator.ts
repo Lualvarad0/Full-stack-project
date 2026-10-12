@@ -1,3 +1,5 @@
+import { AbstractControl, ValidationErrors } from '@angular/forms';
+
 /** Valida la cédula ecuatoriana (módulo 10), igual que el backend, para avisar mientras se escribe. */
 export function cedulaValida(cedula: string): boolean {
   if (!/^\d{10}$/.test(cedula)) return false;
@@ -21,4 +23,22 @@ export function rucValido(ruc: string): boolean {
   if (tercero === 6) return ruc.slice(9) !== '0000';
   if (tercero === 9) return ruc.slice(10) !== '000';
   return false;
+}
+
+/** Persona (por ejemplo, una carga familiar): cédula válida, o pasaporte si trae letras. */
+export function cedulaOPasaporteValido(id: string): boolean {
+  if (/^\d+$/.test(id)) return cedulaValida(id);
+  return /^[A-Za-z0-9]{5,20}$/.test(id);
+}
+
+/** RUC de persona natural (tercer dígito 0–5): sus 10 primeros dígitos deben ser la cédula. */
+export function rucCoincideConCedula(ruc: string, cedula: string): boolean {
+  if (ruc.length !== 13 || cedula.length !== 10 || Number(ruc[2]) >= 6) return true;
+  return ruc.startsWith(cedula);
+}
+
+/** Validador de formularios reactivos para {@link cedulaOPasaporteValido}; vacío lo deja a `required`. */
+export function cedulaOPasaporteValidator(control: AbstractControl<string>): ValidationErrors | null {
+  const id = (control.value ?? '').trim();
+  return !id || cedulaOPasaporteValido(id) ? null : { identificacion: true };
 }

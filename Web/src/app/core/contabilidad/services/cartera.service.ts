@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { AuthService } from '@core/auth';
 import { environment } from '@env/environment';
+import { CupoPlan } from '@core/suscripcion';
 
 export interface Contribuyente { id: number; nombre: string; ruc: string | null; permiso: 'Consulta' | 'Edicion'; propio: boolean; }
 export interface VinculoContador { id: number; propietarioId: number; contadorId: number; nombrePropietario: string; ruc: string | null; nombreContador: string; correoContador: string; permiso: 'Consulta' | 'Edicion'; estado: 'Pendiente' | 'Activo' | 'Rechazado' | 'Revocado'; expiraEn: string; puedeResponder: boolean; }
@@ -27,6 +28,8 @@ export class CarteraService {
     this.http.get<Contribuyente[]>(this.url).subscribe({ next: lista => { if (this.auth.usuario()?.id !== usuario) return; this.estado.set({ usuario, lista }); if (!lista.some(c => c.id === this.auth.contribuyenteId())) this.auth.seleccionarContribuyente(null); } });
   }
   seleccionar(id: number): void { if (this.lista().some(c => c.id === id)) this.auth.seleccionarContribuyente(id); }
+  /** Contribuyentes usados de la cartera frente al límite del plan Contadores. */
+  cupo() { return this.http.get<CupoPlan>(`${this.url}/cupo`); }
   solicitudes() { return this.http.get<VinculoContador[]>(`${this.url}/solicitudes`); }
   solicitar(correo: string, permiso: 'Consulta' | 'Edicion') { return this.http.post<{ mensaje: string }>(`${this.url}/solicitudes`, { correo, permiso }); }
   aceptar(id: number) { return this.http.post<void>(`${this.url}/solicitudes/${id}/aceptar`, {}); }

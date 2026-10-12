@@ -26,6 +26,7 @@
           }
           <a
             routerLink="/configuracion"
+            [queryParams]="{ seccion: 'sistema' }"
             fragment="facturacion"
             class="font-medium text-accent hover:underline"
             >Ir a Configuración</a
@@ -40,12 +41,22 @@
       tributaria.
       <a
         routerLink="/configuracion"
+        [queryParams]="{ seccion: 'sistema' }"
         fragment="facturacion"
         class="ml-1 font-medium text-accent hover:underline"
         >Cambiar a producción</a
       >
     </p>
   }
+
+  <app-cupo-plan
+    class="mt-6"
+    titulo="Facturas electrónicas de este mes"
+    unidad="facturas"
+    [cupo]="d.cupo"
+    ayuda="No cuentan las que el SRI devolvió o no autorizó. El cupo se renueva el primer día de cada mes."
+    mensajeLleno="Llegaste al límite del mes: vuelves a emitir el primer día del próximo mes. Si necesitas más, escríbenos."
+  />
 
   @if (d.facturas.length) {
     <div class="card mt-6 overflow-x-auto">

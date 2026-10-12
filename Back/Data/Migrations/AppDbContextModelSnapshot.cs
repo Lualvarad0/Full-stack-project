@@ -919,6 +919,65 @@ namespace Back.Data.Migrations
                     b.ToTable("cuentas_contables", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.CuentaPersonal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("categoria");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creada_en");
+
+                    b.Property<int?>("DiaVencimiento")
+                        .HasColumnType("integer")
+                        .HasColumnName("dia_vencimiento");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("monto");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("nombre");
+
+                    b.Property<DateOnly?>("PagadaEl")
+                        .HasColumnType("date")
+                        .HasColumnName("pagada_el");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cuentas_personales");
+
+                    b.HasIndex("UsuarioId", "Anio", "Mes")
+                        .HasDatabaseName("ix_cuentas_personales_usuario_id_anio_mes");
+
+                    b.ToTable("cuentas_personales", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.DatosEmisor", b =>
                 {
                     b.Property<int>("Id")
@@ -1410,6 +1469,42 @@ namespace Back.Data.Migrations
                         .HasDatabaseName("ix_firmas_electronicas_usuario_id");
 
                     b.ToTable("firmas_electronicas", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.IngresoMensual", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("monto");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ingresos_mensuales");
+
+                    b.HasIndex("UsuarioId", "Anio", "Mes")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ingresos_mensuales_usuario_id_anio_mes");
+
+                    b.ToTable("ingresos_mensuales", (string)null);
                 });
 
             modelBuilder.Entity("Back.Models.LineaAsiento", b =>
@@ -2552,6 +2647,12 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("apellido");
 
+                    b.Property<bool>("AvisarIngresosPorCorreo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("avisar_ingresos_por_correo");
+
                     b.Property<int>("CargasFamiliares")
                         .HasColumnType("integer")
                         .HasColumnName("cargas_familiares");
@@ -2560,6 +2661,11 @@ namespace Back.Data.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)")
                         .HasColumnName("cedula");
+
+                    b.Property<string>("Ciudad")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("ciudad");
 
                     b.Property<string>("Correo")
                         .IsRequired()
@@ -2570,6 +2676,11 @@ namespace Back.Data.Migrations
                     b.Property<bool>("CorreoVerificado")
                         .HasColumnType("boolean")
                         .HasColumnName("correo_verificado");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("direccion");
 
                     b.Property<bool>("EnfermedadCatastrofica")
                         .HasColumnType("boolean")
@@ -2583,11 +2694,32 @@ namespace Back.Data.Migrations
                         .HasColumnType("date")
                         .HasColumnName("fecha_nacimiento");
 
+                    b.Property<string>("MesAlEntrar")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Actual")
+                        .HasColumnName("mes_al_entrar");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("nombre");
+
+                    b.Property<string>("Ocupacion")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("ocupacion");
+
+                    b.Property<string>("PaginaInicio")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Resumen")
+                        .HasColumnName("pagina_inicio");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -2620,6 +2752,11 @@ namespace Back.Data.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("character varying(13)")
                         .HasColumnName("ruc");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("telefono");
 
                     b.Property<DateTime?>("UltimoIngresoEn")
                         .HasColumnType("timestamp with time zone")
@@ -2857,6 +2994,16 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_cuentas_contables_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.CuentaPersonal", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_cuentas_personales_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.DatosEmisor", b =>
                 {
                     b.HasOne("Back.Models.Usuario", null)
@@ -2949,6 +3096,16 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_firmas_electronicas_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.IngresoMensual", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ingresos_mensuales_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.LineaAsiento", b =>

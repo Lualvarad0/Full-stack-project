@@ -4,7 +4,7 @@ import { forkJoin } from 'rxjs';
 import { LucideFilePlus2, LucideFileText, LucideTriangleAlert } from '@lucide/angular';
 import { FacturacionService } from '@core/facturacion';
 import { cargar } from '@core/http';
-import { ErrorCarga, Titulo } from '@shared/components';
+import { CupoPlanContador, ErrorCarga, Titulo } from '@shared/components';
 import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 import { EstadoFacturaPildora } from './estado-factura';
 /** Facturas emitidas desde Nudo y acceso a crear una nueva. */
@@ -15,6 +15,7 @@ import { EstadoFacturaPildora } from './estado-factura';
     RouterLink,
     Titulo,
     ErrorCarga,
+    CupoPlanContador,
     DineroPipe,
     FechaCortaPipe,
     EstadoFacturaPildora,
@@ -28,6 +29,11 @@ export class Facturas {
   private readonly servicio = inject(FacturacionService);
   protected readonly carga = cargar(
     () => 0,
-    () => forkJoin({ facturas: this.servicio.facturas(), datos: this.servicio.datos() }),
+    () =>
+      forkJoin({
+        facturas: this.servicio.facturas(),
+        datos: this.servicio.datos(),
+        cupo: this.servicio.cupo(),
+      }),
   );
 }

@@ -5,9 +5,10 @@ using Back.Models;
 namespace Back.Dtos
 {
     /// <summary>Nombre: nombre y apellido juntos, para mostrar.</summary>
-    public record UsuarioDto(int Id, string Nombre, string Email, string Rol, PlanSuscripcion Plan)
+    public record UsuarioDto(int Id, string Nombre, string Email, string Rol, PlanSuscripcion Plan, PaginaInicio PaginaInicio = PaginaInicio.Resumen,
+        MesAlEntrar MesAlEntrar = MesAlEntrar.Actual)
     {
-        public static UsuarioDto From(Usuario u) => new(u.Id, $"{u.Nombre} {u.Apellido}".Trim(), u.Correo, u.Rol, u.Plan);
+        public static UsuarioDto From(Usuario u) => new(u.Id, $"{u.Nombre} {u.Apellido}".Trim(), u.Correo, u.Rol, u.Plan, u.PaginaInicio, u.MesAlEntrar);
     }
 
     public record UsuarioRequest(

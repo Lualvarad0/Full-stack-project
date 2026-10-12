@@ -10,6 +10,7 @@ public class CarteraController(CarteraService servicio) : ControllerBase
 {
     private int UsuarioId => JwtHelper.GetUsuarioId(User);
     [HttpGet] public Task<List<ContribuyenteAccesibleDto>> Lista(CancellationToken ct) => servicio.ContribuyentesAsync(UsuarioId, ct);
+    [HttpGet("cupo")] public Task<CupoPlanDto> Cupo(CancellationToken ct) => servicio.CupoAsync(UsuarioId, ct);
     [HttpGet("solicitudes")] public Task<List<VinculoContadorDto>> Solicitudes(CancellationToken ct) => servicio.SolicitudesAsync(UsuarioId, ct);
     [HttpPost("solicitudes")] public async Task<IActionResult> Solicitar(SolicitarVinculoRequest request, CancellationToken ct)
     { await servicio.SolicitarAsync(UsuarioId, request, ct); return Ok(new { mensaje = "Si la cuenta está registrada y activa, recibirá tu solicitud. No tendrás acceso hasta que su titular la autorice." }); }

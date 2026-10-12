@@ -48,10 +48,26 @@
     <form [formGroup]="form" (ngSubmit)="registrar()" class="space-y-4">
       <div class="grid gap-3 md:grid-cols-3">
         <label
-          >Identificación<input
-            class="input"
+          >Cédula o pasaporte<input
+            class="input font-mono"
             formControlName="identificacion"
-            maxlength="20" /></label
+            maxlength="20"
+            autocomplete="off"
+            [attr.aria-invalid]="identificacionInvalida()"
+            aria-describedby="carga-identificacion-ayuda" />
+          <span
+            id="carga-identificacion-ayuda"
+            class="mt-1 block text-xs"
+            [class.text-danger]="identificacionInvalida()"
+            [class.text-muted-fg]="!identificacionInvalida()"
+            >{{
+              identificacionInvalida()
+                ? esPasaporte()
+                  ? 'El pasaporte solo admite letras y números (de 5 a 20).'
+                  : 'La cédula no es válida. Revisa los 10 dígitos.'
+                : 'Cédula de 10 dígitos o número de pasaporte.'
+            }}</span
+          ></label
         ><label>Nombre<input class="input" formControlName="nombre" maxlength="200" /></label
         ><label
           >Relación<select class="input" formControlName="parentesco">

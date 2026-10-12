@@ -72,3 +72,18 @@
     }
   }
 }
+
+/* Preferencia "Reducir animaciones" (Configuración → Preferencias): igual que el ajuste del sistema operativo,
+   pero elegido dentro de Nudo. Las animaciones terminan al instante en su estado final (visible). */
+:root[data-movimiento='reducido'] *,
+:root[data-movimiento='reducido'] *::before,
+:root[data-movimiento='reducido'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+:root[data-movimiento='reducido']::view-transition-old(root),
+:root[data-movimiento='reducido']::view-transition-new(root) {
+  animation: none;
+}
