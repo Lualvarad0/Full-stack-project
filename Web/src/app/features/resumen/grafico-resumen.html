@@ -1,0 +1,50 @@
+<section class="card h-full p-5 sm:p-6" aria-label="Gráfico de tus movimientos">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h2 class="font-semibold">
+      {{ vista() === 'evolucion' ? 'Evolución de tus movimientos' : '¿En qué estás gastando?' }}
+    </h2>
+    <app-segmentado [opciones]="opciones" [(valor)]="vista" etiqueta="Perspectiva del gráfico" />
+  </div>
+  <p class="mt-2 text-sm text-muted-fg">
+    @if (vista() === 'evolucion') {
+      {{
+        estado.verIngresos()
+          ? 'Compara lo que facturaste con lo que gastaste'
+          : 'Compara tus gastos de un mes a otro'
+      }}
+      en {{ estado.periodo.anio() }}. Valores en dólares.
+      @if (estado.esPersonal()) {
+        Solo se incluye el historial disponible de tu plan: últimos 3 meses.
+      }
+    } @else {
+      Gastos de {{ estado.nombreMes() }} de {{ estado.periodo.anio() }}, agrupados por categoría.
+      Valores en dólares.
+    }
+  </p>
+  <div class="mt-5">
+    @if (vista() === 'categorias') {
+      @if (estado.porCategoria().length) {
+        <app-barras-horizontales
+          [barras]="estado.porCategoria()"
+          titulo="Gastos por categoría del mes seleccionado"
+        />
+      } @else {
+        <p class="py-10 text-center text-sm text-muted-fg">
+          No hay gastos por categoría en este mes.
+        </p>
+      }
+    } @else if (estado.verIngresos()) {
+      <app-barras-comparadas
+        [puntos]="estado.comparado()"
+        [resaltado]="estado.periodo.mes()"
+        titulo="Ingresos y gastos por mes"
+      />
+    } @else {
+      <app-barras-mes
+        [puntos]="estado.porMes()"
+        [resaltado]="estado.periodo.mes()"
+        titulo="Gastos por mes"
+      />
+    }
+  </div>
+</section>

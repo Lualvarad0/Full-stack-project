@@ -1,0 +1,38 @@
+<section
+  class="card mb-6 grid gap-5 p-5 sm:p-6 lg:grid-cols-2"
+  aria-label="Bienvenida y última actividad"
+>
+  <div>
+    <p class="etiqueta">
+      {{ administrador() ? 'Administración' : 'Plan ' + (usuario()?.plan ?? 'Personal') }}
+    </p>
+    <h2 class="mt-2 text-2xl font-semibold">
+      {{ saludo() }}{{ usuario()?.nombre ? ', ' + usuario()?.nombre : '' }}.
+    </h2>
+    <p class="mt-2 text-sm text-muted-fg">Hoy es {{ fecha() }}.</p>
+    <p class="mt-1 text-sm text-muted-fg">
+      {{
+        administrador()
+          ? 'Consulta cómo va el negocio y la participación de tus usuarios.'
+          : 'Consulta tus movimientos y entiende cómo va tu mes.'
+      }}
+    </p>
+  </div>
+  <div class="rounded-xl bg-muted p-4" aria-live="polite">
+    <h3 class="font-medium">Última actividad de tu cuenta</h3>
+    @if (actividad().cargando && !actividad().datos) {
+      <p class="mt-2 text-sm text-muted-fg">Consultando actividad…</p>
+    } @else if (actividad().error) {
+      <p class="mt-2 text-sm text-muted-fg">No pudimos consultar tu actividad en este momento.</p>
+    } @else if (ultima(); as a) {
+      <p class="mt-2 text-sm font-medium">{{ a.titulo }}</p>
+      <p class="mt-1 text-sm text-muted-fg">{{ a.detalle }}</p>
+      <time class="mt-2 block text-xs text-muted-fg" [attr.datetime]="a.fecha">{{
+        fechaHora(a.fecha)
+      }}</time>
+    } @else {
+      <p class="mt-2 text-sm text-muted-fg">Todavía no hay actividad registrada.</p>
+    }
+    <p class="mt-3 text-xs text-muted-fg">Accesos y cambios de configuración registrados.</p>
+  </div>
+</section>
