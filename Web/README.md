@@ -1,6 +1,6 @@
 # Frontend de Nudo
 
-El frontend vigente es `Web/` (Angular standalone). `Front/` conserva la versión antigua y no se usa para esta aplicación.
+El frontend vigente es `Web/` (Angular standalone). El repositorio conserva únicamente esta aplicación; el frontend antiguo está excluido del control de versiones.
 
 ## Ejecutar
 
@@ -27,6 +27,7 @@ src/app/
     facturacion/      Emisión, firma, servicios, modelos y tarifas
     perfil/           Perfil tributario, deducibles y validators compartidos
     suscripcion/      Planes, pagos, modelos y guard del plan
+    contabilidad/     Servicios de cartera, períodos, tesorería, libros y tributación
     correo/           Buzón, actividad y sus contratos
     ui/               Preferencias, avisos, marca y tipos visuales
     http/             Carga reactiva y tratamiento de errores HTTP
@@ -45,6 +46,10 @@ src/app/
     facturacion/      Emisión, detalle y catálogo de servicios
     suscripcion/      Planes, prueba y pagos
     configuracion/    Perfil y configuración de la cuenta
+    cartera/          Autorizaciones y selección de contribuyente
+    contabilidad/     Revisión, cierres, retenciones y libros
+    tesoreria/        Cobros, pagos, bancos y conciliación
+    tributacion/      Preparaciones, cargas, obligaciones y exportaciones
     admin/            Administración por rol
     proximamente/     Pantalla común de funciones futuras
   layout/             Estructura de navegación de la sesión
@@ -97,7 +102,7 @@ Usar clases semánticas como `text-success`, `bg-card` o `btn-primary`, sin repe
 
 ## Verificación de la estructura
 
-`npm test -- --watch=false` verifica la búsqueda diferida (incluida su limpieza), las especializaciones de gastos e ingresos, las notas de crédito, los cálculos de la factura y la comunicación entre el formulario padre y sus componentes. Las pruebas del formulario usan servicios simulados y no emiten facturas ni realizan cobros.
+Ejecutar `npm run setup:env` y `npm run build` desde esta carpeta. Las pruebas se mantienen como archivos locales excluidos de esta entrega de producción.
 
 ## Planes y permisos
 
@@ -106,8 +111,8 @@ Se organiza por funcionalidades porque los planes comparten pantallas. No crear 
 | Plan de la API | Acceso actual |
 | --- | --- |
 | Personal (gratuito) | Resumen, gastos, importación, proveedores, comprobantes y cuenta, con límites aplicados por la API |
-| Profesional (de pago) | Funciones comunes más ingresos, clientes y facturación |
-| Contadores (de pago) | Acceso profesional; la propuesta comercial incluye varios RUC y un panel por cliente anunciado como próximo |
+| Profesional (de pago) | Funciones comunes, facturación, tesorería, libros y preparación tributaria |
+| Contadores (de pago) | Funciones profesionales y cartera de contribuyentes con autorización y permisos individuales |
 
 `core/suscripcion/constants/planes.ts` contiene los textos del catálogo; `core/suscripcion/models/suscripcion.model.ts` define los identificadores. Los precios efectivos y límites vienen del backend. `core/suscripcion/guards/plan-profesional.guard.ts` y `core/admin/guards/admin.guard.ts` controlan sus respectivas rutas. Los controles de plan dentro de las pantallas se mantienen para las funciones compartidas. El rol administrador tiene sus reglas independientes del plan.
 

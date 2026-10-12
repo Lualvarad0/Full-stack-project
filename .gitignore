@@ -1,25 +1,17 @@
-# Node (para Angular)
-node_modules/
-dist/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-# Node (para Angular)
+# Dependencias y compilaciones
 node_modules/
 dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Angular (incluyendo Angular 16)
+# Angular y herramientas locales
 .angular/
 .idea/
 .sass-cache/
 coverage/
 .vscode/
-src/environments/*.ts
 *.log
-*.lock
 *.tsbuildinfo
 
 # .NET
@@ -35,17 +27,14 @@ obj/
 
 # ASP.NET Core
 appsettings.*.json
-.vscode/
 .vs/
 project.lock.json
 project.fragment.lock.json
 
-# Configuración específica para Visual Studio o Visual Studio Code
-.vscode/*
-
 # Archivos de entorno y configuración
 .env
-.env.*local
+.env.*
+!.env.example
 
 # Otros archivos de sistema
 .DS_Store
@@ -53,8 +42,13 @@ Thumbs.db
 
 # Configuración local de cualquier frontend Angular
 **/src/environments/environment*.ts
-.env.*
-!.env.example
+
+# Copias locales fuera de la entrega de producción
+/Front/
+/Back.Tests/
+**/*.spec.ts
+**/*.test.ts
+/.claude/
 
 # Archivos temporales de verificaciones locales
 /tmp/
