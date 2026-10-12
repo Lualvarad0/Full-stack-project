@@ -138,6 +138,8 @@ namespace Back.Data
                 e.ToTable("periodos_contables"); e.HasIndex(x => new { x.UsuarioId, x.Anio, x.Mes }).IsUnique();
                 e.Property(x => x.Estado).HasConversion<string>().HasMaxLength(20);
                 e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Restrict);
+                // Quien cerró el periodo: si esa cuenta se borra, el cierre se conserva sin autor.
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.CerradoPorId).OnDelete(DeleteBehavior.SetNull);
             });
             modelBuilder.Entity<AuditoriaContable>(e => {
                 e.ToTable("auditoria_contable"); e.Property(x => x.Accion).HasMaxLength(80); e.Property(x => x.Entidad).HasMaxLength(80);
@@ -152,6 +154,7 @@ namespace Back.Data
                 e.HasIndex(x => new { x.PropietarioId, x.ContadorId }).IsUnique();
                 e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.PropietarioId).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.ContadorId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.SolicitadoPorId).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<TokenCuenta>(e => {
@@ -393,6 +396,10 @@ namespace Back.Data
                 e.Property(d => d.Subtotal).HasPrecision(12, 2);
                 e.Property(d => d.Iva).HasPrecision(12, 2);
                 e.Property(d => d.Tarifa).HasConversion<string>().HasMaxLength(10);
+                // Línea de la factura original que acredita una nota de crédito. NO ACTION (no RESTRICT):
+                // la verificación espera al final de la sentencia, así un borrado en cascada del usuario
+                // puede llevarse juntas la factura y su nota de crédito.
+                e.HasOne<FacturaEmitidaDetalle>().WithMany().HasForeignKey(d => d.DetalleSustentoId).OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<ServicioFacturable>(e =>

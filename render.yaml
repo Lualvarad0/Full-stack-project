@@ -1,0 +1,62 @@
+# Blueprint de Render para la API de Nudo (Render → New → Blueprint → este repositorio).
+# Las variables con "sync: false" se piden en el panel al crear el servicio: nunca van en el repositorio.
+services:
+  - type: web
+    name: nudo-api
+    runtime: docker
+    rootDir: Back
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Misma zona que la base de Neon (us-east-1) para menor latencia.
+    region: virginia
+    # El disco persistente (claves que cifran las firmas .p12) requiere un plan de pago.
+    plan: starter
+    healthCheckPath: /health
+    autoDeploy: false
+    disk:
+      name: claves
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Proxy__ConfiarEncabezadosReenviados
+        value: "true"
+      - key: DataProtection__RutaClaves
+        value: /var/data/claves
+      - key: Database__MigrateOnStartup
+        value: "false"
+      - key: Jwt__Key
+        generateValue: true
+      # Cadena *pooled* de Neon (host con -pooler), con SSL Mode=VerifyFull y Timeout=30.
+      - key: ConnectionStrings__Default
+        sync: false
+      # URL pública del frontend (https), para CORS y los enlaces de los correos.
+      - key: Cors__Origins__0
+        sync: false
+      - key: Frontend__Url
+        sync: false
+      - key: Sri__RucProveedor
+        sync: false
+      - key: Correo__DominioEntrante
+        sync: false
+      - key: Correo__SecretoWebhook
+        sync: false
+      - key: Smtp__Host
+        sync: false
+      - key: Smtp__Usuario
+        sync: false
+      - key: Smtp__Clave
+        sync: false
+      - key: Smtp__Remitente
+        sync: false
+      - key: Kushki__ClavePublica
+        sync: false
+      - key: Kushki__ClavePrivada
+        sync: false
+      - key: Kushki__FirmaWebhook
+        sync: false
+      - key: Kushki__Pruebas
+        value: "true"
