@@ -1397,6 +1397,9 @@ namespace Back.Data.Migrations
                     b.HasKey("Id")
                         .HasName("pk_facturas_emitidas_detalle");
 
+                    b.HasIndex("DetalleSustentoId")
+                        .HasDatabaseName("ix_facturas_emitidas_detalle_detalle_sustento_id");
+
                     b.HasIndex("FacturaEmitidaId")
                         .HasDatabaseName("ix_facturas_emitidas_detalle_factura_emitida_id");
 
@@ -1833,6 +1836,9 @@ namespace Back.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_periodos_contables");
+
+                    b.HasIndex("CerradoPorId")
+                        .HasDatabaseName("ix_periodos_contables_cerrado_por_id");
 
                     b.HasIndex("UsuarioId", "Anio", "Mes")
                         .IsUnique()
@@ -2827,6 +2833,9 @@ namespace Back.Data.Migrations
                     b.HasIndex("ContadorId")
                         .HasDatabaseName("ix_vinculos_contador_contador_id");
 
+                    b.HasIndex("SolicitadoPorId")
+                        .HasDatabaseName("ix_vinculos_contador_solicitado_por_id");
+
                     b.HasIndex("PropietarioId", "ContadorId")
                         .IsUnique()
                         .HasDatabaseName("ix_vinculos_contador_propietario_id_contador_id");
@@ -3080,6 +3089,12 @@ namespace Back.Data.Migrations
 
             modelBuilder.Entity("Back.Models.FacturaEmitidaDetalle", b =>
                 {
+                    b.HasOne("Back.Models.FacturaEmitidaDetalle", null)
+                        .WithMany()
+                        .HasForeignKey("DetalleSustentoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_facturas_emitidas_detalle_facturas_emitidas_detalle_detalle");
+
                     b.HasOne("Back.Models.FacturaEmitida", null)
                         .WithMany("Detalles")
                         .HasForeignKey("FacturaEmitidaId")
@@ -3191,6 +3206,12 @@ namespace Back.Data.Migrations
 
             modelBuilder.Entity("Back.Models.PeriodoContable", b =>
                 {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("CerradoPorId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_periodos_contables_usuarios_cerrado_por_id");
+
                     b.HasOne("Back.Models.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -3356,6 +3377,13 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_vinculos_contador_usuarios_propietario_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("SolicitadoPorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vinculos_contador_usuarios_solicitado_por_id");
                 });
 
             modelBuilder.Entity("Back.Models.AsientoContable", b =>

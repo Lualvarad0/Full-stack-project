@@ -127,6 +127,13 @@ Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49
 
 Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend), `Correo__DominioEntrante`, `Correo__SecretoWebhook`, `Smtp__*`, `Frontend__Url` HTTPS, `Sri__RucProveedor` y `DataProtection__RutaClaves` (carpeta privada y persistente).
 
+**Base de datos en [Neon](https://neon.tech)** (PostgreSQL administrado):
+
+- **Proyecto:** crea un proyecto en la región más cercana a tus usuarios (para Ecuador, AWS São Paulo `sa-east-1`) con PostgreSQL 16.
+- **Cadena de la app:** usa la cadena *pooled* (host con `-pooler`) en formato .NET: `Host=ep-xxx-pooler.sa-east-1.aws.neon.tech;Database=neondb;Username=...;Password=...;SSL Mode=Require;Timeout=30`. `Timeout=30` da margen a que Neon despierte el cómputo si estaba en reposo.
+- **Cadena de migraciones:** aplica las migraciones con la cadena *directa* (sin `-pooler`) y `dotnet ef database update --project Back --connection "<cadena directa>"`.
+- **Reintentos:** no actives `EnableRetryOnFailure`. La API abre transacciones propias (`FOR UPDATE` al emitir y en la cartera), y la estrategia de reintentos de EF no las admite.
+
 Aplica las migraciones antes de iniciar la versión actualizada. `Database__MigrateOnStartup=true` permite aplicarlas al arrancar si se habilita explícitamente. Los JWT anteriores a la incorporación de sesiones revocables requieren iniciar sesión de nuevo. Respalda tanto la base de datos como las claves de cifrado. Las credenciales de PostgreSQL en `docker-compose.yml` son solo un ejemplo de desarrollo y no deben usarse en producción.
 
 ---

@@ -17,6 +17,10 @@ public class AuditoriaContable
 {
     public long Id { get; set; }
     public int UsuarioId { get; set; }
+    /// <summary>
+    /// Quién hizo la acción (el titular o su contador). Sin llave foránea a propósito: el registro de auditoría
+    /// debe sobrevivir aunque la cuenta del actor se borre.
+    /// </summary>
     public int ActorId { get; set; }
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
     public string Accion { get; set; } = "";

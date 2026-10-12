@@ -16,6 +16,7 @@ using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -166,6 +167,22 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Detrás de un proxy (Render, Fly, un balanceador): toma la IP real del cliente y el esquema https de
+// X-Forwarded-For / X-Forwarded-Proto. Sin esto, el límite de peticiones por IP y la IP de los avisos de
+// ingreso verían siempre la del proxy. Solo se activa con Proxy:ConfiarEncabezadosReenviados=true, porque
+// esos encabezados son falsificables si la API se expone sin proxy delante.
+if (app.Configuration.GetValue<bool>("Proxy:ConfiarEncabezadosReenviados"))
+{
+    var reenviados = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+        ForwardLimit = 1, // solo el salto del proxy de la plataforma
+    };
+    reenviados.KnownNetworks.Clear(); // las IP del proxy de la plataforma no son fijas
+    reenviados.KnownProxies.Clear();
+    app.UseForwardedHeaders(reenviados);
+}
 
 // Errores no controlados -> 500 genérico, sin exponer detalles internos.
 // (Los errores de negocio los resuelve BusinessExceptionFilter.)
