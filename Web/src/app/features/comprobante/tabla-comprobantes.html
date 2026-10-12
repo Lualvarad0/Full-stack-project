@@ -1,0 +1,103 @@
+<div class="overflow-x-auto transition-opacity duration-200" [class.opacity-60]="cargando()">
+  <table class="w-full text-sm">
+    <caption class="sr-only">
+      Comprobantes
+      {{
+        esIngreso() ? 'emitidos' : 'recibidos'
+      }}
+      en
+      {{
+        etiquetaPeriodo()
+      }}
+    </caption>
+    <thead class="tabla-encabezado">
+      <tr>
+        <th scope="col" class="px-5 py-3 font-medium">Fecha</th>
+        <th scope="col" class="px-5 py-3 font-medium">
+          {{ esIngreso() ? 'Cliente' : 'Proveedor' }}
+        </th>
+        <th scope="col" class="px-5 py-3 font-medium">Comprobante</th>
+        @if (esIngreso()) {
+          <th scope="col" class="px-5 py-3 text-right font-medium">IVA</th>
+        } @else {
+          <th scope="col" class="w-56 px-5 py-3 font-medium">Categoría</th>
+        }
+        <th scope="col" class="px-5 py-3 text-right font-medium">Total</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-border">
+      @for (c of lista(); track c.id) {
+        <tr
+          class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 px-4 py-4 transition-colors hover:bg-muted/50 md:table-row md:p-0"
+        >
+          <td class="tabla-celda-fecha">{{ c.fechaEmision | fechaCorta }}</td>
+          <td class="order-1 min-w-0 md:px-5 md:py-3">
+            <a
+              [routerLink]="['/comprobantes', c.id]"
+              class="block truncate font-medium hover:text-accent hover:underline"
+            >
+              {{ esIngreso() ? c.razonSocialComprador : c.nombreComercial || c.razonSocialEmisor }}
+            </a>
+            <span class="block truncate text-xs text-muted-fg">{{
+              esIngreso() ? c.identificacionComprador : 'RUC ' + c.rucEmisor
+            }}</span>
+            @if (esIngreso()) {
+              <a [routerLink]="['/comprobantes', c.id]" class="mt-1 block text-xs text-accent hover:underline">{{ c.categoriaIngreso === 'OtrosIngresos' ? 'Otros ingresos' : c.categoriaIngreso || 'Revisar clasificación' }}</a>
+            } @else if (c.categoria === 'SinCategoria') {
+              <a [routerLink]="['/comprobantes', c.id]" class="mt-1 block text-xs text-accent hover:underline">Revisar sugerencia de categoría</a>
+            }
+            @if (!esIngreso() && c.aNombreDelUsuario === false) {
+              <span
+                class="pildora mt-1 max-w-full truncate border border-warning-border estado-atencion"
+                [title]="
+                  'Factura a nombre de ' +
+                  c.razonSocialComprador +
+                  ' (' +
+                  c.identificacionComprador +
+                  ')'
+                "
+              >
+                <svg
+                  lucideTriangleAlert
+                  class="size-3 shrink-0 text-warning"
+                  aria-hidden="true"
+                ></svg>
+                A nombre de {{ c.razonSocialComprador }}
+              </span>
+            }
+          </td>
+          <td class="order-4 hidden text-muted-fg md:table-cell md:px-5 md:py-3">
+            <span class="block text-fg">{{ c.tipoComprobante }}</span>
+            <span class="font-mono text-xs">{{ c.numeroComprobante }}</span>
+          </td>
+          @if (esIngreso()) {
+            <td class="money order-5 hidden text-right text-muted-fg md:table-cell md:px-5 md:py-3">
+              {{ c.iva | dinero }}
+            </td>
+          } @else {
+            <td class="order-5 col-span-2 md:px-5 md:py-2">
+              <app-categoria-select
+                [valor]="c.categoria"
+                [deshabilitado]="guardando() === c.id"
+                [etiqueta]="'Categoría de ' + c.razonSocialEmisor"
+                (cambio)="categoriaCambio.emit({ comprobante: c, categoria: $event })"
+              />
+            </td>
+          }
+          <td class="order-2 text-right md:px-5 md:py-3">
+            <span
+              class="money font-semibold"
+              [class.text-success]="!esIngreso() && esNotaCredito(c)"
+              [class.text-danger]="esIngreso() && esNotaCredito(c)"
+            >
+              {{ esNotaCredito(c) ? '−' : '' }}{{ c.total | dinero }}
+            </span>
+            @if (esNotaCredito(c)) {
+              <span class="block text-xs text-muted-fg">Nota de crédito</span>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

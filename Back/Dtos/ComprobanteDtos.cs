@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Back.Models;
+using Back.Clasificacion;
 
 namespace Back.Dtos
 {
@@ -16,7 +17,7 @@ namespace Back.Dtos
         bool PerfilCompleto,
         List<ClaveImportada> Claves);
 
-    public record ImportarClavesRequest([Required] string Texto);
+    public record ImportarClavesRequest([Required, StringLength(1024 * 1024)] string Texto);
 
     /// <param name="ANombreDelUsuario">
     /// Solo para gastos: si la factura está a nombre de la cédula/RUC del perfil. Null si el perfil no tiene identificación.
@@ -39,10 +40,11 @@ namespace Back.Dtos
         CategoriaGasto Categoria,
         bool? ANombreDelUsuario)
     {
+        public CategoriaIngreso? CategoriaIngreso { get; init; }
         public static ComprobanteListaDto From(Comprobante c, Usuario perfil) => new(
             c.Id, c.ClaveAcceso, c.Direccion, TiposComprobante.Nombre(c.TipoComprobante), c.NumeroComprobante, c.FechaEmision,
             c.RucEmisor, c.RazonSocialEmisor, c.NombreComercial, c.IdentificacionComprador, c.RazonSocialComprador,
-            c.Subtotal, c.Iva, c.Total, c.Categoria, ANombreDe(c, perfil));
+            c.Subtotal, c.Iva, c.Total, c.Categoria, ANombreDe(c, perfil)) { CategoriaIngreso = c.CategoriaIngreso };
 
         internal static bool? ANombreDe(Comprobante c, Usuario perfil)
         {
@@ -52,7 +54,18 @@ namespace Back.Dtos
         }
     }
 
-    public record ComprobanteDetalleDto(string? Codigo, string Descripcion, decimal Cantidad, decimal PrecioUnitario, decimal Descuento, decimal Subtotal);
+    public record ComprobanteDetalleDto(string? Codigo, string Descripcion, decimal Cantidad, decimal PrecioUnitario, decimal Descuento, decimal Subtotal)
+    {
+        public int Id { get; init; }
+        public CategoriaGasto? Categoria { get; init; }
+        public CategoriaIngreso? CategoriaIngreso { get; init; }
+        public FinalidadComprobante Finalidad { get; init; }
+        public TratamientoIva TratamientoIva { get; init; }
+        public decimal? Iva { get; init; }
+        public decimal? TarifaIva { get; init; }
+        public DateTime? RevisadoEn { get; init; }
+        public SugerenciaClasificacion? Sugerencia { get; init; }
+    }
 
     public record ComprobanteDto(
         int Id,
@@ -81,18 +94,30 @@ namespace Back.Dtos
         bool? ANombreDelUsuario,
         List<ComprobanteDetalleDto> Detalles)
     {
+        public CategoriaIngreso? CategoriaIngreso { get; init; }
+        public SugerenciaClasificacion? Sugerencia { get; init; }
+        public FinalidadComprobante Finalidad { get; init; }
+        public TratamientoIva TratamientoIva { get; init; }
+        public DateTime? RevisadoEn { get; init; }
         public static ComprobanteDto From(Comprobante c, Usuario perfil) => new(
             c.Id, c.ClaveAcceso, c.Direccion, TiposComprobante.Nombre(c.TipoComprobante), c.NumeroComprobante, c.NumeroAutorizacion,
             c.FechaAutorizacion, c.FechaEmision, c.RucEmisor, c.RazonSocialEmisor, c.NombreComercial,
             c.IdentificacionComprador, c.RazonSocialComprador, c.Subtotal, c.BaseIva0, c.BaseIvaGravada, c.Iva,
             c.OtrosImpuestos, c.Descuento, c.Propina, c.Total, c.DocumentoModificado, c.Categoria,
             ComprobanteListaDto.ANombreDe(c, perfil),
-            c.Detalles.Select(d => new ComprobanteDetalleDto(d.Codigo, d.Descripcion, d.Cantidad, d.PrecioUnitario, d.Descuento, d.Subtotal)).ToList());
+            c.Detalles.Select(d => new ComprobanteDetalleDto(d.Codigo, d.Descripcion, d.Cantidad, d.PrecioUnitario, d.Descuento, d.Subtotal)
+            { Id = d.Id, Categoria = d.Categoria, CategoriaIngreso = d.CategoriaIngreso, Finalidad = d.Finalidad, TratamientoIva = d.TratamientoIva,
+              Iva = d.Iva, TarifaIva = d.TarifaIva, RevisadoEn = d.RevisadoEn,
+              Sugerencia = ClasificadorComprobantes.Sugerir(new Comprobante { Direccion = c.Direccion, FechaEmision = c.FechaEmision, TipoComprobante = c.TipoComprobante,
+                  Categoria = d.Categoria ?? CategoriaGasto.SinCategoria, CategoriaIngreso = d.CategoriaIngreso, Detalles = [d] }) }).ToList())
+            { CategoriaIngreso = c.CategoriaIngreso, Sugerencia = ClasificadorComprobantes.Sugerir(c), Finalidad = c.Finalidad, TratamientoIva = c.TratamientoIva, RevisadoEn = c.RevisadoEn };
     }
 
     public record CambiarCategoriaRequest(
         [EnumDataType(typeof(CategoriaGasto))] CategoriaGasto Categoria,
         bool AplicarAlProveedor = true);
+
+    public record CambiarCategoriaIngresoRequest([EnumDataType(typeof(CategoriaIngreso))] CategoriaIngreso Categoria);
 
     public record ProveedorDto(string Ruc, string RazonSocial, CategoriaGasto? Categoria, int Comprobantes, decimal Total);
 

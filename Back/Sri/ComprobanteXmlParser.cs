@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.Globalization;
 using System.Xml.Linq;
 using Back.Models;
@@ -12,7 +13,7 @@ namespace Back.Sri
     {
         public static Comprobante Parse(string xml)
         {
-            var raiz = XDocument.Parse(xml).Root ?? throw new FormatException("XML vacío.");
+            var raiz = XmlSeguro.Documento(xml).Root ?? throw new FormatException("XML vacío.");
             var (tipo, nodoInfo) = raiz.Name.LocalName switch
             {
                 "factura" => (TiposComprobante.Factura, "infoFactura"),
@@ -80,6 +81,8 @@ namespace Back.Sri
                 PrecioUnitario = Decimal(d, "precioUnitario"),
                 Descuento = Decimal(d, "descuento"),
                 Subtotal = Decimal(d, "precioTotalSinImpuesto"),
+                Iva = Hijo(d, "impuestos") is { } impuestos ? impuestos.Elements().Where(i => Texto(i, "codigo") == "2").Sum(i => Decimal(i, "valor")) : null,
+                TarifaIva = Hijo(d, "impuestos")?.Elements().FirstOrDefault(i => Texto(i, "codigo") == "2") is { } iva ? Decimal(iva, "tarifa") : null,
             })
             .ToList();
 

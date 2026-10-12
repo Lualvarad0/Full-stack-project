@@ -9,6 +9,9 @@ using Back.Sri;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using Back.Contabilidad;
+using Back.Data;
+using Back.Clasificacion;
 
 namespace Back.Services
 {
@@ -27,19 +30,22 @@ namespace Back.Services
         private readonly SriAutorizacionClient _sri;
         private readonly SriOptions _sriOptions;
         private readonly ILogger<ComprobanteService> _logger;
+        private readonly ControlPeriodoService _periodos;
+        private readonly AppDbContext _db;
 
         public ComprobanteService(
             IComprobanteRepository repository,
             IUsuarioRepository usuarioRepository,
             SriAutorizacionClient sri,
             IOptions<SriOptions> sriOptions,
-            ILogger<ComprobanteService> logger)
+            ILogger<ComprobanteService> logger, ControlPeriodoService periodos, AppDbContext db)
         {
             _repository = repository;
             _usuarioRepository = usuarioRepository;
             _sri = sri;
             _sriOptions = sriOptions.Value;
             _logger = logger;
+            _periodos = periodos; _db = db;
         }
 
         /// <summary>
@@ -104,11 +110,18 @@ namespace Back.Services
                     comprobante.Categoria = comprobante.Direccion == Direccion.Recibido
                         ? categorias.GetValueOrDefault(comprobante.RucEmisor, CategoriaGasto.SinCategoria)
                         : CategoriaGasto.SinCategoria;
+                    if (comprobante.Categoria != CategoriaGasto.SinCategoria) {
+                        comprobante.Finalidad = comprobante.Categoria == CategoriaGasto.NoDeducible ? FinalidadComprobante.NoAplicable : FinalidadComprobante.Personal;
+                        comprobante.RevisadoEn = DateTime.UtcNow;
+                    }
                 }
 
                 try
                 {
+                    await using var tx = await _periodos.AbrirAsync(usuarioId, nuevos.Select(c => c.FechaEmision), ct);
+                    _periodos.Auditar(usuarioId, "Importar", "Comprobantes", "Lote", $"Nuevos comprobantes: {nuevos.Count}");
                     await _repository.AddRangeAsync(nuevos);
+                    await tx.ConfirmarAsync(ct);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
                 {
@@ -145,6 +158,8 @@ namespace Back.Services
                 return (new(clave, ResultadoImportacion.NoEncontrado, autorizacion.Mensaje), null);
             if (autorizacion.Estado == EstadoAutorizacion.NoAutorizado || string.IsNullOrWhiteSpace(autorizacion.ComprobanteXml))
                 return (new(clave, ResultadoImportacion.NoAutorizado, autorizacion.Mensaje), null);
+            if (clave.Length == 49 && clave[23] != '2')
+                return (new(clave, ResultadoImportacion.NoAutorizado, "El comprobante pertenece al ambiente de pruebas; no se incorpora a los registros tributarios."), null);
 
             try
             {
@@ -160,7 +175,7 @@ namespace Back.Services
             catch (Exception ex) when (ex is XmlException or FormatException or NotSupportedException)
             {
                 _logger.LogWarning(ex, "No se pudo leer el XML del comprobante {Clave}", clave);
-                return (new(clave, ResultadoImportacion.Error, $"No se pudo leer el XML: {ex.Message}"), null);
+                return (new(clave, ResultadoImportacion.Error, "No se pudo leer el XML del comprobante devuelto por el SRI."), null);
             }
         }
 
@@ -189,19 +204,50 @@ namespace Back.Services
             var comprobante = await ObtenerEntidadAsync(usuarioId, id);
             if (comprobante.Direccion == Direccion.Emitido)
                 throw new BusinessException("Las facturas que emites son ingresos y no llevan categoría de gasto.");
+            await using var tx = await _periodos.AbrirAsync(usuarioId, [comprobante.FechaEmision]);
+            if (request.AplicarAlProveedor) await _periodos.ExigirAbiertosAsync(usuarioId,
+                await _db.Comprobantes.Where(c => c.UsuarioId == usuarioId && c.RucEmisor == comprobante.RucEmisor && c.Direccion == Direccion.Recibido).Select(c => c.FechaEmision).ToListAsync());
 
             // Se asigna también en la entidad cargada: ExecuteUpdate no actualiza las instancias que EF ya tiene en memoria.
             comprobante.Categoria = request.Categoria;
+            comprobante.Finalidad = request.Categoria == CategoriaGasto.SinCategoria ? FinalidadComprobante.SinDefinir : request.Categoria == CategoriaGasto.NoDeducible ? FinalidadComprobante.NoAplicable : FinalidadComprobante.Personal;
+            comprobante.RevisadoEn = request.Categoria == CategoriaGasto.SinCategoria ? null : DateTime.UtcNow;
+            _periodos.Auditar(usuarioId, "ClasificarGasto", "Comprobante", id.ToString(), $"Categoría: {request.Categoria}; proveedor: {request.AplicarAlProveedor}");
             if (request.AplicarAlProveedor)
                 await _repository.AsignarCategoriaProveedorAsync(usuarioId, comprobante.RucEmisor, request.Categoria);
             else
                 await _repository.SaveChangesAsync();
+            await _repository.SaveChangesAsync(); await tx.ConfirmarAsync();
 
             return await ObtenerComprobanteAsync(usuarioId, id);
         }
 
-        public async Task EliminarComprobanteAsync(int usuarioId, int id) =>
-            await _repository.DeleteAsync(await ObtenerEntidadAsync(usuarioId, id));
+        public async Task<ComprobanteDto> CambiarCategoriaIngresoAsync(int usuarioId, int id, CambiarCategoriaIngresoRequest request)
+        {
+            var comprobante = await ObtenerEntidadAsync(usuarioId, id);
+            AccesoPlan.ExigirProfesional(await ObtenerPerfilAsync(usuarioId), "La clasificación de ingresos");
+            if (comprobante.Direccion != Direccion.Emitido)
+                throw new BusinessException("Este comprobante es un gasto; elige una categoría de gasto.");
+            await using var tx = await _periodos.AbrirAsync(usuarioId, [comprobante.FechaEmision]);
+            comprobante.CategoriaIngreso = request.Categoria;
+            comprobante.Finalidad = FinalidadComprobante.Negocio; comprobante.RevisadoEn = DateTime.UtcNow;
+            _periodos.Auditar(usuarioId, "ClasificarIngreso", "Comprobante", id.ToString(), $"Categoría: {request.Categoria}");
+            await _repository.SaveChangesAsync();
+            await tx.ConfirmarAsync();
+            return await ObtenerComprobanteAsync(usuarioId, id);
+        }
+
+        public async Task EliminarComprobanteAsync(int usuarioId, int id)
+        {
+            var c = await ObtenerEntidadAsync(usuarioId, id); await using var tx = await _periodos.AbrirAsync(usuarioId, [c.FechaEmision]);
+            if (await _db.Set<RetencionSriDetalle>().AnyAsync(r => r.ComprobanteId == id)
+                || await _db.FacturasEmitidas.AnyAsync(f => f.UsuarioId == usuarioId && f.ComprobanteSustentoId == id)
+                || await _db.Set<PagoComprobante>().AnyAsync(p => p.UsuarioId == usuarioId && p.ComprobanteId == id)
+                || await _db.Set<AsientoContable>().AnyAsync(a => a.UsuarioId == usuarioId && a.ComprobanteId == id))
+                throw BusinessException.Conflict("El comprobante tiene retenciones vinculadas. Conserva su documento de sustento.");
+            _periodos.Auditar(usuarioId, "EliminarImportado", "Comprobante", id.ToString(), $"Clave: {c.ClaveAcceso}");
+            await _repository.DeleteAsync(c); await tx.ConfirmarAsync();
+        }
 
         public async Task<List<ProveedorDto>> ObtenerProveedoresAsync(int usuarioId)
         {
@@ -219,8 +265,13 @@ namespace Back.Services
                 .ToList();
         }
 
-        public async Task AsignarCategoriaProveedorAsync(int usuarioId, string ruc, CategoriaGasto categoria) =>
-            await _repository.AsignarCategoriaProveedorAsync(usuarioId, ruc, categoria);
+        public async Task AsignarCategoriaProveedorAsync(int usuarioId, string ruc, CategoriaGasto categoria)
+        {
+            await using var tx = await _periodos.AbrirAsync(usuarioId, []);
+            await _periodos.ExigirAbiertosAsync(usuarioId, await _db.Comprobantes.Where(c => c.UsuarioId == usuarioId && c.RucEmisor == ruc && c.Direccion == Direccion.Recibido).Select(c => c.FechaEmision).ToListAsync());
+            _periodos.Auditar(usuarioId, "ClasificarProveedor", "Proveedor", ruc, $"Categoría: {categoria}");
+            await _repository.AsignarCategoriaProveedorAsync(usuarioId, ruc, categoria); await _repository.SaveChangesAsync(); await tx.ConfirmarAsync();
+        }
 
         /// <summary>Clientes a los que el usuario facturó (comprobantes emitidos), opcionalmente en un año/mes.</summary>
         public async Task<List<ClienteFacturadoDto>> ObtenerClientesAsync(int usuarioId, int? anio, int? mes)
@@ -292,7 +343,7 @@ namespace Back.Services
                 gastos.Count,
                 gastos.Sum(c => c.Signo * c.Total),
                 gastos.Sum(c => c.Signo * c.Iva),
-                gastos.Where(c => Deducibles.Contains(c.Categoria)).Sum(c => c.Signo * c.Total),
+                gastos.Sum(ImportesGastosPersonales.BasePersonal),
                 gastos.Count(c => c.Categoria == CategoriaGasto.SinCategoria),
                 gastos.Count(c => ComprobanteListaDto.ANombreDe(c, perfil) == false),
                 ingresos.Count,

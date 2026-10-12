@@ -1,0 +1,108 @@
+<app-titulo
+  linea1="Gastos de"
+  [linea2]="etiquetaPeriodo()"
+  subtitulo="Comprobantes que recibiste. Al cambiar la categoría, se aplica a todos los comprobantes del proveedor."
+>
+  <a routerLink="/importar" class="btn btn-primary">
+    <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Traer facturas
+  </a>
+</app-titulo>
+
+<app-uso-plan class="mt-6 block" />
+
+<!-- Filtros -->
+<div class="mt-6 flex flex-wrap items-center gap-3">
+  <app-buscador
+    placeholder="Buscar proveedor o número de factura"
+    [valor]="busqueda()"
+    (valorChange)="buscar($event)"
+  />
+  <select
+    class="input w-auto min-w-48"
+    aria-label="Filtrar por categoría"
+    (change)="filtrarCategoria($any($event.target).value)"
+  >
+    <option value="" [selected]="!categoria()">Todas las categorías</option>
+    @for (c of categorias; track c.valor) {
+      <option [value]="c.valor" [selected]="c.valor === categoria()">{{ c.nombre }}</option>
+    }
+  </select>
+  @if (ajenos()) {
+    <span
+      class="inline-flex min-h-10 items-center gap-2 rounded-full border border-warning-border bg-warning-soft px-4 text-sm text-warning"
+    >
+      No están a tu nombre
+    </span>
+  }
+  @if (proveedorFiltrado()) {
+    <span
+      class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary-soft px-3 text-sm text-primary"
+    >
+      {{ proveedorFiltrado() }}
+    </span>
+  }
+  @if (hayFiltros()) {
+    <button type="button" class="btn btn-ghost" (click)="limpiarFiltros()">
+      <svg lucideX class="size-4" aria-hidden="true"></svg> Quitar filtros
+    </button>
+  }
+  @if (auth.esProfesional()) {
+    <app-filtros [(valor)]="filtroRango" [etiquetaMes]="periodo.etiqueta()" />
+  } @else {
+    <a
+      routerLink="/suscripcion"
+      [queryParams]="{ plan: 'Profesional', motivo: 'filtros' }"
+      class="btn btn-secondary min-h-10"
+    >
+      Filtros por fecha y monto <app-insignia-pro />
+    </a>
+  }
+</div>
+
+<app-error-carga [mensaje]="carga().error" />
+
+<section class="card mt-4 overflow-hidden" [attr.aria-busy]="carga().cargando">
+  <div
+    class="flex items-center justify-between gap-4 border-b border-border px-4 py-3 text-sm sm:px-5"
+  >
+    <span class="text-muted-fg"
+      >{{ lista().length }} {{ lista().length === 1 ? 'comprobante' : 'comprobantes' }}</span
+    >
+    <span
+      >Total neto <span class="money ml-1 font-semibold">{{ total() | dinero }}</span></span
+    >
+  </div>
+
+  @if (carga().cargando && !carga().datos) {
+    <app-lista-carga [cantidad]="5" etiqueta="Cargando gastos" />
+  } @else if (lista().length === 0) {
+    <div class="px-6 py-14 text-center">
+      <p class="font-medium">
+        {{
+          hayFiltros()
+            ? 'Ningún comprobante coincide con los filtros.'
+            : 'No hay comprobantes en este mes.'
+        }}
+      </p>
+      <p class="mt-1 text-sm text-muted-fg">
+        {{
+          hayFiltros()
+            ? 'Prueba con otra búsqueda o quita los filtros.'
+            : 'Importa el reporte del SRI para verlos aquí.'
+        }}
+      </p>
+      @if (!hayFiltros()) {
+        <a routerLink="/importar" class="btn btn-secondary mt-5">Traer facturas</a>
+      }
+    </div>
+  } @else {
+    <app-tabla-comprobantes
+      [lista]="lista()"
+      direccion="Recibido"
+      [etiquetaPeriodo]="etiquetaPeriodo()"
+      [cargando]="carga().cargando"
+      [guardando]="guardando()"
+      (categoriaCambio)="cambiarCategoria($event.comprobante, $event.categoria)"
+    />
+  }
+</section>
