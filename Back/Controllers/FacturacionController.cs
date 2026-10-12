@@ -1,4 +1,5 @@
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 using Back.Dtos;
 using Back.Facturacion;
 using Back.Helpers;
@@ -20,7 +21,7 @@ namespace Back.Controllers
             _service = service;
         }
 
-        private int UsuarioId => JwtHelper.GetUsuarioId(User);
+        private int UsuarioId => JwtHelper.GetContribuyenteId(User);
 
         // GET api/facturacion/firma  → 204 si aún no hay firma
         [HttpGet("firma")]
@@ -30,7 +31,7 @@ namespace Back.Controllers
         /// <summary>Sube (o reemplaza) la firma: multipart con "archivo" (.p12/.pfx) y "clave".</summary>
         [HttpPost("firma")]
         [RequestSizeLimit(100 * 1024)]
-        public async Task<ActionResult<FirmaElectronicaDto>> PostFirma([FromForm] IFormFile? archivo, [FromForm] string? clave)
+        public async Task<ActionResult<FirmaElectronicaDto>> PostFirma([FromForm] IFormFile? archivo, [FromForm, StringLength(200)] string? clave)
         {
             if (archivo is null)
                 throw new BusinessException("Adjunta el archivo .p12 de tu firma electrónica.");
@@ -61,6 +62,10 @@ namespace Back.Controllers
         public async Task<IActionResult> GetXml(int id) =>
             File(Encoding.UTF8.GetBytes(await _service.ObtenerXmlAsync(UsuarioId, id)), "application/xml", $"factura-{id}.xml");
 
+        [HttpGet("facturas/{id:int}/pdf")]
+        public async Task<IActionResult> GetPdf(int id) =>
+            File(await _service.ObtenerPdfAsync(UsuarioId, id), "application/pdf", $"factura-{id}.pdf");
+
         /// <summary>Firma la factura, la envía al SRI y espera su autorización unos segundos.</summary>
         [HttpPost("facturas")]
         public async Task<ActionResult<FacturaEmitidaDto>> PostFactura(EmitirFacturaRequest request, CancellationToken ct) =>
@@ -74,7 +79,7 @@ namespace Back.Controllers
             return NoContent();
         }
 
-        /// <summary>Anula una factura autorizada (y la quita de los ingresos).</summary>
+        /// <summary>Valida la factura propia para gestionar su anulación en SRI en Línea; no la anula.</summary>
         [HttpPost("facturas/{id:int}/anular")]
         public async Task<ActionResult<FacturaEmitidaDto>> Anular(int id) => Ok(await _service.AnularAsync(UsuarioId, id));
 

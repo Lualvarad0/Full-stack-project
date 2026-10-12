@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.Globalization;
 using System.Numerics;
 using System.Security.Cryptography;
@@ -22,8 +23,8 @@ namespace Back.Facturacion
         /// <summary>Devuelve el XML del comprobante con la firma como último hijo del elemento raíz.</summary>
         public static string Firmar(string xmlComprobante, X509Certificate2 certificado, DateTimeOffset? momento = null)
         {
-            var documento = new XmlDocument { PreserveWhitespace = true };
-            documento.LoadXml(xmlComprobante);
+            var documento = new XmlDocument { PreserveWhitespace = true, XmlResolver = null };
+            using (var lector = XmlSeguro.Leer(xmlComprobante)) documento.Load(lector);
             var raiz = documento.DocumentElement ?? throw new ArgumentException("XML vacío.", nameof(xmlComprobante));
 
             // Referencia al comprobante con transformación enveloped: es el documento antes de agregar la firma.
@@ -72,7 +73,7 @@ namespace Back.Facturacion
                 "</etsi:SignedProperties></etsi:QualifyingProperties></ds:Object>" +
                 "</ds:Signature>";
 
-            var fragmento = new XmlDocument { PreserveWhitespace = true };
+            var fragmento = new XmlDocument { PreserveWhitespace = true, XmlResolver = null };
             fragmento.LoadXml(firmaXml);
             var firma = (XmlElement)raiz.AppendChild(documento.ImportNode(fragmento.DocumentElement!, true))!;
 
@@ -101,8 +102,8 @@ namespace Back.Facturacion
         /// </summary>
         public static bool Verificar(string xmlFirmado)
         {
-            var documento = new XmlDocument { PreserveWhitespace = true };
-            documento.LoadXml(xmlFirmado);
+            var documento = new XmlDocument { PreserveWhitespace = true, XmlResolver = null };
+            using (var lector = XmlSeguro.Leer(xmlFirmado)) documento.Load(lector);
             var ns = new XmlNamespaceManager(documento.NameTable);
             ns.AddNamespace("ds", Ds);
             ns.AddNamespace("etsi", Etsi);
@@ -138,7 +139,7 @@ namespace Back.Facturacion
         /// <summary>C14N inclusiva de un elemento como subconjunto del documento: incluye los xmlns heredados.</summary>
         private static byte[] CanonicalizarElemento(XmlElement elemento)
         {
-            var aislado = new XmlDocument { PreserveWhitespace = true };
+            var aislado = new XmlDocument { PreserveWhitespace = true, XmlResolver = null };
             var copia = (XmlElement)aislado.ImportNode(elemento, true);
             aislado.AppendChild(copia);
             for (var ancestro = elemento.ParentNode as XmlElement; ancestro is not null; ancestro = ancestro.ParentNode as XmlElement)

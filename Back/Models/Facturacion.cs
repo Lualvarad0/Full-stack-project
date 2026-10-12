@@ -35,6 +35,7 @@ namespace Back.Models
         public string? DireccionEstablecimiento { get; set; }
         public bool ObligadoContabilidad { get; set; }
         public string? ContribuyenteEspecial { get; set; }
+        public bool AgenteRetencion { get; set; }
     }
 
     public enum AmbienteSri
@@ -46,6 +47,13 @@ namespace Back.Models
     /// <summary>Factura emitida desde Nudo: su XML firmado y lo que respondió el SRI.</summary>
     public class FacturaEmitida
     {
+        public string TipoDocumento { get; set; } = TiposComprobante.Factura;
+        public int? DocumentoSustentoId { get; set; }
+        public int? ComprobanteSustentoId { get; set; }
+        public string? NumeroDocumentoSustento { get; set; }
+        public DateOnly? FechaDocumentoSustento { get; set; }
+        public string? Motivo { get; set; }
+        public string? CodigoSustento { get; set; }
         public int Id { get; set; }
         public int UsuarioId { get; set; }
         public AmbienteSri Ambiente { get; set; }
@@ -76,12 +84,14 @@ namespace Back.Models
         public string XmlFirmado { get; set; } = string.Empty;
 
         public List<FacturaEmitidaDetalle> Detalles { get; set; } = new();
+        public List<RetencionEmitidaDetalle> Retenciones { get; set; } = [];
 
         public string Numero => $"{Establecimiento}-{PuntoEmision}-{Secuencial:D9}";
     }
 
     public class FacturaEmitidaDetalle
     {
+        public int? DetalleSustentoId { get; set; }
         public int Id { get; set; }
         public int FacturaEmitidaId { get; set; }
         public string? Codigo { get; set; }

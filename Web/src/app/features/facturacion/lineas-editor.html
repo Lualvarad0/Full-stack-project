@@ -1,0 +1,124 @@
+<section class="card p-5 sm:p-6" aria-labelledby="titulo-detalle">
+  <h2 id="titulo-detalle" class="font-semibold">Productos o servicios</h2>
+  <div class="mt-4 space-y-4">
+    @for (l of lineas(); track l.clave; let i = $index) {
+      <fieldset class="rounded-xl border border-border p-4">
+        <legend class="sr-only">Ítem {{ i + 1 }}</legend>
+        <div class="grid gap-3 sm:grid-cols-6">
+          <div class="sm:col-span-4">
+            <label class="field-label" [attr.for]="'desc-' + l.clave">Descripción</label>
+            <input
+              [id]="'desc-' + l.clave"
+              class="input"
+              maxlength="300"
+              [value]="l.descripcion"
+              (input)="editar(l.clave, { descripcion: $any($event.target).value })"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" [attr.for]="'cod-' + l.clave"
+              >Código <span class="font-normal text-muted-fg">(opcional)</span></label
+            >
+            <input
+              [id]="'cod-' + l.clave"
+              class="input font-mono"
+              maxlength="25"
+              [value]="l.codigo"
+              (input)="editar(l.clave, { codigo: $any($event.target).value })"
+            />
+          </div>
+          <div>
+            <label class="field-label" [attr.for]="'cant-' + l.clave">Cantidad</label>
+            <input
+              [id]="'cant-' + l.clave"
+              type="number"
+              max="999999999"
+              min="0"
+              step="any"
+              class="input"
+              [value]="l.cantidad"
+              (input)="editar(l.clave, { cantidad: numero($any($event.target).value) })"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" [attr.for]="'precio-' + l.clave">Precio unitario</label>
+            <input
+              [id]="'precio-' + l.clave"
+              type="number"
+              max="999999999"
+              min="0"
+              step="0.01"
+              class="input"
+              [value]="l.precioUnitario"
+              (input)="editar(l.clave, { precioUnitario: numero($any($event.target).value) })"
+            />
+          </div>
+          <div>
+            <label class="field-label" [attr.for]="'desc-v-' + l.clave">Descuento</label>
+            <input
+              [id]="'desc-v-' + l.clave"
+              type="number"
+              max="999999999"
+              min="0"
+              step="0.01"
+              class="input"
+              [value]="l.descuento"
+              (input)="editar(l.clave, { descuento: numero($any($event.target).value) })"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" [attr.for]="'iva-' + l.clave">IVA</label>
+            <select
+              [id]="'iva-' + l.clave"
+              class="input"
+              (change)="editar(l.clave, { tarifa: $any($event.target).value })"
+            >
+              @for (t of tarifas; track t.valor) {
+                <option [value]="t.valor" [selected]="t.valor === l.tarifa">
+                  {{ t.etiqueta }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-sm">
+          <span class="text-muted-fg"
+            >Subtotal
+            <span class="money font-medium text-fg">{{ subtotalLinea(l) | dinero }}</span></span
+          >
+          @if (lineas().length > 1) {
+            <button
+              type="button"
+              class="btn btn-ghost min-h-8 px-2 text-danger"
+              (click)="quitar(l.clave)"
+              [attr.aria-label]="'Quitar ítem ' + (i + 1)"
+            >
+              <svg lucideTrash2 class="size-4" aria-hidden="true"></svg> Quitar
+            </button>
+          }
+        </div>
+      </fieldset>
+    }
+  </div>
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <button type="button" class="btn btn-secondary" (click)="agregar()">
+      <svg lucidePlus class="size-4" aria-hidden="true"></svg> Agregar ítem
+    </button>
+    @if (servicios().length) {
+      <select
+        class="input w-auto min-w-56"
+        aria-label="Agregar desde mis servicios"
+        (change)="agregarServicio($any($event.target).value); $any($event.target).value = ''"
+      >
+        <option value="">Agregar desde mis servicios…</option>
+        @for (s of servicios(); track s.id) {
+          <option [value]="s.id">{{ s.descripcion }} · {{ s.precioUnitario | dinero }}</option>
+        }
+      </select>
+    } @else {
+      <a routerLink="/facturacion/servicios" class="text-sm font-medium text-accent hover:underline"
+        >Guarda tus servicios para agregarlos con un clic</a
+      >
+    }
+  </div>
+</section>
