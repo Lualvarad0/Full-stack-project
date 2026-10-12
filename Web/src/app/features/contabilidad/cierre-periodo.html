@@ -1,0 +1,13 @@
+<app-titulo linea1="Revisión" linea2="y cierre mensual" />
+<p class="mt-3 text-sm text-muted-fg">Revisa {{ periodo.etiqueta() }} antes de cerrar. El cierre conserva tus registros; para modificar el mes necesitarás reabrirlo con una justificación.</p>
+<app-error-carga [mensaje]="revision().error" />
+@if (revision().datos; as r) {
+  <section class="card mt-5 max-w-3xl p-5"><h2 class="font-semibold">Período {{ r.estado }}</h2>
+    <dl class="mt-4 grid grid-cols-3 gap-4"><div><dt class="text-sm text-muted-fg">Comprobantes</dt><dd class="text-2xl font-semibold">{{ r.comprobantes }}</dd></div><div><dt class="text-sm text-muted-fg">Sin revisar</dt><dd class="text-2xl font-semibold">{{ r.pendientes }}</dd></div><div><dt class="text-sm text-muted-fg">Pendientes SRI</dt><dd class="text-2xl font-semibold">{{ r.facturasSriPendientes }}</dd></div></dl>
+    @if (r.estado === 'Abierto') { <p class="mt-4 text-sm text-muted-fg">Confirma la clasificación y el tratamiento del IVA de los gastos del negocio. El sistema bloqueará el cierre mientras haya comprobantes pendientes.</p><button class="btn btn-primary mt-4" [disabled]="ocupado() || !cartera.puedeEditar() || r.pendientes > 0 || r.facturasSriPendientes > 0" (click)="cerrar()">Cerrar {{ periodo.etiqueta() }}</button> }
+    @else { <p class="mt-4 text-sm">Cerrado el {{ r.cerradoEn | date: 'dd/MM/yyyy HH:mm' }}.</p><label class="field-label mt-4" for="motivo-reapertura">Motivo de reapertura</label><textarea class="input" id="motivo-reapertura" rows="3" maxlength="1000" [(ngModel)]="motivo" [disabled]="!cartera.puedeEditar()"></textarea><button class="btn btn-secondary mt-3" [disabled]="ocupado() || !cartera.puedeEditar()" (click)="reabrir()">Reabrir con justificación</button> }
+  </section>
+}
+<section class="card mt-5 p-5"><h2 class="font-semibold">Historial de cambios del contribuyente</h2><app-error-carga [mensaje]="auditoria().error" />
+  <div class="mt-3 overflow-x-auto"><table class="w-full text-sm"><thead class="tabla-encabezado"><tr><th class="p-3">Fecha</th><th class="p-3">Acción</th><th class="p-3">Cuenta responsable</th><th class="p-3">Registro</th><th class="p-3">Detalle</th></tr></thead><tbody class="divide-y divide-border">@for (a of auditoria().datos ?? []; track a.id) { <tr><td class="p-3 whitespace-nowrap">{{ a.fecha | date: 'dd/MM/yyyy HH:mm' }}</td><td class="p-3">{{ a.accion }}</td><td class="p-3">{{ a.actorId }}</td><td class="p-3">{{ a.entidad }} {{ a.referencia }}</td><td class="p-3">{{ a.detalle }}</td></tr> }</tbody></table></div>
+</section>
