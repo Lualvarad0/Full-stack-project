@@ -1,16 +1,15 @@
 # Nudo — facturas, gastos y SRI
 
-SaaS para personas con RUC en Ecuador: importa y verifica con el SRI los comprobantes que recibes, categoriza tus gastos personales, controla el tope deducible y (próximamente) emite facturas electrónicas y prepara la declaración mensual de IVA.
+SaaS para personas con RUC y contadores en Ecuador: verifica comprobantes con el SRI, propone categorías para revisión, emite documentos electrónicos y permite controlar gastos, cobros, pagos, bancos y libros contables. Incluye preparación tributaria 2026 con revisión explícita del usuario.
 
 ## Tecnologías
 
 - **Frontend** (`Web/`): Angular 22 (standalone, signals, zoneless) + Tailwind CSS 4 + Lucide
   - Modo claro/oscuro, diseño responsive
-  - Carpeta `Front/`: proyecto Angular 16 original, ya no se usa
 
 - **Backend**: .NET 8 + PostgreSQL
   - API RESTful (clientes, productos, facturas, usuarios)
-  - Autenticación JWT con roles (`admin`, `user`); el primer usuario registrado es `admin`
+  - Autenticación JWT con roles (`admin`, `user`); el registro público siempre crea cuentas `user`
   - Entity Framework Core con migraciones (Npgsql)
 
 ## Requisitos Previos
@@ -47,24 +46,35 @@ SaaS para personas con RUC en Ecuador: importa y verifica con el SRI los comprob
 
    ```bash
    npm install
+   npm run setup:env
    npm start
    ```
 
    La app queda en `http://localhost:4200` y usa la API de `http://localhost:5000/api` (`src/environments/environment.development.ts`). En producción usa `/api` del mismo dominio (`src/environments/environment.ts`).
 
-### Pruebas
+## Estructura del repositorio
 
-Con PostgreSQL levantado (`docker compose up -d`), desde la raíz:
+| Ruta | Contenido |
+| --- | --- |
+| `Back/` | API .NET, modelos, servicios, migraciones y recursos necesarios |
+| `Web/` | Frontend Angular vigente, componentes, Tailwind y plantillas públicas de entorno |
+| `infra/` | Worker de recepción de correo para Cloudflare; los secretos se configuran externamente |
+| `docker-compose.yml` | PostgreSQL para desarrollo local; no es una configuración de producción |
+| `.gitignore` | Excluye dependencias, compilaciones, secretos, entornos y copias locales |
+
+El frontend antiguo y las pruebas se conservan únicamente como copias locales y no se incluyen en esta entrega de producción. Los archivos de entorno reales tampoco se versionan.
+
+Para verificar una instalación nueva:
 
 ```bash
-dotnet test Back.Tests
+dotnet build Back/Back.csproj --configuration Release
 ```
 
-Las pruebas de integración crean y borran su propia base `facturas_test` y usan un SRI simulado.
+Desde `Web/`, ejecutar `npm run setup:env` y `npm run build`. Consulta [la organización del frontend](Web/README.md).
 
 ## Perfil tributario, ingresos y gastos
 
-`GET/PUT /api/perfil` guarda cédula, RUC (se validan con el algoritmo del Registro Civil/SRI), razón social, régimen, cargas familiares y enfermedad catastrófica. Con el RUC registrado, cada comprobante importado cuyo emisor es tu RUC se guarda como **ingreso** (`direccion=Emitido`) y el resto como **gasto** (`Recibido`); al cambiar el RUC se reclasifica todo. Los gastos que no están a tu cédula/RUC se marcan (`aNombreDelUsuario=false`). Los clientes salen de las facturas emitidas: `GET /api/comprobantes/clientes`.
+`GET/PUT /api/perfil` guarda cédula, RUC, razón social y régimen. Con el RUC registrado, los comprobantes cuyo emisor es tu RUC se clasifican como ingresos; el resto, como gastos. Cambiar RUC invalida sus revisiones fiscales y requiere períodos abiertos para reclasificar. Las cargas familiares identificadas se registran por ejercicio en el apartado de gastos personales.
 
 ## Gastos personales desde el SRI
 
@@ -73,7 +83,7 @@ El módulo `api/comprobantes` importa tus facturas de consumo verificándolas co
 1. En **SRI en Línea → Facturación electrónica → Comprobantes electrónicos recibidos**, consulta el mes y descarga el reporte `.txt`.
 2. Súbelo en `POST /api/comprobantes/importar` (también acepta los `.xml` que llegan al correo, varios a la vez), o pega claves de acceso en `POST /api/comprobantes/importar/claves`.
 3. La API extrae las claves de acceso (49 dígitos, validadas con módulo 11), consulta cada una en el SRI y guarda las facturas, notas de crédito y notas de débito autorizadas con su detalle e IVA. Las que ya existen no se vuelven a consultar.
-4. Asigna una categoría (Vivienda, Educacion, Salud, Alimentacion, Vestimenta, Turismo, NoDeducible) con `PUT /api/comprobantes/{id}/categoria`: se recuerda para el proveedor y se aplica a sus comprobantes actuales y futuros.
+4. Revisa la sugerencia y confirma o cambia la categoría. La finalidad personal/negocio y el tratamiento de IVA se revisan por documento o por partida; recordar una categoría del proveedor es una opción explícita.
 5. `GET /api/comprobantes/resumen?anio=2026&mes=10` devuelve el gasto neto (las notas de crédito restan), IVA, total deducible, totales por categoría y principales proveedores; sin `mes`, el resumen anual con desglose mensual.
 
 ## Buzón de reenvío (facturas automáticas desde el correo)
@@ -89,13 +99,25 @@ Para activarlo en un dominio (ejemplo con Cloudflare, gratis):
 
 El webhook también acepta formularios multipart de Mailgun o SendGrid Inbound Parse (campo `recipient`/`to` y adjuntos).
 
+## Aislamiento de cuentas
+
+Cada sesión accede únicamente a los registros de su titular. El acceso de un contador requiere autorización activa de ese titular, con permiso de consulta o edición. El servidor valida propietarios, sesiones y límites de solicitudes incluso si se llama directamente a la API.
+
+## Acceso seguro y contabilidad
+
+Recuperación de contraseña por correo, verificación de correo y sesiones revocables. Configurar `Smtp:Host`, `Smtp:Puerto`, `Smtp:Usuario`, `Smtp:Clave`, `Smtp:Remitente` y `Frontend:Url` para habilitar el envío. Los enlaces de recuperación vencen, son de un solo uso y no contienen la contraseña.
+
+Los planes de pago incluyen cartera autorizada, revisión de partidas, retenciones, notas de crédito, documentos PDF, cierres y auditoría, tesorería, conciliación bancaria, plan de cuentas, asientos, mayor y balances. Las exportaciones entregan bases CSV/XLSX, XML originales y un paquete ZIP para el contador.
+
+La preparación de renta automática corresponde a personas naturales y al ejercicio 2026. Las sociedades utilizan los libros y bases con conciliación fiscal específica. Revisar una declaración o validar la estructura de un XML ATS no lo presenta al SRI: la presentación se registra manualmente con su referencia. El calendario requiere confirmar obligaciones y feriados. La anulación de documentos autorizados se completa en SRI en Línea.
+
 ## Avisos de seguridad
 
 Cada ingreso al sistema y cada cambio de configuración (perfil, RUC, dirección del buzón) queda en **Configuración → Actividad de tu cuenta** (`GET /api/avisos`) y se envía por correo al usuario si hay SMTP configurado (`Smtp:Host`, `Smtp:Puerto`, `Smtp:Usuario`, `Smtp:Clave`, `Smtp:Remitente`). Sin SMTP, el envío solo se registra en el log.
 
 ## Planes y pagos (Kushki)
 
-Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49/mes o $490/año + IVA) se cobran con tarjeta mediante suscripciones de [Kushki](https://docs.kushki.com/ec/recurring-payments/overview), con 14 días gratis. Emitir facturas electrónicas requiere un plan de pago (el administrador está exento). Los precios están en `Back/Pagos/CatalogoPlanes.cs` y los textos en `Web/src/app/core/planes.ts`.
+Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49/mes o $490/año + IVA) se cobran con tarjeta mediante suscripciones de [Kushki](https://docs.kushki.com/ec/recurring-payments/overview), con 14 días gratis. Emitir facturas electrónicas requiere un plan de pago (el administrador está exento). Los precios están en `Back/Pagos/CatalogoPlanes.cs` y los textos en `Web/src/app/core/suscripcion/constants/planes.ts`.
 
 1. En la consola de Kushki (UAT para pruebas), copia la clave pública, la privada y la firma de webhooks (Desarrolladores → Webhooks).
 2. Configura `Kushki:ClavePublica`, `Kushki:ClavePrivada`, `Kushki:FirmaWebhook` y `Kushki:Pruebas` (`true` en UAT).
@@ -103,7 +125,9 @@ Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49
 
 ### Producción
 
-Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend), `Correo__DominioEntrante`, `Correo__SecretoWebhook`, `Smtp__*`, `Frontend__Url` y, si quieres que la API aplique las migraciones al arrancar, `Database__MigrateOnStartup=true`.
+Configura por variables de entorno: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__Origins__0` (URL del frontend), `Correo__DominioEntrante`, `Correo__SecretoWebhook`, `Smtp__*`, `Frontend__Url` HTTPS, `Sri__RucProveedor` y `DataProtection__RutaClaves` (carpeta privada y persistente).
+
+Aplica las migraciones antes de iniciar la versión actualizada. `Database__MigrateOnStartup=true` permite aplicarlas al arrancar si se habilita explícitamente. Los JWT anteriores a la incorporación de sesiones revocables requieren iniciar sesión de nuevo. Respalda tanto la base de datos como las claves de cifrado. Las credenciales de PostgreSQL en `docker-compose.yml` son solo un ejemplo de desarrollo y no deben usarse en producción.
 
 ---
 
@@ -119,7 +143,3 @@ Si deseas contribuir, realiza un fork del repositorio, crea una rama para tus ca
 3. Realiza tus cambios y haz un commit (`git commit -m 'Agregar nueva funcionalidad'`).
 4. Envía los cambios (`git push origin feature/nueva-funcionalidad`).
 5. Abre un pull request.
-
-## Licencia
-
-Este proyecto está bajo la licencia MIT. Consulta el archivo `LICENSE` para más información.
