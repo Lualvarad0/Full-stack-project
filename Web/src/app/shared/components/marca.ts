@@ -53,7 +53,7 @@ export class Marca {
   protected readonly nombre = NOMBRE_APP;
 }
 
-/** "Diseño y desarrollo: Cornerstone Develop", con enlace al portafolio. */
+/** "Diseño y desarrollo: Cornerstone Develop", con enlace a su página oficial. */
 @Component({
   selector: 'app-credito',
   changeDetection: ChangeDetectionStrategy.OnPush,

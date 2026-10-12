@@ -9,5 +9,5 @@ export const authGuard: CanActivateFn = (_route, state) => {
 
 export const invitadoGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
-  return auth.estaAutenticado() ? inject(Router).createUrlTree(['/resumen']) : true;
+  return auth.estaAutenticado() ? inject(Router).createUrlTree([auth.rutaInicio()]) : true;
 };

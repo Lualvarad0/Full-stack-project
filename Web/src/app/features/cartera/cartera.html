@@ -5,14 +5,22 @@
     <li class="flex flex-wrap items-center justify-between gap-3 py-3"><div><p class="font-medium">{{ c.nombre }}</p><p class="text-sm text-muted-fg">{{ c.ruc || 'RUC pendiente' }} · {{ c.propio ? 'Tu cuenta' : c.permiso }}</p></div><button class="btn btn-secondary" (click)="abrir(c.id)">Abrir</button></li>
   }</ul>
 </section>
-@if (auth.usuario()?.plan === 'Contadores' || auth.usuario()?.rol === 'admin') {
+@if (esContador()) {
+  <app-cupo-plan
+    class="mt-4 max-w-3xl"
+    titulo="Contribuyentes en tu cartera"
+    unidad="contribuyentes"
+    [cupo]="cupo().datos"
+    ayuda="Cuentan los accesos activos y las solicitudes pendientes. Las solicitudes vencen a los 7 días."
+    mensajeLleno="Tu cartera está llena: revoca un acceso o espera que venza una solicitud para pedir otro."
+  />
   <section class="card mt-4 max-w-3xl p-5"><h2 class="font-semibold">Solicitar acceso a un contribuyente</h2>
     <form class="mt-4 grid gap-4 sm:grid-cols-2" [formGroup]="form" (ngSubmit)="solicitar()">
       <div><label class="field-label" for="correo-contribuyente">Correo de la cuenta del titular</label><input class="input" id="correo-contribuyente" type="email" maxlength="150" autocomplete="email" formControlName="correo" /></div>
       <div><label class="field-label" for="permiso-contador">Permiso solicitado</label><select class="input" id="permiso-contador" formControlName="permiso"><option value="Consulta">Consulta</option><option value="Edicion">Edición</option></select></div>
       <p class="text-xs text-muted-fg sm:col-span-2">Consulta permite revisar y exportar. Edición permite importar, clasificar y trabajar con comprobantes, incluyendo emisión con la firma configurada del titular. La contraseña, firma y perfil siguen bajo control del titular.</p>
       @if (form.touched && form.invalid) { <p class="field-error">Escribe un correo válido.</p> }
-      <button class="btn btn-primary justify-self-start" type="submit" [disabled]="ocupado()">Solicitar autorización</button>
+      <button class="btn btn-primary justify-self-start" type="submit" [disabled]="ocupado() || lleno()">Solicitar autorización</button>
     </form>
   </section>
 }

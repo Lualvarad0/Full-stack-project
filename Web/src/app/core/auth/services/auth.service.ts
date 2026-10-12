@@ -26,6 +26,10 @@ export class AuthService {
     const u = this.usuario();
     return !!u && (u.rol === 'admin' || u.plan !== 'Personal');
   });
+  /** Pantalla al entrar: el plan gratuito siempre va a Mis cuentas; el resto, la que eligió en Configuración. */
+  readonly rutaInicio = computed(() =>
+    !this.esProfesional() || this.usuario()?.paginaInicio === 'Cuentas' ? '/cuentas' : '/resumen',
+  );
 
   estaAutenticado(): boolean {
     const sesion = this.sesion();

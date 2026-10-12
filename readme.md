@@ -131,7 +131,7 @@ Aplica las migraciones antes de iniciar la versión actualizada. `Database__Migr
 
 ---
 
-Diseño y desarrollo: [Cornerstone Develop](https://portafolio-hwaq.vercel.app/)
+Diseño y desarrollo: [Cornerstone Develop](https://www.alvarado-dev.com/)
 
 
 ## Contribución

@@ -10,6 +10,7 @@
       Para emitir completa: {{ pendientes().join(', ') }}.
       <a
         routerLink="/configuracion"
+        [queryParams]="{ seccion: 'sistema' }"
         fragment="facturacion"
         class="ml-1 font-medium text-accent hover:underline"
         >Ir a Configuración</a

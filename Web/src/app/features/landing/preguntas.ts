@@ -22,7 +22,7 @@ export class PreguntasLanding {
     {
       pregunta: '¿Cuánto cuesta?',
       respuesta:
-        'El plan Personal es gratis. Profesional cuesta $14,99 al mes + IVA (o $149 al año) e incluye la facturación electrónica; Contadores, $49 al mes + IVA para hasta 10 RUC. Los planes de pago tienen 14 días gratis y se pagan con tarjeta.',
+        'El plan Personal es gratis: anotas tus cuentas del mes a mano, nos dices cuánto ganas y marcas el día en que pagas cada una. Subir tus facturas o traerlas del SRI es del plan Profesional, que cuesta $14,99 al mes + IVA (o $149 al año) e incluye la facturación electrónica; Contadores, $49 al mes + IVA para hasta 10 RUC. Los planes de pago tienen 14 días gratis y se pagan con tarjeta.',
     },
     {
       pregunta: '¿Qué pasa con las facturas que no llegan a mi correo?',

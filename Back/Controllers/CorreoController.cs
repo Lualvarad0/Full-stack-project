@@ -5,6 +5,7 @@ using Back.Dtos;
 using Back.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Back.Controllers
 {
@@ -29,12 +30,26 @@ namespace Back.Controllers
         private int UsuarioId => JwtHelper.GetUsuarioId(User);
 
         [HttpGet]
-        public async Task<ActionResult<BuzonDto>> GetBuzon() =>
-            Ok(await _buzonService.ObtenerAsync(UsuarioId));
+        public async Task<ActionResult<BuzonDto>> GetBuzon([FromServices] Data.AppDbContext db)
+        {
+            await ExigirProfesionalAsync(db);
+            return Ok(await _buzonService.ObtenerAsync(UsuarioId));
+        }
 
         [HttpPost("regenerar")]
-        public async Task<ActionResult<BuzonDto>> Regenerar() =>
-            Ok(await _buzonService.RegenerarAsync(UsuarioId));
+        public async Task<ActionResult<BuzonDto>> Regenerar([FromServices] Data.AppDbContext db)
+        {
+            await ExigirProfesionalAsync(db);
+            return Ok(await _buzonService.RegenerarAsync(UsuarioId));
+        }
+
+        /// <summary>El buzón trae facturas por correo: es parte del plan Profesional, igual que subirlas.</summary>
+        private async Task ExigirProfesionalAsync(Data.AppDbContext db)
+        {
+            var usuario = await db.Usuarios.AsNoTracking().SingleAsync(u => u.Id == UsuarioId);
+            if (!Pagos.AccesoPlan.TieneProfesional(usuario))
+                throw new BusinessException(Pagos.AccesoPlan.MensajeSubirFacturas, StatusCodes.Status403Forbidden);
+        }
 
         /// <summary>
         /// Webhook del proveedor de correo entrante (Cloudflare Email Workers, SendGrid Inbound Parse, Mailgun).

@@ -48,4 +48,21 @@ export interface DiagramaFlujo {
   cables: CableFlujo[];
 }
 
-export type IconoFuncion = 'ingresos' | 'categorias' | 'tope' | 'iva' | 'conciliacion' | 'filtros';
+export type IconoFuncion =
+  | 'cuentas'
+  | 'factura'
+  | 'ingresos'
+  | 'categorias'
+  | 'tope'
+  | 'iva'
+  | 'conciliacion'
+  | 'bancos'
+  | 'cartera';
+
+/** Una función de la sección "Funciones" y el plan desde el que está incluida. */
+export interface FuncionLanding {
+  icono: IconoFuncion;
+  titulo: string;
+  texto: string;
+  plan: 'Personal' | 'Profesional' | 'Contadores';
+}

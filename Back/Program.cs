@@ -63,6 +63,8 @@ builder.Services.AddScoped<FacturaService>();
 builder.Services.AddScoped<IComprobanteRepository, ComprobanteRepository>();
 builder.Services.AddScoped<ComprobanteService>();
 builder.Services.AddScoped<PerfilService>();
+builder.Services.AddScoped<Back.Services.CuentasPersonalesService>();
+builder.Services.AddScoped<Back.Services.CuentaUsuarioService>();
 
 // Servicio web de autorización del SRI
 builder.Services.Configure<SriOptions>(builder.Configuration.GetSection(SriOptions.Section));

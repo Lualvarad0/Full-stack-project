@@ -17,6 +17,18 @@ namespace Back.Models
         public DateTime? UltimoIngresoEn { get; set; }
         public int VersionSeguridad { get; set; }
         public bool CorreoVerificado { get; set; }
+
+        // Datos personales (editables en Configuración → Mi perfil)
+        public string? Telefono { get; set; }
+        public string? Ciudad { get; set; }
+        public string? Direccion { get; set; }
+        public string? Ocupacion { get; set; }
+
+        // Configuración del sistema (Configuración → Sistema)
+        public PaginaInicio PaginaInicio { get; set; } = PaginaInicio.Resumen;
+        public MesAlEntrar MesAlEntrar { get; set; } = MesAlEntrar.Actual;
+        /// <summary>false: los ingresos a la cuenta quedan en la actividad pero no se avisan por correo.</summary>
+        public bool AvisarIngresosPorCorreo { get; set; } = true;
         /// <summary>Solo durante una petición delegada autorizada; nunca se persiste ni concede acceso por sí sola.</summary>
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public bool AccesoContador { get; set; }
@@ -49,6 +61,20 @@ namespace Back.Models
         Personal,
         Profesional,
         Contadores,
+    }
+
+    /// <summary>Pantalla que se abre al iniciar sesión (el plan gratuito siempre entra a Mis cuentas).</summary>
+    public enum PaginaInicio
+    {
+        Resumen,
+        Cuentas,
+    }
+
+    /// <summary>Mes que se muestra al entrar: el actual, o el anterior (útil para declarar el mes que cerró).</summary>
+    public enum MesAlEntrar
+    {
+        Actual,
+        Anterior,
     }
 
     public enum RegimenTributario

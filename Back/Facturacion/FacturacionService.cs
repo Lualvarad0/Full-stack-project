@@ -177,6 +177,16 @@ namespace Back.Facturacion
                 var datos = (await _context.DatosEmisores
                     .FromSqlInterpolated($"SELECT * FROM datos_emisor WHERE usuario_id = {usuarioId} FOR UPDATE")
                     .ToListAsync(ct)).Single();
+
+                // Límite del plan: se cuenta con la fila bloqueada, así dos emisiones simultáneas no lo superan.
+                // No cuentan las que el SRI devolvió o no autorizó (no existen para el SRI). El administrador no tiene límite.
+                if (usuario.Rol != Roles.Admin)
+                {
+                    if (await FacturasDelMesAsync(usuarioId, factura.FechaEmision, ct) >= AccesoPlan.LimiteFacturasMes)
+                        throw BusinessException.Conflict(
+                            $"Llegaste al límite de {AccesoPlan.LimiteFacturasMes} facturas electrónicas de este mes. El primer día del próximo mes vuelves a emitir; si necesitas más, escríbenos.");
+                }
+
                 factura.Ambiente = datos.Ambiente;
                 factura.Establecimiento = datos.Establecimiento;
                 factura.PuntoEmision = datos.PuntoEmision;
@@ -195,6 +205,26 @@ namespace Back.Facturacion
 
             await EnviarYAutorizarAsync(factura, ct);
             return FacturaEmitidaDto.From(factura, conDetalles: true);
+        }
+
+        /// <summary>Facturas electrónicas usadas este mes frente al límite del plan (sin límite para el administrador).</summary>
+        public async Task<CupoPlanDto> CupoFacturasAsync(int usuarioId, CancellationToken ct)
+        {
+            var usuario = await UsuarioAsync(usuarioId);
+            var usadas = await FacturasDelMesAsync(usuarioId, DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5)), ct);
+            return new CupoPlanDto(usadas, usuario.Rol == Roles.Admin ? null : AccesoPlan.LimiteFacturasMes);
+        }
+
+        /// <summary>
+        /// Facturas (tipo 01) del mes de <paramref name="fecha"/> que cuentan para el límite: no cuentan las que el SRI
+        /// devolvió o no autorizó, porque no existen para el SRI.
+        /// </summary>
+        private Task<int> FacturasDelMesAsync(int usuarioId, DateOnly fecha, CancellationToken ct)
+        {
+            var inicioMes = new DateOnly(fecha.Year, fecha.Month, 1);
+            return _context.FacturasEmitidas.CountAsync(f => f.UsuarioId == usuarioId && f.TipoDocumento == "01"
+                && f.FechaEmision >= inicioMes && f.FechaEmision < inicioMes.AddMonths(1)
+                && f.Estado != EstadoFactura.Devuelta && f.Estado != EstadoFactura.NoAutorizada, ct);
         }
 
         /// <summary>Reenvía una factura que no llegó al SRI o vuelve a consultar su autorización.</summary>

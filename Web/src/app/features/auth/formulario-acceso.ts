@@ -142,7 +142,7 @@ export class FormularioAcceso implements OnInit {
     this.enviando.set(true);
     peticion.subscribe({
       next: () => {
-        const destino = this.volver()?.startsWith('/') ? this.volver()! : '/resumen';
+        const destino = this.volver()?.startsWith('/') ? this.volver()! : this.auth.rutaInicio();
         if (this.registro() && esDePago(this.plan())) {
           // Eligió un plan de pago: pasa a ingresar la tarjeta (empieza en Personal hasta pagar).
           void this.router.navigate(['/suscripcion'], { queryParams: { plan: this.plan() } });

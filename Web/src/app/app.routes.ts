@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from '@core/admin';
 import { authGuard, invitadoGuard } from '@core/auth';
-import { planProfesionalGuard } from '@core/suscripcion';
+import { inicioPorPlanGuard, planProfesionalGuard } from '@core/suscripcion';
 export const routes: Routes = [
   { path: 'recuperar-clave', title: 'Recuperar contraseña · Nudo', loadComponent: () => import('./features/auth/recuperar-clave').then(m => m.RecuperarClave) },
   { path: 'restablecer-clave', title: 'Nueva contraseña · Nudo', loadComponent: () => import('./features/auth/restablecer-clave').then(m => m.RestablecerClave) },
@@ -45,11 +45,18 @@ export const routes: Routes = [
       {
         path: 'resumen',
         title: 'Resumen · Nudo',
+        canActivate: [inicioPorPlanGuard],
         loadComponent: () => import('./features/resumen/resumen').then((m) => m.Resumen),
+      },
+      {
+        path: 'cuentas',
+        title: 'Mis cuentas · Nudo',
+        loadComponent: () => import('./features/cuentas/cuentas').then((m) => m.Cuentas),
       },
       {
         path: 'gastos',
         title: 'Gastos · Nudo',
+        canActivate: [planProfesionalGuard],
         loadComponent: () => import('./features/gastos/gastos').then((m) => m.Gastos),
       },
       { path: 'gastos/:id', redirectTo: 'comprobantes/:id' },
@@ -74,11 +81,13 @@ export const routes: Routes = [
       {
         path: 'importar',
         title: 'Traer facturas · Nudo',
+        canActivate: [planProfesionalGuard],
         loadComponent: () => import('./features/importar/importar').then((m) => m.Importar),
       },
       {
         path: 'proveedores',
         title: 'Proveedores · Nudo',
+        canActivate: [planProfesionalGuard],
         loadComponent: () =>
           import('./features/proveedores/proveedores').then((m) => m.Proveedores),
       },

@@ -1,5 +1,5 @@
 <form
-  class="card mt-6 max-w-3xl p-5 sm:p-6"
+  class="card p-5 sm:p-6"
   [formGroup]="form"
   (ngSubmit)="guardar()"
   novalidate
@@ -49,19 +49,21 @@
         autocomplete="off"
         placeholder="10 dígitos"
         maxlength="12"
-        [attr.aria-invalid]="cedulaInvalida()"
+        [attr.aria-invalid]="cedulaInvalida() || rucNoCoincide()"
         aria-describedby="cedula-ayuda"
       />
       <p
         id="cedula-ayuda"
         class="mt-1.5 text-xs"
-        [class.text-danger]="cedulaInvalida()"
-        [class.text-muted-fg]="!cedulaInvalida()"
+        [class.text-danger]="cedulaInvalida() || rucNoCoincide()"
+        [class.text-muted-fg]="!cedulaInvalida() && !rucNoCoincide()"
       >
         {{
           cedulaInvalida()
             ? 'La cédula no es válida. Revisa los 10 dígitos.'
-            : 'Las facturas de tus gastos deben estar a este número o a tu RUC.'
+            : rucNoCoincide()
+              ? 'No coincide con tu RUC: el RUC de persona natural empieza con tu cédula.'
+              : 'Las facturas de tus gastos deben estar a este número o a tu RUC.'
         }}
       </p>
     </div>

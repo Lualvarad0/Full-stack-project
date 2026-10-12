@@ -13,6 +13,7 @@ import {
   LucideShieldUser,
   LucideStore,
   LucideUsers,
+  LucideWallet,
   LucideX,
 } from '@lucide/angular';
 import { AuthService } from '@core/auth';
@@ -33,6 +34,7 @@ import { Credito, InsigniaPro, Marca } from '@shared/components';
     LucideFileText,
     LucideHandCoins,
     LucideUsers,
+    LucideWallet,
     LucideReceipt,
     LucideStore,
     LucideCalculator,

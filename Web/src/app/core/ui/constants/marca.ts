@@ -3,5 +3,5 @@ export const NOMBRE_APP = 'Nudo';
 
 export const AUTORIA = {
   nombre: 'Cornerstone Develop',
-  url: 'https://portafolio-hwaq.vercel.app/',
+  url: 'https://www.alvarado-dev.com/',
 };

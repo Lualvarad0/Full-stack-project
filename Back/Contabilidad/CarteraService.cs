@@ -20,6 +20,9 @@ public class CarteraService(AppDbContext db, AvisoService avisos)
         var contador = await db.Usuarios.SingleAsync(u => u.Id == contadorId, ct);
         if (contador.Plan != PlanSuscripcion.Contadores && contador.Rol != Roles.Admin) throw new BusinessException("La cartera de contribuyentes requiere el plan Contadores.", 403);
         if (!contador.CorreoVerificado) throw BusinessException.Conflict("Verifica tu correo antes de solicitar acceso a otro contribuyente.");
+        // Límite del plan: se valida antes de buscar el correo, para no revelar si la cuenta existe.
+        if (contador.Rol != Roles.Admin && await OcupadosAsync(contadorId, ct) >= Pagos.AccesoPlan.LimiteContribuyentesCartera)
+            throw BusinessException.Conflict($"Tu cartera llegó al máximo de {Pagos.AccesoPlan.LimiteContribuyentesCartera} contribuyentes del plan Contadores (incluye solicitudes pendientes). Revoca un acceso o espera que venza una solicitud.");
         var propietario = await db.Usuarios.SingleOrDefaultAsync(u => u.Correo == request.Correo.Trim().ToLowerInvariant() && u.Activo, ct);
         // No revelar cuentas registradas; el solicitante ve su cartera solo tras autorización.
         if (propietario is null || propietario.Id == contadorId) return;
@@ -35,6 +38,17 @@ public class CarteraService(AppDbContext db, AvisoService avisos)
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         await avisos.NotificarAsync(propietario.Id, TipoAviso.AccesoContador, "Solicitud de acceso de un contador", $"{contador.Nombre} {contador.Apellido} ({contador.Correo}) solicita acceso de {request.Permiso} a tu información. Revisa Cartera y accesos para aceptarlo o rechazarlo.");
     }
+    /// <summary>Espacios usados de la cartera frente al límite del plan Contadores (sin límite para el administrador).</summary>
+    public async Task<CupoPlanDto> CupoAsync(int contadorId, CancellationToken ct)
+    {
+        var contador = await db.Usuarios.AsNoTracking().SingleAsync(u => u.Id == contadorId, ct);
+        if (contador.Plan != PlanSuscripcion.Contadores && contador.Rol != Roles.Admin) throw new BusinessException("La cartera de contribuyentes requiere el plan Contadores.", 403);
+        return new CupoPlanDto(await OcupadosAsync(contadorId, ct), contador.Rol == Roles.Admin ? null : Pagos.AccesoPlan.LimiteContribuyentesCartera);
+    }
+    /// <summary>Espacios usados de la cartera: accesos activos más solicitudes pendientes que no han vencido.</summary>
+    private Task<int> OcupadosAsync(int contadorId, CancellationToken ct) =>
+        db.Set<VinculoContador>().CountAsync(v => v.ContadorId == contadorId
+            && (v.Estado == EstadoVinculo.Activo || (v.Estado == EstadoVinculo.Pendiente && v.ExpiraEn > DateTime.UtcNow)), ct);
     public Task<List<VinculoContadorDto>> SolicitudesAsync(int usuarioId, CancellationToken ct) =>
         (from v in db.Set<VinculoContador>().AsNoTracking()
          join p in db.Usuarios on v.PropietarioId equals p.Id join c in db.Usuarios on v.ContadorId equals c.Id
@@ -53,6 +67,14 @@ public class CarteraService(AppDbContext db, AvisoService avisos)
         if (aceptar && !await db.Usuarios.AnyAsync(u => u.Id == usuarioId && u.CorreoVerificado && u.Activo, ct)) throw BusinessException.Conflict("Verifica tu correo antes de autorizar acceso.");
         if (aceptar && !await db.Usuarios.AnyAsync(u => u.Id == v.ContadorId && u.CorreoVerificado && u.Activo && (u.Plan == PlanSuscripcion.Contadores || u.Rol == Roles.Admin), ct))
             throw BusinessException.Conflict("El contador debe tener su cuenta verificada y el plan activo.");
+        if (aceptar)
+        {
+            // Bloquea al contador: dos aceptaciones a la vez no pueden pasar del límite de su cartera.
+            var contador = (await db.Usuarios.FromSqlInterpolated($"SELECT * FROM usuarios WHERE id = {v.ContadorId} FOR UPDATE").ToListAsync(ct)).Single();
+            var activos = await db.Set<VinculoContador>().CountAsync(x => x.ContadorId == v.ContadorId && x.Estado == EstadoVinculo.Activo, ct);
+            if (contador.Rol != Roles.Admin && activos >= Pagos.AccesoPlan.LimiteContribuyentesCartera)
+                throw BusinessException.Conflict($"Tu contador ya atiende el máximo de {Pagos.AccesoPlan.LimiteContribuyentesCartera} contribuyentes de su plan. Pídele que libere un espacio y vuelve a intentarlo.");
+        }
         v.Estado = aceptar ? EstadoVinculo.Activo : EstadoVinculo.Rechazado; v.RespondidoEn = DateTime.UtcNow;
         await db.SaveChangesAsync(ct); await tx.CommitAsync(ct);
         await avisos.NotificarAsync(usuarioId, TipoAviso.AccesoContador, aceptar ? "Autorizaste a tu contador" : "Rechazaste una solicitud", $"Permiso solicitado: {v.Permiso}. Puedes revocar el acceso desde Cartera y accesos.");

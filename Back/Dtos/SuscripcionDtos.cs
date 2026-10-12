@@ -37,6 +37,9 @@ namespace Back.Dtos
     /// <summary>Uso del plan: en Personal, cuántos comprobantes lleva este mes frente al límite.</summary>
     public record UsoPlanDto(PlanSuscripcion Plan, bool Profesional, int? LimiteComprobantes, int ComprobantesEsteMes, int? MesesHistorial);
 
+    /// <summary>Cuánto se usó de un límite del plan (facturas del mes, contribuyentes de la cartera); Limite null = sin límite.</summary>
+    public record CupoPlanDto(int Usados, int? Limite);
+
     /// <summary>Estado de la cuenta tras suscribirse o cancelar (incluye el usuario con su plan actualizado).</summary>
     public record SuscripcionResultadoDto(UsuarioDto Usuario, SuscripcionDto? Suscripcion);
 }

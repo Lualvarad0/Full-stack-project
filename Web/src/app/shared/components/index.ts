@@ -4,6 +4,7 @@ export * from './avisos';
 export * from './buzon-tarjeta';
 export * from './campo-clave';
 export * from './categoria';
+export * from './cupo-plan';
 export * from './controles';
 export * from './datos-emisor-tarjeta';
 export * from './filtros';

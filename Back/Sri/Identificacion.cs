@@ -38,6 +38,14 @@ namespace Back.Sri
             };
         }
 
+        /// <summary>Identificación de una persona: si es solo dígitos, una cédula válida; si trae letras, un pasaporte (5–20).</summary>
+        public static bool EsCedulaOPasaporteValido(string? id)
+        {
+            if (string.IsNullOrEmpty(id)) return false;
+            if (id.All(char.IsAsciiDigit)) return EsCedulaValida(id);
+            return id.Length is >= 5 and <= 20 && id.All(char.IsAsciiLetterOrDigit);
+        }
+
         public static bool EsPersonaNatural(string ruc) => ruc.Length == 13 && ruc[2] - '0' < 6;
 
         private static bool ProvinciaValida(string numero)
