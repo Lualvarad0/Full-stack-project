@@ -1,0 +1,4 @@
+// Configuración pública del frontend; no colocar secretos aquí.
+export const environment = {
+  apiUrl: '/api',
+};
