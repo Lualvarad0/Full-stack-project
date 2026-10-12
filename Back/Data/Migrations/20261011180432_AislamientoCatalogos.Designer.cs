@@ -1525,4 +1525,3 @@ namespace Back.Data.Migrations
         }
     }
 }
-

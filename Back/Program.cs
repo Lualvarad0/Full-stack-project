@@ -8,6 +8,11 @@ using Back.Interfaces;
 using Back.Repositories;
 using Back.Services;
 using Back.Sri;
+using Back.Seguridad;
+using Back.Models;
+using Back.Contabilidad;
+using Back.Clasificacion;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
@@ -17,6 +22,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1024 * 1024);
+builder.Services.AddLimitesApi(builder.Configuration);
 
 // Base de datos (PostgreSQL). La cadena se toma de ConnectionStrings:Default
 // (user-secrets en desarrollo, variable de entorno ConnectionStrings__Default en producción).
@@ -32,6 +39,23 @@ builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IFacturaRepository, FacturaRepository>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<SeguridadCuentaService>();
+builder.Services.AddScoped<CarteraService>();
+builder.Services.AddScoped<ControlPeriodoService>();
+builder.Services.AddScoped<PeriodosService>();
+builder.Services.AddScoped<ClasificacionPartidasService>();
+builder.Services.AddScoped<RetencionesService>();
+builder.Services.AddScoped<DocumentosComplementariosService>();
+builder.Services.AddScoped<CobrosPagosService>();
+builder.Services.AddScoped<BancosService>();
+builder.Services.AddScoped<LibroContableService>();
+builder.Services.AddScoped<Back.Tributacion.PerfilTributarioService>();
+builder.Services.AddScoped<Back.Tributacion.PreparacionTributariaService>();
+builder.Services.AddScoped<Back.Tributacion.RevisionTributariaService>();
+builder.Services.AddScoped<ExportacionesService>();
+builder.Services.AddScoped<ProcesadorCorreoAcceso>();
+builder.Services.AddScoped<ITransporteCorreoAcceso, TransporteCorreoAcceso>();
+builder.Services.AddHostedService<CorreoAccesoWorker>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<ProductoService>();
@@ -87,7 +111,11 @@ builder.Services
             {
                 var id = JwtHelper.GetUsuarioId(contexto.Principal!);
                 var db = contexto.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-                if (!await db.Usuarios.AnyAsync(u => u.Id == id && u.Activo))
+                var rol = contexto.Principal!.FindFirstValue(ClaimTypes.Role);
+                var sesion = contexto.Principal!.FindFirstValue("jti");
+                if (!int.TryParse(contexto.Principal!.FindFirstValue("sv"), out var version)
+                    || !await db.Usuarios.AnyAsync(u => u.Id == id && u.Activo && u.Rol == rol && u.VersionSeguridad == version)
+                    || !await db.Set<SesionCuenta>().AnyAsync(s => s.Id == sesion && s.UsuarioId == id && s.RevocadaEn == null && s.ExpiraEn > DateTime.UtcNow))
                     contexto.Fail("Cuenta suspendida o eliminada.");
             },
         };
@@ -156,11 +184,23 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
 }
 
+app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    }
+    await next();
+});
+app.UseRateLimiter();
 app.UseAuthorization();
+app.UseMiddleware<ContextoContribuyenteMiddleware>();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting(LimitesApi.Operaciones);
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.Run();

@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.ComponentModel.DataAnnotations;
 using Back.Models;
 
@@ -20,9 +21,9 @@ namespace Back.Dtos
     }
 
     public record PerfilRequest(
-        [StringLength(20)] string? Cedula, // admite espacios o guiones; se normaliza en PerfilService
-        [StringLength(20)] string? Ruc,
-        [StringLength(300)] string? RazonSocial,
+        [RegularExpression(@"^[0-9\s-]*$"), StringLength(20)] string? Cedula, // admite espacios o guiones; se normaliza en PerfilService
+        [RegularExpression(@"^[0-9\s-]*$"), StringLength(20)] string? Ruc,
+        [TextoPlano, StringLength(300)] string? RazonSocial,
         [EnumDataType(typeof(RegimenTributario))] RegimenTributario? Regimen,
         [Range(0, 20)] int CargasFamiliares,
         bool EnfermedadCatastrofica);

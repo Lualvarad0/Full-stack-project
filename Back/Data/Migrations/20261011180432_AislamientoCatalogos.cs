@@ -89,4 +89,3 @@ namespace Back.Data.Migrations
         }
     }
 }
-

@@ -4,6 +4,9 @@ using Back.Helpers;
 using Back.Interfaces;
 using Back.Models;
 using Back.Sri;
+using Back.Contabilidad;
+using Back.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Back.Services
 {
@@ -12,18 +15,22 @@ namespace Back.Services
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IComprobanteRepository _comprobanteRepository;
         private readonly AvisoService _avisos;
+        private readonly ControlPeriodoService _periodos;
+        private readonly AppDbContext _db;
 
-        public PerfilService(IUsuarioRepository usuarioRepository, IComprobanteRepository comprobanteRepository, AvisoService avisos)
+        public PerfilService(IUsuarioRepository usuarioRepository, IComprobanteRepository comprobanteRepository, AvisoService avisos, ControlPeriodoService periodos, AppDbContext db)
         {
             _usuarioRepository = usuarioRepository;
             _comprobanteRepository = comprobanteRepository;
             _avisos = avisos;
+            _periodos = periodos; _db = db;
         }
 
         public async Task<PerfilDto> ObtenerAsync(int usuarioId) => PerfilDto.From(await ObtenerUsuarioAsync(usuarioId));
 
         public async Task<PerfilActualizadoDto> ActualizarAsync(int usuarioId, PerfilRequest request)
         {
+            await using var tx = await _periodos.AbrirAsync(usuarioId, []);
             var cedula = Normalizar(request.Cedula);
             var ruc = Normalizar(request.Ruc);
 
@@ -41,7 +48,9 @@ namespace Back.Services
             }
 
             var usuario = await ObtenerUsuarioAsync(usuarioId);
+            if (usuario.Ruc != ruc) await _periodos.ExigirAbiertosAsync(usuarioId, await _db.Comprobantes.Where(c => c.UsuarioId == usuarioId).Select(c => c.FechaEmision).ToListAsync());
             var rucAnterior = usuario.Ruc;
+            var regimenAnterior = usuario.Regimen;
             var razonSocial = string.IsNullOrWhiteSpace(request.RazonSocial) ? null : request.RazonSocial.Trim().ToUpperInvariant();
 
             var cambios = new List<string>();
@@ -59,6 +68,12 @@ namespace Back.Services
             usuario.CargasFamiliares = request.CargasFamiliares;
             usuario.EnfermedadCatastrofica = request.EnfermedadCatastrofica;
             await _usuarioRepository.UpdateAsync(usuario);
+            if (rucAnterior != ruc || regimenAnterior != request.Regimen) {
+                var obligaciones = await _db.Set<PerfilObligaciones>().SingleOrDefaultAsync(p => p.UsuarioId == usuarioId);
+                if (obligaciones is not null) obligaciones.ConfirmadoEn = null;
+                if (rucAnterior != ruc) await _db.Set<RevisionFiscalComprobante>().Where(r => r.UsuarioId == usuarioId).ExecuteUpdateAsync(s => s.SetProperty(r => r.Renta, TratamientoRentaDocumento.Pendiente));
+                await _db.SaveChangesAsync();
+            }
 
             // Con un RUC nuevo, lo que el usuario emitió pasa a ser ingreso (y viceversa).
             var (emitidos, recibidos) = rucAnterior == ruc
@@ -68,6 +83,7 @@ namespace Back.Services
             if (cambios.Count > 0)
                 await _avisos.NotificarAsync(usuarioId, TipoAviso.PerfilActualizado, "Se actualizó tu perfil tributario",
                     $"Cambios: {string.Join(", ", cambios)}.");
+            await tx.ConfirmarAsync();
 
             return new PerfilActualizadoDto(PerfilDto.From(usuario), emitidos, recibidos);
         }
