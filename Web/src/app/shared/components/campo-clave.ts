@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { LucideEye, LucideEyeOff } from '@lucide/angular';
-
 /**
  * Campo de contraseña con botón para mostrar u ocultar lo escrito.
  * Funciona con formularios reactivos: <app-campo-clave formControlName="password" idCampo="password" />.
@@ -10,11 +9,14 @@ import { LucideEye, LucideEyeOff } from '@lucide/angular';
   selector: 'app-campo-clave',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LucideEye, LucideEyeOff],
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CampoClave), multi: true }],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CampoClave), multi: true },
+  ],
   host: { class: 'relative block' },
   template: `
     <input
       [id]="idCampo()"
+      maxlength="200"
       class="input min-h-11 pr-12"
       [type]="visible() ? 'text' : 'password'"
       [attr.autocomplete]="autocomplete()"

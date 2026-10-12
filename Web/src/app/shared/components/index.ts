@@ -1,4 +1,5 @@
 export * from './actividad-cuenta';
+export * from './bienvenida-resumen';
 export * from './avisos';
 export * from './buzon-tarjeta';
 export * from './campo-clave';

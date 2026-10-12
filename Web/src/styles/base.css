@@ -1,0 +1,42 @@
+/* Avisos: ámbar (atención), verde (bien), rojo (error). */
+@utility aviso {
+  @apply flex items-start gap-3 rounded-xl border p-4 text-sm;
+}
+
+/* Fondo de puntos suaves (landing y acceso). */
+@utility fondo-puntos {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--fg) 6%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role='button'],
+  a[href],
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+}

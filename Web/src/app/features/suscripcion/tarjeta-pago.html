@@ -1,0 +1,48 @@
+<section class="card p-5 sm:p-6" aria-labelledby="titulo-tarjeta">
+  <h2 id="titulo-tarjeta" class="flex items-center gap-2 font-semibold">
+    <svg lucideCreditCard class="size-5 text-muted-fg" aria-hidden="true"></svg> 2. Tu tarjeta
+  </h2>
+  @if (!catalogo().pagosDisponibles) {
+    <p class="aviso-atencion mt-4">
+      <svg lucideCircleAlert class="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true"></svg>
+      Los pagos aún no están habilitados en este servidor. Vuelve pronto.
+    </p>
+  } @else {
+    <!-- Kushki dibuja aquí sus campos seguros (iframes) -->
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <span class="field-label">Nombre en la tarjeta</span>
+        <div id="kushki-titular" class="min-h-11"></div>
+      </div>
+      <div class="sm:col-span-2">
+        <span class="field-label">Número de tarjeta</span>
+        <div id="kushki-numero" class="min-h-11"></div>
+      </div>
+      <div>
+        <span class="field-label">Vencimiento</span>
+        <div id="kushki-vencimiento" class="min-h-11"></div>
+      </div>
+      <div>
+        <span class="field-label">CVV</span>
+        <div id="kushki-cvv" class="min-h-11"></div>
+      </div>
+    </div>
+    @if (!tarjetaLista() && !errorTarjeta()) {
+      <p class="mt-3 flex items-center gap-2 text-sm text-muted-fg">
+        <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg> Cargando el
+        formulario seguro…
+      </p>
+    }
+    @if (catalogo().kushkiPruebas) {
+      <p class="mt-3 text-xs text-muted-fg">
+        Ambiente de pruebas de Kushki: usa la tarjeta 5451 9515 7492 5480, cualquier CVV y una fecha
+        futura.
+      </p>
+    }
+    <p class="mt-4 flex items-start gap-2 text-xs text-muted-fg">
+      <svg lucideLockKeyhole class="mt-0.5 size-3.5 shrink-0" aria-hidden="true"></svg>
+      Pagos procesados por Kushki. Nudo no ve ni guarda los datos de tu tarjeta.
+    </p>
+  }
+  <app-mensaje-error class="mt-4 block" [mensaje]="errorTarjeta()" />
+</section>

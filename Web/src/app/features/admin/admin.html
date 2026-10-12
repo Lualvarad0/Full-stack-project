@@ -1,0 +1,26 @@
+<app-titulo
+  linea1="Panel de"
+  linea2="administración"
+  subtitulo="Solo tú lo ves: métricas de Nudo, cuentas, pagos y estado del servidor."
+/>
+<app-segmentado
+  class="mt-6 block"
+  [opciones]="pestanas"
+  [(valor)]="pestana"
+  etiqueta="Sección del panel"
+/>
+
+@switch (pestana()) {
+  @case ('resumen') {
+    <app-admin-resumen />
+  }
+  @case ('usuarios') {
+    <app-admin-usuarios />
+  }
+  @case ('pagos') {
+    <app-admin-pagos />
+  }
+  @case ('sistema') {
+    <app-admin-sistema />
+  }
+}

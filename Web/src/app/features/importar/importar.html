@@ -1,0 +1,166 @@
+<app-titulo
+  linea1="Trae tus"
+  linea2="facturas"
+  subtitulo="Tus facturas llegan solas desde tu correo y cada una se verifica con el SRI. Con tu RUC sabemos cuáles son ingresos y cuáles gastos."
+/>
+
+<app-uso-plan class="mt-6 block" />
+
+<!-- Paso 1: automático -->
+<div class="mt-6 flex items-center gap-2">
+  <span class="pildora bg-brand text-brand-ink">Automático</span>
+  <h2 class="text-sm font-semibold">Desde tu correo, todos los días</h2>
+</div>
+<app-buzon-tarjeta class="mt-3 block" [compacta]="true" />
+
+<details class="card mt-4 p-5 text-sm sm:p-6">
+  <summary class="cursor-pointer font-medium">
+    ¿Por qué no se descargan solas del SRI con mi RUC?
+  </summary>
+  <div class="mt-3 space-y-2 leading-relaxed text-muted-fg">
+    <p>
+      El SRI no permite que otras aplicaciones lean la lista de tus comprobantes usando tu RUC: esa
+      lista solo existe dentro de SRI en Línea, protegida con tu clave y una verificación
+      anti-robots. Pedirte esa clave sería un riesgo para tu cuenta.
+    </p>
+    <p>
+      Lo que el SRI sí ofrece es un servicio público para
+      <strong class="text-fg">verificar cada comprobante</strong> por su clave de acceso, y eso
+      usamos. Como todo emisor está obligado a enviarte la factura por correo, tu correo es la
+      fuente automática; el reporte del SRI sirve para <strong class="text-fg">conciliar</strong> al
+      cierre del mes y atrapar lo que no llegó por correo.
+    </p>
+  </div>
+</details>
+
+<!-- Paso 2: conciliación / manual -->
+<div class="mt-8 flex items-center gap-2">
+  <span class="pildora border border-border bg-card text-muted-fg">Una vez al mes</span>
+  <h2 class="text-sm font-semibold">Concilia con el reporte del SRI o agrega facturas sueltas</h2>
+</div>
+
+<div class="mt-3 grid gap-6 lg:grid-cols-[1fr_20rem]">
+  <section class="card p-5 sm:p-6">
+    <!-- Selector de modo -->
+    <div class="inline-flex rounded-lg bg-muted p-1" role="tablist" aria-label="Forma de importar">
+      <button
+        type="button"
+        role="tab"
+        class="inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors"
+        [class]="
+          modo() === 'archivos' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'
+        "
+        [attr.aria-selected]="modo() === 'archivos'"
+        (click)="modo.set('archivos')"
+      >
+        <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Reporte .txt o XML
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="inline-flex min-h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors"
+        [class]="modo() === 'claves' ? 'bg-card text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+        [attr.aria-selected]="modo() === 'claves'"
+        (click)="modo.set('claves')"
+      >
+        <svg lucideClipboardPaste class="size-4" aria-hidden="true"></svg> Pegar claves
+      </button>
+    </div>
+
+    @if (modo() === 'archivos') {
+      <app-zona-archivos
+        class="mt-5"
+        idCampo="archivos"
+        [multiple]="true"
+        accept=".txt,.xml,.csv,text/plain,application/xml,text/xml"
+        (archivos)="agregar($event)"
+      >
+        <span class="font-medium"
+          >Arrastra aquí tus archivos o <span class="text-accent underline">elígelos</span></span
+        >
+        <span class="text-sm text-muted-fg"
+          >Reporte .txt del SRI y/o archivos .xml · hasta 10 MB</span
+        >
+      </app-zona-archivos>
+
+      @if (archivos().length) {
+        <ul class="mt-4 divide-y divide-border rounded-lg border border-border">
+          @for (a of archivos(); track a.name) {
+            <li class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+              <span class="min-w-0 truncate">{{ a.name }}</span>
+              <span class="flex shrink-0 items-center gap-2 text-muted-fg">
+                {{ tamano(a.size) }}
+                <button
+                  type="button"
+                  class="btn btn-ghost min-h-8 px-1.5"
+                  [attr.aria-label]="'Quitar ' + a.name"
+                  (click)="quitar(a)"
+                >
+                  <svg lucideX class="size-4" aria-hidden="true"></svg>
+                </button>
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    } @else {
+      <div class="mt-5">
+        <label for="claves" class="field-label">Claves de acceso</label>
+        <textarea
+          maxlength="1048576"
+          id="claves"
+          rows="7"
+          class="input py-2 font-mono text-xs"
+          placeholder="Pega una o varias claves de 49 dígitos, en cualquier formato"
+          [value]="texto()"
+          (input)="texto.set($any($event.target).value)"
+        ></textarea>
+        <p class="mt-1.5 text-xs text-muted-fg">
+          La clave de acceso aparece en el RIDE (PDF) de cada factura, junto al código de barras.
+        </p>
+      </div>
+    }
+
+    <app-mensaje-error class="mt-4 block" [mensaje]="error()" />
+
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        class="btn btn-primary"
+        [disabled]="!puedeImportar()"
+        (click)="importar()"
+      >
+        @if (importando()) {
+          <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg> Consultando al
+          SRI…
+        } @else {
+          Importar y verificar
+        }
+      </button>
+      @if (importando()) {
+        <span class="text-sm text-muted-fg" role="status"
+          >Esto puede tardar unos segundos por cada comprobante nuevo.</span
+        >
+      }
+    </div>
+  </section>
+
+  <aside class="card h-fit p-5 text-sm">
+    <h2 class="font-semibold">¿Dónde descargo el reporte?</h2>
+    <ol class="mt-3 list-decimal space-y-2 pl-5 text-muted-fg">
+      <li>Ingresa a <span class="text-fg">SRI en Línea</span> con tu RUC o cédula.</li>
+      <li>
+        Ve a
+        <span class="text-fg">Facturación electrónica → Comprobantes electrónicos recibidos</span>.
+      </li>
+      <li>Elige el año, el mes y el tipo <span class="text-fg">Todos</span>, y consulta.</li>
+      <li>Descarga el <span class="text-fg">reporte (.txt)</span> y súbelo aquí.</li>
+    </ol>
+    <p class="mt-4 text-muted-fg">
+      Si importas un archivo dos veces, no se duplica nada: los comprobantes que ya tienes se
+      omiten.
+    </p>
+  </aside>
+</div>
+
+<app-resultado-importacion [resultado]="resultado()" />
