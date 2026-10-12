@@ -1,0 +1,212 @@
+<app-titulo linea1="Bancos" linea2="y conciliación" />
+<p class="mt-3 text-sm text-muted-fg">
+  Registra cuentas en USD y carga los movimientos de tu extracto. No se solicitan credenciales del
+  banco; el número se guarda cifrado y solo se muestran sus últimos dígitos.
+</p>
+<app-error-carga [mensaje]="cuentas().error" />
+<section class="card mt-5 p-5">
+  <label for="banco-activo" class="field-label">Cuenta de trabajo</label
+  ><select
+    id="banco-activo"
+    class="input"
+    [ngModel]="cuentaId()"
+    (ngModelChange)="cuentaId.set(+$event)"
+  >
+    <option value="0">Selecciona</option>
+    @for (c of cuentas().datos ?? []; track c.id) {
+      <option [value]="c.id">
+        {{ c.nombre }} · {{ c.entidad }} · ****{{ c.ultimosDigitos }} · saldo {{ c.saldo | dinero }}
+      </option>
+    }
+  </select>
+</section>
+@if (cartera.puedeEditar()) {
+  <details class="card mt-4 p-5">
+    <summary class="cursor-pointer font-semibold">Registrar cuenta bancaria</summary>
+    <form
+      class="mt-4 grid gap-4 sm:grid-cols-3"
+      [formGroup]="formCuenta"
+      (ngSubmit)="crearCuenta()"
+    >
+      <div>
+        <label class="field-label" for="nombre-banco">Nombre de la cuenta</label
+        ><input id="nombre-banco" class="input" maxlength="100" formControlName="nombre" />
+      </div>
+      <div>
+        <label class="field-label" for="entidad-banco">Banco</label
+        ><input id="entidad-banco" class="input" maxlength="100" formControlName="entidad" />
+      </div>
+      <div>
+        <label class="field-label" for="numero-banco">Número de cuenta</label
+        ><input
+          id="numero-banco"
+          class="input"
+          maxlength="50"
+          autocomplete="off"
+          formControlName="numero"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="saldo-inicial-banco">Saldo inicial</label
+        ><input
+          id="saldo-inicial-banco"
+          class="input"
+          type="number"
+          step="0.01"
+          min="-999999999"
+          max="999999999"
+          formControlName="saldoInicial"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="fecha-inicial-banco">Fecha del saldo inicial</label
+        ><input id="fecha-inicial-banco" class="input" type="date" formControlName="fechaInicial" />
+      </div>
+      <button class="btn btn-primary self-end" [disabled]="ocupado()" type="submit">
+        Guardar cuenta
+      </button>
+    </form>
+  </details>
+}
+@if (cuentaId()) {
+  @if (cartera.puedeEditar()) {
+    <section class="card mt-4 p-5">
+      <h2 class="font-semibold">Importar extracto CSV</h2>
+      <p class="mt-2 text-sm text-muted-fg">
+        Usa id, fecha, concepto, importe, referencia. Entradas positivas y salidas negativas; punto
+        decimal. Hasta 2500 filas y 5 MB. El identificador evita duplicados.
+      </p>
+      <div class="mt-3 flex gap-2">
+        <button class="btn btn-secondary" (click)="plantilla()">Descargar plantilla</button
+        ><label class="btn btn-primary cursor-pointer"
+          >Importar CSV<input
+            type="file"
+            class="sr-only"
+            accept=".csv"
+            [disabled]="ocupado()"
+            (change)="archivo($event)"
+        /></label>
+      </div>
+    </section>
+    <details class="card mt-4 p-5">
+      <summary class="cursor-pointer font-semibold">Registrar un movimiento manualmente</summary>
+      <form
+        class="mt-4 grid gap-4 sm:grid-cols-3"
+        [formGroup]="formMovimiento"
+        (ngSubmit)="crearMovimiento()"
+      >
+        <div>
+          <label for="id-mov" class="field-label">Identificador del banco</label
+          ><input id="id-mov" class="input" maxlength="100" formControlName="idExterno" />
+        </div>
+        <div>
+          <label for="fecha-mov" class="field-label">Fecha</label
+          ><input id="fecha-mov" class="input" type="date" formControlName="fecha" />
+        </div>
+        <div>
+          <label for="importe-mov" class="field-label">Importe con signo</label
+          ><input
+            id="importe-mov"
+            class="input"
+            type="number"
+            step="0.01"
+            min="-999999999"
+            max="999999999"
+            formControlName="importe"
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="concepto-mov" class="field-label">Concepto</label
+          ><input id="concepto-mov" class="input" maxlength="300" formControlName="concepto" />
+        </div>
+        <div>
+          <label for="referencia-mov" class="field-label">Referencia</label
+          ><input id="referencia-mov" class="input" maxlength="100" formControlName="referencia" />
+        </div>
+        <button class="btn btn-primary justify-self-start" type="submit" [disabled]="ocupado()">
+          Guardar movimiento
+        </button>
+      </form>
+    </details>
+  }
+  <app-error-carga [mensaje]="operaciones().error" />
+  <section class="card mt-4 p-5">
+    <h2 class="font-semibold">Movimientos del mes de trabajo</h2>
+    @if (cartera.puedeEditar()) {
+      <label for="motivo-banco" class="field-label mt-3"
+        >Justificación para revisión sin factura o desconciliación</label
+      ><input id="motivo-banco" class="input" maxlength="1000" [(ngModel)]="motivo" />
+    }
+    <ul class="mt-3 divide-y divide-border">
+      @for (m of operaciones().datos?.movimientos ?? []; track m.id) {
+        <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+          <div>
+            <p>{{ m.fecha | fechaCorta }} · {{ m.concepto }}</p>
+            <p class="text-xs text-muted-fg">
+              {{ m.referencia }} ·
+              {{
+                m.revisadoSinFactura
+                  ? 'Revisado sin factura'
+                  : m.conciliado === (m.importe < 0 ? -m.importe : m.importe)
+                    ? 'Conciliado'
+                    : 'Pendiente de conciliar'
+              }}
+            </p>
+          </div>
+          <span class="money font-semibold">{{ m.importe | dinero }}</span>
+          @if (cartera.puedeEditar()) {
+            @if (m.conciliado > 0) {
+              <button class="btn btn-ghost" [disabled]="ocupado()" (click)="desconciliar(m.id)">
+                Deshacer conciliación
+              </button>
+            } @else {
+              <button class="btn btn-secondary" (click)="seleccionarMovimiento(m.id)">
+                Conciliar con pagos</button
+              ><button class="btn btn-ghost" [disabled]="ocupado()" (click)="revisarOtro(m.id)">
+                Revisar sin factura
+              </button>
+            }
+          }
+        </li>
+      } @empty {
+        <li class="py-3 text-sm text-muted-fg">No hay movimientos en este período.</li>
+      }
+    </ul>
+  </section>
+  @if (movimientoActual(); as m) {
+    <section class="card mt-4 p-5">
+      <h2 class="font-semibold">Aplicar pagos al movimiento de {{ m.importe | dinero }}</h2>
+      <p class="mt-2 text-sm text-muted-fg">
+        Puedes reunir varios pagos o aplicar un pago parcialmente. La suma debe coincidir con el
+        movimiento.
+      </p>
+      @for (a of aplicaciones.controls; track $index) {
+        <div class="mt-3 grid gap-3 sm:grid-cols-[1fr_10rem]" [formGroup]="a">
+          <select class="input" formControlName="pagoId" aria-label="Pago a conciliar">
+            <option value="0">Selecciona</option>
+            @for (p of pagosDisponibles(); track p.id) {
+              <option [value]="p.id">
+                {{ p.numero }} · {{ p.fecha | fechaCorta }} · disponible
+                {{ p.pendienteConciliar | dinero }}
+              </option>
+            }</select
+          ><input
+            class="input"
+            type="number"
+            min="0.01"
+            max="999999999"
+            step="0.01"
+            formControlName="importe"
+            aria-label="Importe a aplicar"
+          />
+        </div>
+      }
+      <div class="mt-4 flex gap-2">
+        <button class="btn btn-secondary" (click)="agregar()">Agregar pago</button
+        ><button class="btn btn-primary" [disabled]="ocupado()" (click)="conciliar()">
+          Confirmar conciliación
+        </button>
+      </div>
+    </section>
+  }
+}
