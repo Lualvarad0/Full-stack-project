@@ -1,0 +1,94 @@
+<section class="card p-5">
+  <h2 class="font-semibold">Tratamiento fiscal por documento</h2>
+  <p class="mt-2 text-sm text-muted-fg">
+    Revisa la finalidad y el IVA desde el detalle de la factura. Confirma aquí el tratamiento de
+    renta, sustento y forma de pago del catálogo SRI.
+  </p>
+  <div class="overflow-x-auto mt-4">
+    <table class="tabla w-full">
+      <thead>
+        <tr>
+          <th>Documento</th>
+          <th>Tercero</th>
+          <th>Dirección / finalidad</th>
+          <th>Base</th>
+          <th>Renta</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of documentos().slice(pagina * 50, (pagina + 1) * 50); track d.id) {
+          <tr>
+            <td>
+              <a [routerLink]="['/comprobantes', d.id]" class="enlace">{{ d.numero }}</a>
+            </td>
+            <td>{{ d.tercero }}</td>
+            <td>{{ d.direccion }} / {{ d.finalidad }}</td>
+            <td>{{ d.subtotal | dinero }}</td>
+            <td>{{ d.renta }}</td>
+            <td>
+              <button class="btn btn-secondary" type="button" (click)="editar(d)">Revisar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="flex gap-3 my-3">
+    <button class="btn btn-ghost" [disabled]="pagina === 0" (click)="pagina = pagina - 1">
+      Anterior</button
+    ><span>Página {{ pagina + 1 }}</span
+    ><button
+      class="btn btn-ghost"
+      [disabled]="(pagina + 1) * 50 >= documentos().length"
+      (click)="pagina = pagina + 1"
+    >
+      Siguiente
+    </button>
+  </div>
+  @if (editando(); as d) {
+    <div class="grid gap-3 md:grid-cols-3 border-t border-border pt-4">
+      <label
+        >Renta<select class="input" [(ngModel)]="d.renta">
+          <option value="Pendiente">Pendiente</option>
+          @if (d.direccion === 'Emitido') {
+            <option value="GravadoGeneral">Gravado régimen general</option>
+            <option value="GravadoRimpe">Gravado RIMPE</option>
+            <option value="Exento">Exento con sustento</option>
+          } @else {
+            <option value="Deducible">Deducible en régimen general</option>
+            <option value="DeducibleRimpe">Costo RIMPE (no reduce su impuesto)</option>
+            <option value="NoDeducible">No deducible para el negocio</option>
+          }
+        </select></label
+      ><label
+        >Código de sustento ATS<input
+          class="input"
+          [(ngModel)]="d.codigoSustento"
+          pattern="[0-9]{2}"
+          maxlength="2"
+          placeholder="Catálogo SRI" /></label
+      ><label
+        >Forma de pago SRI<input
+          class="input"
+          [(ngModel)]="d.formaPago"
+          pattern="[0-9]{2}"
+          maxlength="2"
+          placeholder="Catálogo SRI" /></label
+      ><label class="flex gap-2"
+        ><input type="checkbox" [(ngModel)]="d.parteRelacionada" /> Parte relacionada</label
+      ><label class="md:col-span-2"
+        >Observación<input class="input" [(ngModel)]="d.observacion" maxlength="1000"
+      /></label>
+    </div>
+    <div class="flex gap-3 mt-4">
+      <button
+        class="btn btn-primary"
+        [disabled]="ocupado() || !cartera.puedeEditar()"
+        (click)="guardar()"
+      >
+        Confirmar tratamiento</button
+      ><button class="btn btn-ghost" (click)="editando.set(null)">Cerrar</button>
+    </div>
+  }
+</section>

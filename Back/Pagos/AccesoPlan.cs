@@ -15,7 +15,7 @@ namespace Back.Pagos
 
         /// <summary>El administrador (dueño de la instalación) tiene todo sin pagar.</summary>
         public static bool TieneProfesional(Usuario usuario) =>
-            usuario.Rol == Roles.Admin || usuario.Plan != PlanSuscripcion.Personal;
+            usuario.AccesoContador || usuario.Rol == Roles.Admin || usuario.Plan != PlanSuscripcion.Personal;
 
         public static void ExigirProfesional(Usuario usuario, string seccion)
         {

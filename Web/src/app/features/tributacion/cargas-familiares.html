@@ -1,0 +1,90 @@
+<section class="card p-5 space-y-4">
+  <h2 class="font-semibold">Cargas familiares del ejercicio 2026</h2>
+  <p class="text-sm text-muted-fg">
+    Padres, cónyuge o pareja e hijos hasta el año en que cumplen 21 años, o con discapacidad de
+    cualquier edad. Verifica dependencia económica, ingresos anuales hasta USD 482 y uso exclusivo
+    por un contribuyente. Este registro local no sustituye el registro en el SRI.
+  </p>
+  <div class="overflow-x-auto">
+    <table class="tabla w-full">
+      <thead>
+        <tr>
+          <th>Identificación</th>
+          <th>Nombre</th>
+          <th>Relación</th>
+          <th>Nacimiento</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cargas(); track c.id) {
+          <tr>
+            <td>{{ c.identificacion }}</td>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.parentesco }}</td>
+            <td>{{ c.fechaNacimiento | fechaCorta }}</td>
+            <td>
+              @if (cartera.puedeEditar()) {
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  [disabled]="ocupado()"
+                  (click)="quitar(c.id)"
+                >
+                  Quitar
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">No hay cargas registradas para este año.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (cartera.puedeEditar()) {
+    <form [formGroup]="form" (ngSubmit)="registrar()" class="space-y-4">
+      <div class="grid gap-3 md:grid-cols-3">
+        <label
+          >Identificación<input
+            class="input"
+            formControlName="identificacion"
+            maxlength="20" /></label
+        ><label>Nombre<input class="input" formControlName="nombre" maxlength="200" /></label
+        ><label
+          >Relación<select class="input" formControlName="parentesco">
+            <option value="PadreMadre">Padre o madre</option>
+            <option value="ConyugePareja">Cónyuge o pareja</option>
+            <option value="Hijo">Hijo</option>
+          </select></label
+        ><label
+          >Nacimiento<input class="input" type="date" formControlName="fechaNacimiento" /></label
+        ><label
+          >Ingresos gravados anuales<input
+            class="input"
+            type="number"
+            min="0"
+            max="482"
+            step="0.01"
+            formControlName="ingresosGravados"
+        /></label>
+      </div>
+      <div class="flex gap-4 flex-wrap">
+        <label class="flex gap-2"
+          ><input type="checkbox" formControlName="discapacidad" /> Discapacidad acreditada</label
+        ><label class="flex gap-2"
+          ><input type="checkbox" formControlName="enfermedadCatastrofica" /> Enfermedad
+          catastrófica, rara o huérfana acreditada</label
+        >
+      </div>
+      <label class="flex gap-2"
+        ><input type="checkbox" formControlName="dependenciaConfirmada" /> Confirmo la dependencia
+        económica y que otro contribuyente no utilizará esta carga en el año.</label
+      ><button class="btn btn-primary" [disabled]="form.invalid || ocupado()">
+        Registrar carga
+      </button>
+    </form>
+  }
+</section>

@@ -14,9 +14,9 @@ namespace Back.Repositories
             _context = context;
         }
 
-        public Task<List<Cliente>> GetAllAsync(string? busqueda)
+        public Task<List<Cliente>> GetAllAsync(int usuarioId, string? busqueda)
         {
-            var query = _context.Clientes.AsNoTracking();
+            var query = _context.Clientes.AsNoTracking().Where(c => c.UsuarioId == usuarioId);
             if (!string.IsNullOrWhiteSpace(busqueda))
             {
                 var patron = $"%{busqueda.Trim()}%";
@@ -25,14 +25,14 @@ namespace Back.Repositories
             return query.OrderBy(c => c.Nombre).ToListAsync();
         }
 
-        public Task<Cliente?> GetByIdAsync(int id) =>
-            _context.Clientes.FirstOrDefaultAsync(c => c.ClienteId == id);
+        public Task<Cliente?> GetByIdAsync(int usuarioId, int id) =>
+            _context.Clientes.FirstOrDefaultAsync(c => c.UsuarioId == usuarioId && c.ClienteId == id);
 
-        public Task<bool> ExisteIdentificacionAsync(string identificacion, int? excluirId = null) =>
-            _context.Clientes.AnyAsync(c => c.Identificacion == identificacion && c.ClienteId != excluirId);
+        public Task<bool> ExisteIdentificacionAsync(int usuarioId, string identificacion, int? excluirId = null) =>
+            _context.Clientes.AnyAsync(c => c.UsuarioId == usuarioId && c.Identificacion == identificacion && c.ClienteId != excluirId);
 
-        public Task<bool> TieneFacturasAsync(int id) =>
-            _context.Facturas.AnyAsync(f => f.ClienteId == id);
+        public Task<bool> TieneFacturasAsync(int usuarioId, int id) =>
+            _context.Facturas.AnyAsync(f => f.UsuarioId == usuarioId && f.ClienteId == id);
 
         public async Task AddAsync(Cliente cliente)
         {

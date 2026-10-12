@@ -30,6 +30,7 @@ namespace Back.Helpers
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new(ClaimTypes.Name, usuario.Nombre),
                 new(ClaimTypes.Role, usuario.Rol),
+                new("sv", usuario.VersionSeguridad.ToString(System.Globalization.CultureInfo.InvariantCulture)),
             };
 
             var token = new JwtSecurityToken(
@@ -44,5 +45,8 @@ namespace Back.Helpers
 
         public static int GetUsuarioId(ClaimsPrincipal user) =>
             int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier) ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+
+        public static int GetContribuyenteId(ClaimsPrincipal user) =>
+            int.TryParse(user.FindFirstValue("contribuyente_id"), out var id) ? id : GetUsuarioId(user);
     }
 }

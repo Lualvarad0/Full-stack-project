@@ -1,0 +1,160 @@
+<app-titulo linea1="Cobros" linea2="y pagos" />
+<p class="mt-3 text-sm text-muted-fg">
+  Registra dinero recibido o pagado. Los saldos incluyen notas de crédito/débito y pagos parciales;
+  el registro no realiza cargos bancarios.
+</p>
+<div class="mt-5 grid gap-4 sm:grid-cols-2">
+  <section class="card p-5">
+    <p class="text-sm text-muted-fg">Por cobrar</p>
+    <p class="money mt-2 text-2xl font-semibold">{{ porCobrar() | dinero }}</p>
+  </section>
+  <section class="card p-5">
+    <p class="text-sm text-muted-fg">Por pagar</p>
+    <p class="money mt-2 text-2xl font-semibold">{{ porPagar() | dinero }}</p>
+  </section>
+</div>
+<app-error-carga [mensaje]="carga().error" />
+<section class="card mt-5 overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="tabla-encabezado">
+      <tr>
+        <th class="p-3">Factura</th>
+        <th class="p-3">Tercero</th>
+        <th class="p-3">Vencimiento</th>
+        <th class="p-3">Total neto</th>
+        <th class="p-3">Aplicado</th>
+        <th class="p-3">Saldo</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-border">
+      @for (s of pendientes(); track s.id) {
+        <tr>
+          <td class="p-3">
+            <a class="text-accent" [routerLink]="['/comprobantes', s.id]">{{ s.numero }}</a>
+          </td>
+          <td class="p-3">
+            {{ s.tercero }} · {{ s.direccion === 'Emitido' ? 'Cliente' : 'Proveedor' }}
+          </td>
+          <td class="p-3">
+            {{ s.vencimiento ? (s.vencimiento | fechaCorta) : 'Sin definir'
+            }}<button class="ml-2 text-accent" (click)="seleccionado.set(s.id)">Editar</button>
+          </td>
+          <td class="money p-3">{{ s.total + s.notas | dinero }}</td>
+          <td class="money p-3">{{ s.aplicado | dinero }}</td>
+          <td class="money p-3">
+            {{ s.saldo | dinero }}
+            @if (s.saldo < 0) {
+              <span class="block text-xs text-muted-fg">Devolución pendiente</span>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="p-5 text-muted-fg">No hay saldos pendientes.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</section>
+@if (seleccionado() && cartera.puedeEditar()) {
+  <section class="card mt-4 flex flex-wrap items-end gap-3 p-5">
+    <div>
+      <label for="fecha-vencimiento" class="field-label">Fecha de vencimiento</label
+      ><input id="fecha-vencimiento" type="date" class="input" [(ngModel)]="vencimiento" />
+    </div>
+    <button class="btn btn-secondary" [disabled]="ocupado()" (click)="guardarVencimiento()">
+      Guardar vencimiento
+    </button>
+  </section>
+}
+@if (cartera.puedeEditar()) {
+  <section class="card mt-5 p-5">
+    <h2 class="font-semibold">Registrar cobro, pago o devolución</h2>
+    <form class="mt-4 grid gap-4 sm:grid-cols-3" [formGroup]="form" (ngSubmit)="registrar()">
+      <div class="sm:col-span-2">
+        <label for="factura-pago" class="field-label">Factura</label
+        ><select class="input" id="factura-pago" formControlName="comprobanteId">
+          <option value="0" disabled>Selecciona</option>
+          @for (s of pendientes(); track s.id) {
+            <option [value]="s.id">
+              {{ s.numero }} · {{ s.tercero }} · saldo {{ s.saldo | dinero }}
+            </option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="tipo-pago" class="field-label">Aplicación</label
+        ><select class="input" id="tipo-pago" formControlName="tipo">
+          <option value="Pago">Cobro o pago</option>
+          <option value="Reembolso">Devolución</option>
+        </select>
+      </div>
+      <div>
+        <label for="fecha-pago" class="field-label">Fecha</label
+        ><input class="input" id="fecha-pago" type="date" formControlName="fecha" />
+      </div>
+      <div>
+        <label for="importe-pago" class="field-label">Importe</label
+        ><input
+          class="input"
+          id="importe-pago"
+          type="number"
+          min="0.01"
+          max="999999999"
+          step="0.01"
+          formControlName="importe"
+        />
+      </div>
+      <div>
+        <label for="medio-pago" class="field-label">Medio</label
+        ><select class="input" id="medio-pago" formControlName="medio">
+          <option>Efectivo</option>
+          <option>Transferencia</option>
+          <option>Tarjeta</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div>
+        <label for="cuenta-pago" class="field-label">Cuenta bancaria</label
+        ><select id="cuenta-pago" class="input" formControlName="cuentaBancariaId">
+          <option value="0">Sin cuenta bancaria</option>
+          @for (c of carga().datos?.cuentas ?? []; track c.id) {
+            @if (c.activa) {
+              <option [value]="c.id">{{ c.nombre }} · {{ c.ultimosDigitos }}</option>
+            }
+          }
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label for="referencia-pago" class="field-label">Referencia</label
+        ><input id="referencia-pago" class="input" maxlength="100" formControlName="referencia" />
+      </div>
+      <button class="btn btn-primary justify-self-start" [disabled]="ocupado()" type="submit">
+        Guardar aplicación
+      </button>
+    </form>
+  </section>
+}
+<section class="card mt-5 p-5">
+  <h2 class="font-semibold">Historial de pagos</h2>
+  @if (cartera.puedeEditar()) {
+    <label class="field-label mt-3" for="motivo-anular-pago"
+      >Justificación para anular un pago equivocado</label
+    ><input class="input" id="motivo-anular-pago" maxlength="1000" [(ngModel)]="motivo" />
+  }
+  <ul class="mt-3 divide-y divide-border">
+    @for (p of carga().datos?.pagos ?? []; track p.id) {
+      <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+        <span
+          >{{ p.fecha | fechaCorta }} · {{ p.numero }} · {{ p.tipo }} · {{ p.importe | dinero }} ·
+          {{ p.medio }} {{ p.anulado ? '· Anulado' : '' }}</span
+        >
+        @if (!p.anulado && cartera.puedeEditar()) {
+          <button class="btn btn-ghost text-danger" [disabled]="ocupado()" (click)="anular(p.id)">
+            Anular registro
+          </button>
+        }
+      </li>
+    }
+  </ul>
+</section>

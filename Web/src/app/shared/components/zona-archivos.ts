@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { LucideUpload } from '@lucide/angular';
-
 /**
  * Zona para soltar o elegir archivos. El texto va como contenido:
  * <app-zona-archivos idCampo="archivos" accept=".xml" (archivos)="agregar($event)">Arrastra…</app-zona-archivos>
@@ -14,7 +13,11 @@ import { LucideUpload } from '@lucide/angular';
     <label
       [attr.for]="idCampo()"
       class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors"
-      [class]="arrastrando() ? 'border-accent bg-primary-soft' : 'border-border hover:border-accent hover:bg-muted/50'"
+      [class]="
+        arrastrando()
+          ? 'border-accent bg-primary-soft'
+          : 'border-border hover:border-accent hover:bg-muted/50'
+      "
       (dragover)="$event.preventDefault(); arrastrando.set(true)"
       (dragleave)="arrastrando.set(false)"
       (drop)="soltar($event)"

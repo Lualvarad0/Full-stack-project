@@ -1,0 +1,31 @@
+<section class="card p-5" aria-label="Clasificación del comprobante">
+  <h2 class="font-semibold">Categoría de {{ ingreso() ? 'ingreso' : 'gasto' }}</h2>
+  @if (comprobante().sugerencia; as s) {
+    <div class="mt-3 rounded-lg border border-border bg-muted p-3 text-sm" aria-live="polite">
+      <p class="font-medium">{{ s.estado === 'Confirmada' ? 'Clasificación guardada' : s.estado === 'Pendiente' ? 'Sugerencia automática: ' + nombreSugerido() : 'Necesita tu revisión' }}</p>
+      <p class="mt-1 text-muted-fg">{{ s.motivo }}</p>
+      @if (s.estado === 'Pendiente') {
+        <button type="button" class="btn btn-primary mt-3" [disabled]="guardando()" (click)="confirmar()">Confirmar {{ nombreSugerido() }}</button>
+      }
+    </div>
+  }
+  <p class="mt-3 text-sm text-muted-fg">{{ ingreso() ? 'Puedes corregir la categoría comercial del ingreso.' : 'Confirma la sugerencia o elige otra categoría. Se incluirá en los totales por categoría al guardarla.' }}</p>
+  <div class="mt-3">
+    @if (ingreso()) {
+      <label for="categoria-ingreso" class="text-sm">Categoría elegida</label>
+      <select id="categoria-ingreso" class="input mt-1 w-full" [disabled]="guardando()" [value]="comprobante().categoriaIngreso ?? ''" (change)="cambiarIngreso($any($event.target).value)">
+        <option value="" disabled>Selecciona una categoría</option>
+        <option value="Ventas">Ventas</option><option value="Servicios">Servicios</option><option value="OtrosIngresos">Otros ingresos</option>
+      </select>
+    } @else {
+      <app-categoria-select [valor]="comprobante().categoria" [deshabilitado]="guardando()" (cambio)="cambiarGasto($event)" />
+    }
+  </div>
+  @if (!ingreso()) {
+    <label class="mt-3 flex items-start gap-2 text-sm">
+      <input type="checkbox" class="mt-0.5 size-4 accent-[var(--accent)]" [checked]="aplicarProveedor()" [disabled]="guardando()" (change)="aplicarProveedor.set($any($event.target).checked)" />
+      <span>Recordar esta categoría para todos los comprobantes de este proveedor, actuales y futuros.</span>
+    </label>
+    <p class="mt-3 text-xs text-muted-fg">Sugerencia basada en los rubros personales del SRI. No determina por sí sola la rebaja de impuestos. Las facturas mixtas requieren revisión.</p>
+  }
+</section>

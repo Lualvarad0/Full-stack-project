@@ -19,14 +19,16 @@ namespace Back.Controllers
         }
 
         // GET api/facturas?desde=2026-10-01&hasta=2026-11-01&clienteId=3  (hasta es exclusivo)
+        private int UsuarioId => JwtHelper.GetContribuyenteId(User);
+
         [HttpGet]
         public async Task<ActionResult<List<FacturaDto>>> GetFacturas(
             [FromQuery] DateTime? desde, [FromQuery] DateTime? hasta, [FromQuery] int? clienteId) =>
-            Ok(await _facturaService.ObtenerFacturasAsync(ToUtc(desde), ToUtc(hasta), clienteId));
+            Ok(await _facturaService.ObtenerFacturasAsync(UsuarioId, ToUtc(desde), ToUtc(hasta), clienteId));
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<FacturaDto>> GetFactura(int id) =>
-            Ok(await _facturaService.ObtenerFacturaPorIdAsync(id));
+            Ok(await _facturaService.ObtenerFacturaPorIdAsync(UsuarioId, id));
 
         [HttpPost]
         public async Task<ActionResult<FacturaDto>> CreateFactura(FacturaRequest request)
@@ -38,7 +40,7 @@ namespace Back.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteFactura(int id)
         {
-            await _facturaService.EliminarFacturaAsync(id);
+            await _facturaService.EliminarFacturaAsync(UsuarioId, id);
             return NoContent();
         }
 

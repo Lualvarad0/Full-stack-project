@@ -1,0 +1,97 @@
+<app-titulo
+  linea1="Mi RUC"
+  linea2="y obligaciones"
+  subtitulo="Registra las obligaciones de tu certificado del RUC y revisa sus vencimientos."
+/>
+<p class="my-4 text-sm text-muted-fg">
+  Consulta tu certificado en
+  <a class="enlace" href="https://srienlinea.sri.gob.ec" target="_blank" rel="noopener noreferrer"
+    >SRI en Línea</a
+  >. Los datos de esta pantalla se guardan únicamente en tu cuenta.
+</p>
+<app-error-carga [mensaje]="perfil().error" />
+@if (perfil().datos) {
+  <form class="card p-5 space-y-5" [formGroup]="form" (ngSubmit)="guardar()">
+    <div class="grid gap-4 md:grid-cols-3">
+      @for (campo of ['iva', 'retenciones', 'ats']; track campo) {
+        <label
+          >{{ campo === 'iva' ? 'IVA' : campo === 'ats' ? 'ATS' : 'Retenciones IR'
+          }}<select class="input" [formControlName]="campo">
+            @for (f of frecuencias; track f) {
+              <option [value]="f">{{ f }}</option>
+            }
+          </select></label
+        >
+      }
+    </div>
+    <div class="flex gap-5 flex-wrap">
+      <label class="flex gap-2"><input type="checkbox" formControlName="renta" /> Renta anual</label
+      ><label class="flex gap-2"
+        ><input type="checkbox" formControlName="gastosPersonales" /> Anexo de gastos
+        personales</label
+      ><label class="flex gap-2"
+        ><input type="checkbox" formControlName="sociedad" /> Sociedad</label
+      ><label class="flex gap-2"
+        ><input type="checkbox" formControlName="especial" /> Contribuyente especial</label
+      ><label class="flex gap-2"
+        ><input type="checkbox" formControlName="galapagos" /> Domicilio en Galápagos</label
+      >
+    </div>
+    <label class="block"
+      >Actividades y establecimientos<textarea
+        class="input"
+        rows="3"
+        maxlength="2000"
+        formControlName="actividades"
+      ></textarea>
+    </label>
+    <label class="block"
+      >Feriados nacionales y locales de 2026 y 2027<textarea
+        class="input"
+        rows="4"
+        formControlName="feriados"
+        placeholder="2026-11-02&#10;2026-11-03"
+      ></textarea>
+    </label>
+    <p class="text-sm text-muted-fg">
+      Añade las fechas observadas, incluidos traslados y decretos excepcionales. El calendario
+      ajusta fines de semana y estos feriados; si faltan fechas, el vencimiento puede cambiar.
+    </p>
+    <label class="flex gap-2"
+      ><input type="checkbox" formControlName="confirmado" /> Confirmé estas obligaciones y los
+      feriados aplicables con fuentes oficiales.</label
+    >
+    <button
+      class="btn btn-primary"
+      [disabled]="form.invalid || ocupado() || !cartera.puedeEditar()"
+    >
+      Guardar obligaciones
+    </button>
+  </form>
+}
+<section class="card p-5 mt-5">
+  <h2 class="font-semibold">Calendario del ejercicio 2026</h2>
+  <app-error-carga [mensaje]="calendario().error" />
+  <div class="overflow-x-auto mt-3">
+    <table class="tabla w-full">
+      <thead>
+        <tr>
+          <th>Obligación</th>
+          <th>Período</th>
+          <th>Vencimiento</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (v of calendario().datos ?? []; track $index) {
+          <tr>
+            <td>{{ v.obligacion }}</td>
+            <td>{{ v.periodo }}</td>
+            <td>{{ v.fecha | fechaCorta }}</td>
+            <td>{{ v.estado }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Back.Dtos;
 using Back.Helpers;
 using Back.Models;
@@ -26,7 +27,7 @@ namespace Back.Controllers
         public async Task<ActionResult<MetricasAdminDto>> GetMetricas() => Ok(await _service.MetricasAsync());
 
         [HttpGet("usuarios")]
-        public async Task<ActionResult<List<UsuarioAdminDto>>> GetUsuarios([FromQuery] string? q, [FromQuery] PlanSuscripcion? plan) =>
+        public async Task<ActionResult<List<UsuarioAdminDto>>> GetUsuarios([FromQuery, StringLength(200)] string? q, [FromQuery] PlanSuscripcion? plan) =>
             Ok(await _service.UsuariosAsync(q, plan));
 
         [HttpGet("usuarios/{id:int}/actividad")]

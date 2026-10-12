@@ -1,0 +1,109 @@
+<app-titulo
+  linea1="Gastos"
+  linea2="personales 2026"
+  subtitulo="Bases netas, cargas identificadas y proyección anual para preparar tu rebaja."
+/>
+<app-error-carga [mensaje]="carga().error" />
+@if (carga().datos; as d) {
+  <div class="grid gap-3 md:grid-cols-4 my-5">
+    <div class="card p-4">
+      Gasto personal neto
+      <p class="text-xl font-semibold">{{ d.gastos.real | dinero }}</p>
+    </div>
+    <div class="card p-4">
+      Límite según cargas
+      <p class="text-xl font-semibold">{{ d.gastos.tope | dinero }}</p>
+    </div>
+    <div class="card p-4">
+      Rebaja potencial
+      <p class="text-xl font-semibold">{{ d.gastos.rebajaPotencial | dinero }}</p>
+    </div>
+    <div class="card p-4">
+      Proyección anual
+      <p class="text-xl font-semibold">{{ d.gastos.proyectado | dinero }}</p>
+    </div>
+  </div>
+  <p class="text-sm text-muted-fg mb-5">
+    Reglas {{ d.gastos.version }} · {{ d.gastos.cargas }} cargas identificadas ·
+    {{ d.gastos.canastas }} canastas. No incluye IVA ni ICE. La rebaja efectiva no puede superar el
+    impuesto causado del régimen general.
+  </p>
+  <section class="card p-5 mb-5">
+    <h2 class="font-semibold">Rubros y proyección</h2>
+    <div class="overflow-x-auto">
+      <table class="tabla w-full">
+        <thead>
+          <tr>
+            <th>Rubro</th>
+            <th>Real confirmado</th>
+            <th>Proyección anual sin IVA/ICE</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of d.gastos.rubros; track r.categoria) {
+            <tr>
+              <td>{{ r.categoria }}</td>
+              <td>{{ r.real | dinero }}</td>
+              <td>
+                <input
+                  class="input max-w-48"
+                  type="number"
+                  [attr.aria-label]="'Proyección de ' + r.categoria"
+                  min="0"
+                  max="999999999"
+                  step="0.01"
+                  [(ngModel)]="r.proyectado"
+                  [disabled]="!cartera.puedeEditar()"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (parametros(); as p) {
+      <div class="flex gap-5 flex-wrap my-4">
+        <label class="flex gap-2"
+          ><input type="checkbox" [(ngModel)]="p.beneficioEspecial" /> Titular con discapacidad o
+          condición especial acreditada</label
+        ><label class="flex gap-2"
+          ><input type="checkbox" [(ngModel)]="p.galapagos" /> Residente en Galápagos</label
+        >
+      </div>
+    }
+    <button
+      class="btn btn-primary mt-4"
+      [disabled]="ocupado() || !cartera.puedeEditar()"
+      (click)="guardar()"
+    >
+      Guardar proyección
+    </button>
+  </section>
+  @if (d.gastos.pendientes.length) {
+    <section class="card p-5 mb-5">
+      <h2 class="font-semibold">Por revisar</h2>
+      <ul class="list-disc pl-5 mt-3">
+        @for (p of d.gastos.pendientes; track p) {
+          <li>{{ p }}</li>
+        }
+      </ul>
+    </section>
+  }
+  <app-cargas-familiares [cargas]="d.cargas" (cambiado)="refrescar()" />
+  <section class="card p-5 mt-5">
+    <h2 class="font-semibold">Preparación del anexo personal</h2>
+    <label class="flex gap-2 mt-4"
+      ><input type="checkbox" [(ngModel)]="confirmado" /> Revisé los documentos, cargas y requisitos
+      de los gastos utilizados.</label
+    >
+    <button
+      class="btn btn-primary mt-4"
+      [disabled]="
+        ocupado() || !cartera.puedeEditar() || !confirmado || d.gastos.pendientes.length > 0
+      "
+      (click)="revisar()"
+    >
+      Guardar revisión del anexo
+    </button>
+  </section>
+}

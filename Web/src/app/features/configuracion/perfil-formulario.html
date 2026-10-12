@@ -1,0 +1,176 @@
+<form
+  class="card mt-6 max-w-3xl p-5 sm:p-6"
+  [formGroup]="form"
+  (ngSubmit)="guardar()"
+  novalidate
+  aria-labelledby="titulo-perfil"
+>
+  <h2 id="titulo-perfil" class="font-semibold">Perfil tributario</h2>
+  <p class="mt-1 text-sm text-muted-fg">
+    Con tu RUC separamos lo que facturas (ingresos) de lo que compras (gastos), y verificamos que
+    tus gastos estén a tu nombre.
+  </p>
+
+  <div class="mt-5 grid gap-5 sm:grid-cols-2">
+    <div>
+      <label class="field-label" for="ruc">RUC</label>
+      <input
+        id="ruc"
+        class="input font-mono"
+        formControlName="ruc"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="13 dígitos"
+        maxlength="15"
+        [attr.aria-invalid]="rucInvalido()"
+        aria-describedby="ruc-ayuda"
+        (blur)="completarCedula()"
+      />
+      <p
+        id="ruc-ayuda"
+        class="mt-1.5 text-xs"
+        [class.text-danger]="rucInvalido()"
+        [class.text-muted-fg]="!rucInvalido()"
+      >
+        {{
+          rucInvalido()
+            ? 'El RUC no es válido: 13 dígitos, terminando en tu establecimiento (001).'
+            : '13 dígitos. Persona natural: tu cédula + 001.'
+        }}
+      </p>
+    </div>
+    <div>
+      <label class="field-label" for="cedula">Cédula</label>
+      <input
+        id="cedula"
+        class="input font-mono"
+        formControlName="cedula"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="10 dígitos"
+        maxlength="12"
+        [attr.aria-invalid]="cedulaInvalida()"
+        aria-describedby="cedula-ayuda"
+      />
+      <p
+        id="cedula-ayuda"
+        class="mt-1.5 text-xs"
+        [class.text-danger]="cedulaInvalida()"
+        [class.text-muted-fg]="!cedulaInvalida()"
+      >
+        {{
+          cedulaInvalida()
+            ? 'La cédula no es válida. Revisa los 10 dígitos.'
+            : 'Las facturas de tus gastos deben estar a este número o a tu RUC.'
+        }}
+      </p>
+    </div>
+    <div class="sm:col-span-2">
+      <label class="field-label" for="razonSocial"
+        >Nombre o razón social (como consta en el RUC)</label
+      >
+      <input
+        id="razonSocial"
+        class="input"
+        formControlName="razonSocial"
+        autocomplete="name"
+        maxlength="300"
+      />
+    </div>
+    <div class="sm:col-span-2">
+      <span class="field-label" id="regimen-label">Régimen</span>
+      <div class="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-labelledby="regimen-label">
+        @for (r of regimenes; track r.valor) {
+          <label
+            class="flex cursor-pointer flex-col rounded-lg border p-3 text-sm transition-colors"
+            [class]="
+              form.controls.regimen.value === r.valor
+                ? 'border-accent bg-primary-soft'
+                : 'border-border hover:bg-muted'
+            "
+          >
+            <span class="flex items-center gap-2 font-medium">
+              <input
+                type="radio"
+                class="size-4 accent-[var(--accent)]"
+                formControlName="regimen"
+                [value]="r.valor"
+              />
+              {{ r.nombre }}
+            </span>
+            <span class="mt-1 pl-6 text-xs text-muted-fg">{{ r.descripcion }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  </div>
+
+  <h3 class="mt-8 font-semibold">Gastos personales</h3>
+  <p class="mt-1 text-sm text-muted-fg">
+    Definen tu tope de gastos deducibles y la alerta del resumen.
+  </p>
+  <div class="mt-4 grid gap-5 sm:grid-cols-2">
+    <div>
+      <label class="field-label" for="cargas">Cargas familiares</label>
+      <select id="cargas" class="input" formControlName="cargasFamiliares">
+        @for (n of opcionesCargas; track n) {
+          <option [ngValue]="n">{{ n === 5 ? '5 o más' : n }}</option>
+        }
+      </select>
+      <p class="mt-1.5 text-xs text-muted-fg">
+        Hijos menores o con discapacidad, cónyuge o padres que dependan de ti.
+      </p>
+    </div>
+    <label class="flex items-start gap-2 self-center text-sm">
+      <input
+        type="checkbox"
+        class="mt-0.5 size-4 accent-[var(--accent)]"
+        formControlName="enfermedadCatastrofica"
+      />
+      <span>Tú o una de tus cargas tiene una enfermedad catastrófica, rara o huérfana</span>
+    </label>
+  </div>
+
+  @if (tope(); as t) {
+    <dl class="mt-5 grid gap-3 rounded-lg bg-muted p-4 text-sm sm:grid-cols-3">
+      <div>
+        <dt class="text-muted-fg">Canastas</dt>
+        <dd class="money font-semibold">{{ t.canastas }} × {{ t.canasta | dinero }}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-fg">Tope de gastos {{ t.anio }}</dt>
+        <dd class="money font-semibold">{{ t.tope | dinero }}</dd>
+      </div>
+      <div>
+        <dt class="text-muted-fg">Rebaja máxima (18 %)</dt>
+        <dd class="money font-semibold">{{ t.rebajaMaxima | dinero }}</dd>
+      </div>
+    </dl>
+    <p class="mt-2 text-xs text-muted-fg">
+      Con la canasta familiar básica de enero de {{ t.anio }} (INEC). Verifica los valores finales
+      en el SRI antes de declarar.
+    </p>
+  } @else {
+    <p class="aviso-atencion mt-5">
+      Aún no está registrada la canasta básica de enero de {{ periodo.anio() }}.
+    </p>
+  }
+
+  <app-mensaje-error class="mt-5 block" [mensaje]="error()" />
+
+  <div class="mt-6 flex items-center gap-3">
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="guardando() || !perfilService.perfil()"
+    >
+      @if (guardando()) {
+        <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg>
+      }
+      Guardar perfil
+    </button>
+    @if (form.dirty) {
+      <span class="text-sm text-muted-fg">Tienes cambios sin guardar.</span>
+    }
+  </div>
+</form>

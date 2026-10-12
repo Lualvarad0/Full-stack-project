@@ -29,7 +29,7 @@ namespace Back.Repositories
 
         public Task<List<Comprobante>> GetAllAsync(int usuarioId, FiltroComprobantes filtro)
         {
-            var query = _context.Comprobantes.AsNoTracking().Where(c => c.UsuarioId == usuarioId);
+            var query = _context.Comprobantes.AsNoTracking().Include(c => c.Detalles).Where(c => c.UsuarioId == usuarioId);
 
             if (filtro.Direccion.HasValue) query = query.Where(c => c.Direccion == filtro.Direccion.Value);
             if (!string.IsNullOrWhiteSpace(filtro.Cliente)) query = query.Where(c => c.IdentificacionComprador == filtro.Cliente);
@@ -98,7 +98,7 @@ namespace Back.Repositories
         /// <summary>Guarda la categoría del proveedor y la aplica a todos sus comprobantes.</summary>
         public async Task AsignarCategoriaProveedorAsync(int usuarioId, string ruc, CategoriaGasto categoria)
         {
-            await using var transaccion = await _context.Database.BeginTransactionAsync();
+            await using var transaccion = _context.Database.CurrentTransaction is null ? await _context.Database.BeginTransactionAsync() : null;
 
             var regla = await _context.ProveedoresCategoria.FirstOrDefaultAsync(p => p.UsuarioId == usuarioId && p.Ruc == ruc);
             if (regla is null)
@@ -109,26 +109,35 @@ namespace Back.Repositories
 
             await _context.Comprobantes
                 .Where(c => c.UsuarioId == usuarioId && c.RucEmisor == ruc && c.Direccion == Direccion.Recibido)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Categoria, categoria));
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Categoria, categoria)
+                    .SetProperty(c => c.Finalidad, categoria == CategoriaGasto.SinCategoria ? FinalidadComprobante.SinDefinir : categoria == CategoriaGasto.NoDeducible ? FinalidadComprobante.NoAplicable : FinalidadComprobante.Personal)
+                    .SetProperty(c => c.RevisadoEn, categoria == CategoriaGasto.SinCategoria ? (DateTime?)null : DateTime.UtcNow));
 
-            await transaccion.CommitAsync();
+            if (transaccion is not null) await transaccion.CommitAsync();
         }
 
         public async Task<(int Emitidos, int Recibidos)> ReclasificarAsync(int usuarioId, string? rucUsuario)
         {
             var delUsuario = _context.Comprobantes.Where(c => c.UsuarioId == usuarioId);
-            await using var transaccion = await _context.Database.BeginTransactionAsync();
+            await using var transaccion = _context.Database.CurrentTransaction is null ? await _context.Database.BeginTransactionAsync() : null;
 
             var emitidos = string.IsNullOrEmpty(rucUsuario) ? 0 : await delUsuario
                 .Where(c => c.RucEmisor == rucUsuario)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(c => c.Direccion, Direccion.Emitido)
-                    .SetProperty(c => c.Categoria, CategoriaGasto.SinCategoria));
+                    .SetProperty(c => c.Categoria, CategoriaGasto.SinCategoria)
+                    .SetProperty(c => c.Finalidad, FinalidadComprobante.SinDefinir)
+                    .SetProperty(c => c.RevisadoEn, (DateTime?)null)
+                    .SetProperty(c => c.TratamientoIva, TratamientoIva.Pendiente));
             var recibidos = await delUsuario
                 .Where(c => rucUsuario == null || c.RucEmisor != rucUsuario)
-                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Direccion, Direccion.Recibido));
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.Direccion, Direccion.Recibido)
+                    .SetProperty(c => c.CategoriaIngreso, (CategoriaIngreso?)null)
+                    .SetProperty(c => c.Finalidad, FinalidadComprobante.SinDefinir)
+                    .SetProperty(c => c.RevisadoEn, (DateTime?)null)
+                    .SetProperty(c => c.TratamientoIva, TratamientoIva.Pendiente));
 
-            await transaccion.CommitAsync();
+            if (transaccion is not null) await transaccion.CommitAsync();
             return (emitidos, recibidos);
         }
     }

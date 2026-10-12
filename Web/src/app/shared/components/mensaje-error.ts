@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { LucideCircleAlert } from '@lucide/angular';
-
 /** Mensaje de error con ícono; no muestra nada si no hay mensaje. El margen lo pone quien lo usa (class="mt-4 block"). */
 @Component({
   selector: 'app-mensaje-error',

@@ -1,0 +1,1 @@
+Ubuntu Regular y Bold originales, sin modificaciones. Copyright 2010-2011 Canonical Ltd.; diseño de Dalton Maag. Distribuidas bajo Ubuntu Font Licence 1.0 (UFL.txt). Fuente: distribución Poppler incluida en el entorno; licencia oficial de google/fonts/ufl/ubuntu.

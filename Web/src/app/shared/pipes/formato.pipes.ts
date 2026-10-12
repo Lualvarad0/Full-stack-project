@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { MONEDA } from '@core/utils';
-
 /** 1234.5 → "$1.234,50" */
 @Pipe({ name: 'dinero' })
 export class DineroPipe implements PipeTransform {

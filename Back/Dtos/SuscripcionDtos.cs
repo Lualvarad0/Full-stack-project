@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.ComponentModel.DataAnnotations;
 using Back.Models;
 using Back.Pagos;
@@ -27,11 +28,11 @@ namespace Back.Dtos
     }
 
     public record SuscribirRequest(
-        [Required] PlanSuscripcion Plan,
-        [Required] Periodicidad Periodicidad,
+        [Required, EnumDataType(typeof(PlanSuscripcion))] PlanSuscripcion Plan,
+        [Required, EnumDataType(typeof(Periodicidad))] Periodicidad Periodicidad,
         [Required, StringLength(200, MinimumLength = 10)] string Token,
-        [StringLength(20)] string? MarcaTarjeta,
-        [RegularExpression(@"^\d{4}$")] string? UltimosDigitos);
+        [TextoPlano, StringLength(20)] string? MarcaTarjeta,
+        [RegularExpression(@"^[0-9]{4}$")] string? UltimosDigitos);
 
     /// <summary>Uso del plan: en Personal, cuántos comprobantes lleva este mes frente al límite.</summary>
     public record UsoPlanDto(PlanSuscripcion Plan, bool Profesional, int? LimiteComprobantes, int ComprobantesEsteMes, int? MesesHistorial);

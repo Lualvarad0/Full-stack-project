@@ -1,0 +1,80 @@
+<app-titulo
+  linea1="Ingresos de"
+  [linea2]="etiquetaPeriodo()"
+  subtitulo="Facturas que emitiste, verificadas con el SRI."
+>
+  <a routerLink="/importar" class="btn btn-primary">
+    <svg lucideFileUp class="size-4" aria-hidden="true"></svg> Traer facturas
+  </a>
+</app-titulo>
+
+@if (!perfil.tieneRuc()) {
+  <app-perfil-requerido
+    titulo="Registra tu RUC para ver tus ingresos"
+    descripcion="Reconocemos como ingreso cada factura cuyo emisor es tu RUC. Al registrarlo, también reclasificamos las que ya importaste."
+  />
+} @else {
+  <div class="mt-6 grid gap-4 sm:grid-cols-3">
+    <div class="card p-5">
+      <p class="etiqueta">Facturado</p>
+      <p class="mt-2"><app-monto [valor]="total()" /></p>
+    </div>
+    <div class="card p-5">
+      <p class="etiqueta">IVA cobrado</p>
+      <p class="mt-2"><app-monto [valor]="iva()" /></p>
+    </div>
+    <div class="card p-5">
+      <p class="etiqueta">Facturas emitidas</p>
+      <p class="cifra mt-3 text-[28px] leading-none">{{ lista().length }}</p>
+    </div>
+  </div>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <app-buscador
+      placeholder="Buscar cliente o número de factura"
+      [valor]="busqueda()"
+      (valorChange)="buscar($event)"
+    />
+    @if (clienteFiltrado()) {
+      <span
+        class="inline-flex min-h-10 items-center rounded-lg bg-primary-soft px-3 text-sm text-primary"
+        >{{ clienteFiltrado() }}</span
+      >
+    }
+    @if (hayFiltros()) {
+      <button type="button" class="btn btn-ghost" (click)="limpiarFiltros()">
+        <svg lucideX class="size-4" aria-hidden="true"></svg> Quitar filtros
+      </button>
+    }
+    <app-filtros [(valor)]="filtroRango" [etiquetaMes]="periodo.etiqueta()" />
+  </div>
+
+  <app-error-carga [mensaje]="carga().error" />
+
+  <section class="card mt-4 overflow-hidden" [attr.aria-busy]="carga().cargando">
+    @if (carga().cargando && !carga().datos) {
+      <app-lista-carga [cantidad]="3" etiqueta="Cargando ingresos" />
+    } @else if (lista().length === 0) {
+      <div class="px-6 py-14 text-center">
+        <p class="font-medium">
+          {{
+            hayFiltros()
+              ? 'Ninguna factura coincide con los filtros.'
+              : 'No hay facturas emitidas en este mes.'
+          }}
+        </p>
+        <p class="mx-auto mt-1 max-w-lg text-sm text-muted-fg">
+          Importa los XML o las claves de acceso de las facturas que emitiste (desde tu sistema de
+          facturación o el facturador del SRI).
+        </p>
+      </div>
+    } @else {
+      <app-tabla-comprobantes
+        [lista]="lista()"
+        direccion="Emitido"
+        [etiquetaPeriodo]="etiquetaPeriodo()"
+        [cargando]="carga().cargando"
+      />
+    }
+  </section>
+}

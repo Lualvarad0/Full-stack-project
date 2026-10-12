@@ -1,0 +1,246 @@
+<app-titulo
+  linea1="Libros"
+  linea2="contables"
+  subtitulo="Revisa los borradores y contabiliza para construir el mayor y tus informes."
+/>
+<div class="flex gap-3 flex-wrap mb-5 items-end">
+  <label
+    >Año<input
+      class="input w-28"
+      type="number"
+      min="2000"
+      max="2100"
+      [ngModel]="anio()"
+      (ngModelChange)="anio.set(+$event)"
+  /></label>
+  <label
+    >Mes<select class="input w-28" [ngModel]="mes()" (ngModelChange)="mes.set(+$event)">
+      @for (m of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track m) {
+        <option [ngValue]="m">{{ m }}</option>
+      }
+    </select></label
+  >
+  @for (t of ['asientos', 'cuentas', 'informes']; track t) {
+    <button
+      class="btn"
+      [class.btn-primary]="tab() === t"
+      [class.btn-secondary]="tab() !== t"
+      (click)="tab.set(t)"
+    >
+      {{ t }}
+    </button>
+  }
+</div>
+@if (carga().error) {
+  <app-error-carga [mensaje]="carga().error!" (reintentar)="refrescar()" />
+}
+@if (carga().datos; as d) {
+  @if (tab() === 'cuentas') {
+    <app-plan-cuentas
+      [cuentas]="d.cuentas"
+      [editable]="cartera.puedeEditar()"
+      (cambiado)="refrescar()"
+    />
+  }
+  @if (tab() === 'asientos') {
+    @if (cartera.puedeEditar()) {
+      <div class="card p-4 flex gap-3 flex-wrap mb-5 items-end">
+        <button class="btn btn-primary" (click)="nuevo()">Nuevo asiento manual</button>
+        <label
+          >Preparar desde<select
+            class="input"
+            [(ngModel)]="tipoFuente"
+            (ngModelChange)="fuente = 0"
+          >
+            <option value="comprobante">Factura</option>
+            <option value="pago">Cobro o pago</option>
+          </select></label
+        >
+        <label
+          >Documento<select class="input max-w-80" [(ngModel)]="fuente">
+            <option [ngValue]="0">Selecciona</option>
+            @if (tipoFuente === 'pago') {
+              @for (p of d.pagos; track p.id) {
+                @if (!p.anulado) {
+                  <option [ngValue]="p.id">{{ p.numero }} · {{ p.importe | dinero }}</option>
+                }
+              }
+            } @else {
+              @for (c of d.comprobantes; track c.id) {
+                <option [ngValue]="c.id">{{ c.numero }} · {{ c.tercero }}</option>
+              }
+            }
+          </select></label
+        >
+        <button class="btn btn-secondary" [disabled]="!fuente || ocupado()" (click)="preparar()">
+          Crear borrador
+        </button>
+      </div>
+    }
+    @if (editor()) {
+      <app-editor-asiento
+        [cuentas]="d.cuentas"
+        [asiento]="editando()"
+        [editable]="cartera.puedeEditar()"
+        (cambiado)="refrescar()"
+      /><button class="btn btn-ghost my-3" (click)="editor.set(false)">Cerrar editor</button>
+    }
+    <p class="text-sm text-muted-fg mb-3">
+      Los borradores quedan fuera de los informes. Las operaciones de inventario, depreciación o
+      ajustes se registran con cuentas y asientos propios.
+    </p>
+    @if (cartera.puedeEditar()) {
+      <label class="block mb-4"
+        >Justificación para anular<input class="input" maxlength="1000" [(ngModel)]="motivo"
+      /></label>
+    }
+    <div class="space-y-3">
+      @for (a of d.asientos; track a.id) {
+        <article class="card p-4">
+          <div class="flex flex-wrap gap-3 justify-between">
+            <h2 class="font-semibold">
+              #{{ a.id }} · {{ a.fecha | fechaCorta }} · {{ a.concepto }}
+            </h2>
+            <span>{{ a.estado }}</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="tabla w-full">
+              <thead>
+                <tr>
+                  <th>Cuenta</th>
+                  <th>Debe</th>
+                  <th>Haber</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (l of a.lineas; track $index) {
+                  <tr>
+                    <td>{{ l.codigo }} · {{ l.nombre }}</td>
+                    <td>{{ l.debe | dinero }}</td>
+                    <td>{{ l.haber | dinero }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (cartera.puedeEditar() && a.estado !== 'Anulado') {
+            <div class="flex gap-2 mt-3">
+              @if (a.estado === 'Borrador') {
+                <button class="btn btn-secondary" (click)="editar(a)">Editar</button
+                ><button
+                  class="btn btn-primary"
+                  [disabled]="ocupado()"
+                  (click)="contabilizar(a.id)"
+                >
+                  Contabilizar
+                </button>
+              }
+              <button
+                class="btn btn-ghost"
+                [disabled]="ocupado() || motivo.trim().length < 10"
+                (click)="anular(a.id)"
+              >
+                Anular con justificación
+              </button>
+            </div>
+          }
+        </article>
+      } @empty {
+        <p class="card p-5">Todavía no hay asientos en este mes.</p>
+      }
+    </div>
+  }
+  @if (tab() === 'informes') {
+    <p class="text-sm text-muted-fg mb-4">
+      Situación acumulada hasta {{ hasta() }}; resultado del año seleccionado hasta ese día. Solo
+      incluye asientos contabilizados.
+    </p>
+    <div class="grid gap-3 sm:grid-cols-3 mb-5">
+      <div class="card p-4">
+        Activos
+        <p class="text-xl font-semibold">{{ d.estados.activos | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Pasivos
+        <p class="text-xl font-semibold">{{ d.estados.pasivos | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Patrimonio
+        <p class="text-xl font-semibold">{{ d.estados.patrimonio | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Ingresos
+        <p class="text-xl font-semibold">{{ d.estados.ingresos | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Gastos
+        <p class="text-xl font-semibold">{{ d.estados.gastos | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Resultado
+        <p class="text-xl font-semibold">{{ d.estados.resultado | dinero }}</p>
+      </div>
+    </div>
+    <section class="card p-5">
+      <h2 class="font-semibold">Balance de comprobación</h2>
+      <p>Diferencia de la ecuación contable: {{ d.estados.diferenciaBalance | dinero }}</p>
+      <div class="overflow-x-auto">
+        <table class="tabla w-full">
+          <thead>
+            <tr>
+              <th>Cuenta</th>
+              <th>Debe</th>
+              <th>Haber</th>
+              <th>Saldo deudor / acreedor (−)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of d.estados.cuentas; track c.id) {
+              <tr>
+                <td>{{ c.codigo }} · {{ c.nombre }}</td>
+                <td>{{ c.debe | dinero }}</td>
+                <td>{{ c.haber | dinero }}</td>
+                <td>{{ c.saldo | dinero }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="card p-5 mt-5">
+      <h2 class="font-semibold">Mayor de una cuenta</h2>
+      <select class="input my-3" [ngModel]="cuentaId()" (ngModelChange)="cuentaId.set(+$event)">
+        <option [ngValue]="0">Selecciona cuenta</option>
+        @for (c of d.cuentas; track c.id) {
+          <option [ngValue]="c.id">{{ c.codigo }} · {{ c.nombre }}</option>
+        }
+      </select>
+      @if (mayor().datos; as filas) {
+        <div class="overflow-x-auto">
+          <table class="tabla w-full">
+            <thead>
+              <tr>
+                <th>Fecha / asiento</th>
+                <th>Concepto</th>
+                <th>Debe</th>
+                <th>Haber</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of filas; track $index) {
+                <tr>
+                  <td>{{ f.fecha | fechaCorta }} · {{ f.asientoId || 'Inicial' }}</td>
+                  <td>{{ f.concepto }}</td>
+                  <td>{{ f.debe | dinero }}</td>
+                  <td>{{ f.haber | dinero }}</td>
+                  <td>{{ f.saldo | dinero }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+}

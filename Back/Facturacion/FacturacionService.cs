@@ -9,6 +9,7 @@ using Back.Services;
 using Back.Sri;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Back.Contabilidad;
 
 namespace Back.Facturacion
 {
@@ -19,6 +20,9 @@ namespace Back.Facturacion
         private static readonly TimeSpan[] EsperasAutorizacion = { TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5) };
 
         private readonly AppDbContext _context;
+        private readonly ControlPeriodoService _periodos;
+        private readonly RetencionesService _retenciones;
+        private readonly IConfiguration _config;
         private readonly IDataProtector _protector;
         private readonly SriAutorizacionClient _sri;
         private readonly AvisoService _avisos;
@@ -26,7 +30,7 @@ namespace Back.Facturacion
         private readonly ILogger<FacturacionService> _logger;
 
         public FacturacionService(AppDbContext context, IDataProtectionProvider proteccion, SriAutorizacionClient sri,
-            AvisoService avisos, ComprobanteService comprobantes, ILogger<FacturacionService> logger)
+            AvisoService avisos, ComprobanteService comprobantes, ILogger<FacturacionService> logger, ControlPeriodoService periodos, RetencionesService retenciones, IConfiguration config)
         {
             _context = context;
             _protector = proteccion.CreateProtector("Nudo.FirmaElectronica.v1");
@@ -34,6 +38,9 @@ namespace Back.Facturacion
             _avisos = avisos;
             _comprobantes = comprobantes;
             _logger = logger;
+            _periodos = periodos;
+            _retenciones = retenciones;
+            _config = config;
         }
 
         // ---------- Firma electrónica ----------
@@ -117,6 +124,7 @@ namespace Back.Facturacion
             datos.DireccionEstablecimiento = Limpiar(request.DireccionEstablecimiento);
             datos.ObligadoContabilidad = request.ObligadoContabilidad;
             datos.ContribuyenteEspecial = Limpiar(request.ContribuyenteEspecial);
+            datos.AgenteRetencion = request.AgenteRetencion;
             await _context.SaveChangesAsync();
 
             await _avisos.NotificarAsync(usuarioId, TipoAviso.DatosFacturacion, "Se actualizaron tus datos de facturación",
@@ -141,6 +149,13 @@ namespace Back.Facturacion
 
         public async Task<string> ObtenerXmlAsync(int usuarioId, int id) => (await FacturaAsync(usuarioId, id)).XmlFirmado;
 
+        public async Task<byte[]> ObtenerPdfAsync(int usuarioId, int id)
+        {
+            var factura = await FacturaAsync(usuarioId, id);
+            AccesoPlan.ExigirProfesional(await UsuarioAsync(usuarioId), "Los PDF de facturas emitidas");
+            return FacturaPdf.Crear(factura);
+        }
+
         /// <summary>Arma, firma y envía la factura al SRI; espera unos segundos la autorización.</summary>
         public async Task<FacturaEmitidaDto> EmitirAsync(int usuarioId, EmitirFacturaRequest request, CancellationToken ct)
         {
@@ -158,6 +173,7 @@ namespace Back.Facturacion
             // Reserva el secuencial con bloqueo de fila: dos emisiones simultáneas no pueden tomar el mismo número.
             await using (var transaccion = await _context.Database.BeginTransactionAsync(ct))
             {
+                await using var permiso = await _periodos.AbrirAsync(usuarioId, [factura.FechaEmision], ct);
                 var datos = (await _context.DatosEmisores
                     .FromSqlInterpolated($"SELECT * FROM datos_emisor WHERE usuario_id = {usuarioId} FOR UPDATE")
                     .ToListAsync(ct)).Single();
@@ -168,10 +184,11 @@ namespace Back.Facturacion
                 factura.ClaveAcceso = FacturaXml.GenerarClave(factura.FechaEmision, usuario.Ruc!, datos.Ambiente, datos.Establecimiento, datos.PuntoEmision, datos.SiguienteSecuencial);
 
                 using var certificado = AbrirCertificado(firma!);
-                factura.XmlFirmado = FirmadorXades.Firmar(FacturaXml.Construir(factura, usuario, datos), certificado);
+                factura.XmlFirmado = FirmadorXades.Firmar(NormativaDocumentoSri.AgregarProveedor(FacturaXml.Construir(factura, usuario, datos), factura.Ambiente, _config), certificado);
 
                 datos.SiguienteSecuencial++;
                 _context.FacturasEmitidas.Add(factura);
+                _periodos.Auditar(usuarioId, "Emitir", "Factura", factura.ClaveAcceso, $"Número: {factura.Numero}");
                 await _context.SaveChangesAsync(ct);
                 await transaccion.CommitAsync(ct);
             }
@@ -201,25 +218,26 @@ namespace Back.Facturacion
                 throw BusinessException.Conflict(factura.Estado is EstadoFactura.Autorizada or EstadoFactura.Anulada
                     ? "Una factura autorizada por el SRI no se puede borrar: anúlala."
                     : "El SRI todavía está procesando esta factura. Consulta su autorización antes de borrarla.");
+            await using var tx = await _periodos.AbrirAsync(usuarioId, [factura.FechaEmision]);
+            _periodos.Auditar(usuarioId, "EliminarNoAutorizada", "Factura", factura.Numero, $"Estado: {factura.Estado}");
             _context.FacturasEmitidas.Remove(factura);
             await _context.SaveChangesAsync();
+            await tx.ConfirmarAsync();
         }
 
         /// <summary>
-        /// Marca como anulada una factura autorizada y la quita de los ingresos. La anulación tributaria se hace en
-        /// SRI en Línea (Facturación electrónica → Anulación de comprobantes) y el cliente debe aceptarla.
+        /// Valida el acceso y la factura para el trámite externo. No simula una anulación del SRI.
         /// </summary>
         public async Task<FacturaEmitidaDto> AnularAsync(int usuarioId, int id)
         {
             var factura = await FacturaAsync(usuarioId, id);
             if (factura.Estado != EstadoFactura.Autorizada)
                 throw BusinessException.Conflict("Solo se anulan facturas autorizadas. Las demás se pueden borrar.");
-            factura.Estado = EstadoFactura.Anulada;
-            factura.Mensajes = "Anulada en Nudo. Completa la anulación en SRI en Línea → Facturación electrónica → Anulación de comprobantes; tu cliente debe aceptarla.";
-            await _context.Comprobantes.Where(c => c.UsuarioId == usuarioId && c.ClaveAcceso == factura.ClaveAcceso).ExecuteDeleteAsync();
-            await _context.SaveChangesAsync();
-            await _avisos.NotificarAsync(usuarioId, TipoAviso.DatosFacturacion, $"Anulaste la factura {factura.Numero}",
-                $"Cliente: {factura.RazonSocialComprador}, total ${factura.Total:0.00}. Recuerda completar la anulación en SRI en Línea.");
+            AccesoPlan.ExigirProfesional(await UsuarioAsync(usuarioId), "La gestión de anulación");
+            if (factura.TipoIdentificacionComprador == FacturaXml.TiposIdentificacion.ConsumidorFinal || factura.IdentificacionComprador == FacturaXml.ConsumidorFinal)
+                throw BusinessException.Conflict("El SRI no permite anular facturas emitidas a consumidor final.");
+            // No existe una API pública documentada de anulación. Preparar el trámite no cambia
+            // el estado tributario ni elimina ingresos. Nunca simular una respuesta del SRI.
             return FacturaEmitidaDto.From(factura, conDetalles: true);
         }
 
@@ -253,7 +271,7 @@ namespace Back.Facturacion
                 throw BusinessException.NotFound("Servicio no encontrado.");
         }
 
-        private async Task EnviarYAutorizarAsync(FacturaEmitida factura, CancellationToken ct)
+        internal async Task EnviarYAutorizarAsync(FacturaEmitida factura, CancellationToken ct)
         {
             try
             {
@@ -314,7 +332,8 @@ namespace Back.Facturacion
             if (factura.Ambiente != AmbienteSri.Produccion) return;
             try
             {
-                await _comprobantes.ImportarAsync(factura.UsuarioId, factura.ClaveAcceso, ct);
+                if (factura.TipoDocumento == "07") await _retenciones.ImportarAsync(factura.UsuarioId, factura.ClaveAcceso, ct);
+                else await _comprobantes.ImportarAsync(factura.UsuarioId, factura.ClaveAcceso, ct);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -347,6 +366,7 @@ namespace Back.Facturacion
             var detalles = request.Detalles.Select(d =>
             {
                 var bruto = Math.Round(d.Cantidad * d.PrecioUnitario, 2, MidpointRounding.AwayFromZero);
+                if (bruto > 9999999999.99m) throw new BusinessException("El importe de una partida supera el máximo admitido. Revisa cantidad y precio.");
                 var descuento = Math.Round(d.Descuento, 2, MidpointRounding.AwayFromZero);
                 if (descuento > bruto)
                     throw new BusinessException($"El descuento de \"{d.Descripcion}\" es mayor que su valor.");
@@ -378,6 +398,7 @@ namespace Back.Facturacion
                 Iva = detalles.Sum(d => d.Iva),
             };
             factura.Total = factura.Subtotal + factura.Iva;
+            if (factura.Total > 9999999999.99m || factura.Descuento > 9999999999.99m) throw new BusinessException("El importe de la factura supera el máximo admitido.");
 
             if (factura.Total <= 0)
                 throw new BusinessException("El total de la factura debe ser mayor que cero.");
@@ -405,7 +426,7 @@ namespace Back.Facturacion
             CertificadoFirma.Abrir(_protector.Unprotect(firma.ArchivoCifrado), Encoding.UTF8.GetString(_protector.Unprotect(firma.ClaveCifrada)));
 
         private async Task<FacturaEmitida> FacturaAsync(int usuarioId, int id) =>
-            await _context.FacturasEmitidas.Include(f => f.Detalles).FirstOrDefaultAsync(f => f.UsuarioId == usuarioId && f.Id == id)
+            await _context.FacturasEmitidas.Include(f => f.Detalles).Include(f => f.Retenciones).FirstOrDefaultAsync(f => f.UsuarioId == usuarioId && f.Id == id)
             ?? throw BusinessException.NotFound("Factura no encontrada.");
 
         private async Task<Usuario> UsuarioAsync(int usuarioId) =>

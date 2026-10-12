@@ -39,6 +39,11 @@ namespace Back.Models
         public string? DocumentoModificado { get; set; }
 
         public CategoriaGasto Categoria { get; set; } = CategoriaGasto.SinCategoria;
+        public CategoriaIngreso? CategoriaIngreso { get; set; }
+        public FinalidadComprobante Finalidad { get; set; }
+        public TratamientoIva TratamientoIva { get; set; }
+        public DateTime? RevisadoEn { get; set; }
+        public DateOnly? FechaVencimiento { get; set; }
         public DateTime FechaImportacion { get; set; } = DateTime.UtcNow;
 
         public List<ComprobanteDetalle> Detalles { get; set; } = new();
@@ -65,6 +70,13 @@ namespace Back.Models
         public decimal PrecioUnitario { get; set; }
         public decimal Descuento { get; set; }
         public decimal Subtotal { get; set; }
+        public CategoriaGasto? Categoria { get; set; }
+        public CategoriaIngreso? CategoriaIngreso { get; set; }
+        public FinalidadComprobante Finalidad { get; set; }
+        public TratamientoIva TratamientoIva { get; set; }
+        public decimal? Iva { get; set; }
+        public decimal? TarifaIva { get; set; }
+        public DateTime? RevisadoEn { get; set; }
     }
 
     /// <summary>XML autorizado original, en tabla aparte para no cargarlo en listados.</summary>
@@ -95,6 +107,9 @@ namespace Back.Models
         Turismo,
         NoDeducible,
     }
+
+    /// <summary>Categorías comerciales del usuario, distintas de los rubros personales del SRI.</summary>
+    public enum CategoriaIngreso { Ventas, Servicios, OtrosIngresos }
 
     public static class TiposComprobante
     {

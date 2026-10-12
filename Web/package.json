@@ -2,6 +2,7 @@
   "name": "web",
   "version": "0.0.0",
   "scripts": {
+    "setup:env": "node scripts/setup-environments.mjs",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",

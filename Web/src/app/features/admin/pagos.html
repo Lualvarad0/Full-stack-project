@@ -1,0 +1,50 @@
+@if (pagos().datos; as lista) {
+  <div class="card mt-6 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="border-b border-border text-left text-muted-fg">
+        <tr>
+          <th class="px-4 py-3 font-medium">Fecha</th>
+          <th class="px-4 py-3 font-medium">Usuario</th>
+          <th class="px-4 py-3 font-medium">Plan</th>
+          <th class="px-4 py-3 text-right font-medium">Monto</th>
+          <th class="px-4 py-3 font-medium">Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of lista; track p.id) {
+          <tr class="border-b border-border last:border-0">
+            <td class="px-4 py-3 whitespace-nowrap text-muted-fg">
+              {{ p.fecha | date: 'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td class="px-4 py-3">
+              {{ p.usuario }}<br /><span class="text-xs text-muted-fg">{{ p.correo }}</span>
+            </td>
+            <td class="px-4 py-3">{{ p.plan }}</td>
+            <td class="money px-4 py-3 text-right font-medium">{{ p.monto | dinero }}</td>
+            <td class="px-4 py-3">
+              @if (p.aprobado) {
+                <span class="pildora estado-ok"
+                  ><svg lucideCircleCheck class="size-3.5" aria-hidden="true"></svg> Aprobado</span
+                >
+              } @else {
+                <span class="pildora estado-error"
+                  ><svg lucideCircleX class="size-3.5" aria-hidden="true"></svg> Rechazado</span
+                >
+                @if (p.detalle) {
+                  <p class="mt-1 text-xs text-muted-fg">{{ p.detalle }}</p>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="px-4 py-10 text-center text-muted-fg">
+              Aún no hay cobros. Aparecerán aquí cuando Kushki avise de cada pago.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+<app-error-carga [mensaje]="pagos().error" />

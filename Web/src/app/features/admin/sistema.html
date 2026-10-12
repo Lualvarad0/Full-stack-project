@@ -1,0 +1,72 @@
+@if (sistema().datos; as s) {
+  <section class="card mt-6 max-w-2xl p-5 sm:p-6">
+    <ul class="divide-y divide-border text-sm">
+      @for (
+        r of [
+          {
+            t: 'Pagos con Kushki',
+            ok: s.kushkiConfigurado,
+            d: s.kushkiConfigurado
+              ? s.kushkiPruebas
+                ? 'Ambiente de pruebas (UAT)'
+                : 'Producción'
+              : 'Faltan Kushki:ClavePublica y Kushki:ClavePrivada',
+          },
+          {
+            t: 'Webhooks de Kushki',
+            ok: s.kushkiWebhookConfigurado,
+            d: s.kushkiWebhookConfigurado ? 'Firma configurada' : 'Falta Kushki:FirmaWebhook',
+          },
+          {
+            t: 'Correo saliente (avisos)',
+            ok: s.smtpConfigurado,
+            d: s.smtpConfigurado
+              ? 'SMTP configurado'
+              : 'Sin SMTP: los avisos solo quedan en la app',
+          },
+          {
+            t: 'Buzón de facturas',
+            ok: !!s.dominioBuzon,
+            d: s.dominioBuzon ?? 'Falta Correo:DominioEntrante',
+          },
+          {
+            t: 'Claves de cifrado de firmas',
+            ok: s.dataProtectionPersistente,
+            d: s.dataProtectionPersistente
+              ? 'Carpeta persistente configurada'
+              : 'Define DataProtection:RutaClaves antes de producción',
+          },
+          {
+            t: 'Base de datos',
+            ok: s.migracionesPendientes === 0,
+            d:
+              s.migracionesPendientes === 0
+                ? 'Al día'
+                : s.migracionesPendientes + ' migraciones pendientes',
+          },
+        ];
+        track r.t
+      ) {
+        <li class="flex items-start gap-3 py-3">
+          @if (r.ok) {
+            <svg
+              lucideCircleCheck
+              class="mt-0.5 size-5 shrink-0 text-success"
+              aria-hidden="true"
+            ></svg>
+          } @else {
+            <svg lucideCircleX class="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true"></svg>
+          }
+          <span
+            ><span class="font-medium">{{ r.t }}</span
+            ><br /><span class="text-muted-fg">{{ r.d }}</span></span
+          >
+        </li>
+      }
+    </ul>
+    <p class="mt-4 text-xs text-muted-fg">
+      Entorno {{ s.entorno }} · hora del servidor {{ s.horaServidorUtc | date: 'dd/MM/yyyy HH:mm' }}
+    </p>
+  </section>
+}
+<app-error-carga [mensaje]="sistema().error" />

@@ -1,0 +1,23 @@
+<section class="card mt-5 p-5" aria-label="Clasificación por conceptos">
+  <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="font-semibold">Conceptos personales y del negocio</h2><button class="btn btn-secondary" type="button" (click)="abierto.set(!abierto())">{{ abierto() ? 'Ocultar clasificación' : 'Clasificar por conceptos' }}</button></div>
+  <p class="mt-2 text-sm text-muted-fg">Una factura puede contener compras de distinta finalidad. Confirma cada concepto; las sugerencias no se guardan hasta que las revises.</p>
+  @if (abierto()) {
+    <div class="mt-4 divide-y divide-border">
+      @for (f of filas.controls; track f.controls.id.value; let i = $index) {
+        <div class="py-4" [formGroup]="f">
+          <p class="font-medium">{{ datos()[i].descripcion }}</p><p class="mt-1 text-sm text-muted-fg">Base: {{ datos()[i].subtotal | dinero }} · IVA: {{ datos()[i].iva == null ? 'No desglosado en el detalle' : (datos()[i].iva | dinero) }} {{ datos()[i].revisadoEn ? '· Revisado' : '· Pendiente de confirmar' }}</p>
+          <div class="mt-3 grid gap-3 sm:grid-cols-3">
+            <div><label class="field-label" [for]="'finalidad-' + f.controls.id.value">Finalidad</label><select class="input" [id]="'finalidad-' + f.controls.id.value" formControlName="finalidad"><option value="SinDefinir" disabled>Selecciona</option>@if (!ingreso()) { <option value="Personal">Gasto personal</option><option value="NoAplicable">No aplicable</option> }<option value="Negocio">Operación del negocio</option></select></div>
+            @if (ingreso()) { <div><label class="field-label" [for]="'ingreso-' + f.controls.id.value">Categoría comercial</label><select class="input" [id]="'ingreso-' + f.controls.id.value" formControlName="categoriaIngreso"><option value="" disabled>Selecciona</option><option value="Ventas">Ventas</option><option value="Servicios">Servicios</option><option value="OtrosIngresos">Otros ingresos</option></select></div> }
+            @else if (f.controls.finalidad.value === 'Personal') { <div><label class="field-label" [for]="'rubro-' + f.controls.id.value">Rubro personal</label><select class="input" [id]="'rubro-' + f.controls.id.value" formControlName="categoria"><option value="" disabled>Selecciona</option>@for (c of categorias; track c.valor) { <option [value]="c.valor">{{ c.nombre }}</option> }</select></div> }
+            @if (!ingreso() && f.controls.finalidad.value === 'Negocio') { <div><label class="field-label" [for]="'iva-' + f.controls.id.value">Tratamiento de IVA</label><select class="input" [id]="'iva-' + f.controls.id.value" formControlName="tratamientoIva"><option value="Pendiente">Pendiente de revisar</option><option value="SinCredito">Sin crédito tributario</option>@if (datos()[i].iva != null) { <option value="ConCredito">Con crédito tributario</option> }</select></div> }
+          </div>
+        </div>
+      }
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2"><button class="btn btn-primary" [disabled]="guardando() || !cartera.puedeEditar()" (click)="guardar()">Guardar clasificación de esta página</button>
+      @if (pagina() > 0) { <button class="btn btn-secondary" [disabled]="guardando()" (click)="pagina.set(pagina() - 1)">Anterior</button> }
+      @if ((pagina() + 1) * 100 < comprobante().detalles.length) { <button class="btn btn-secondary" [disabled]="guardando()" (click)="pagina.set(pagina() + 1)">Siguiente</button> }
+    </div>
+  }
+</section>

@@ -1,0 +1,56 @@
+<header
+  class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-bg/90 px-4 backdrop-blur sm:px-6"
+>
+  <button
+    type="button"
+    class="btn btn-ghost -ml-2 px-2 lg:hidden"
+    aria-label="Abrir menú"
+    aria-controls="menu-lateral"
+    [attr.aria-expanded]="menuAbierto()"
+    (click)="abrir.emit()"
+  >
+    <svg lucideMenu class="size-5" aria-hidden="true"></svg>
+  </button>
+
+  @if (cartera.lista().length > 1) {
+    <label class="sr-only" for="contribuyente-activo">Contribuyente activo</label><select id="contribuyente-activo" class="input max-w-48 text-sm" [value]="auth.contribuyenteId()" (change)="seleccionar($any($event.target).value)">@for (c of cartera.lista(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }</select>
+  }
+  <div class="flex items-center gap-1" role="group" aria-label="Mes de trabajo">
+    <button
+      type="button"
+      class="btn btn-ghost px-2 disabled:opacity-40"
+      aria-label="Mes anterior"
+      [disabled]="!puedeRetroceder()"
+      [attr.title]="puedeRetroceder() ? null : 'El plan Personal muestra los últimos 3 meses'"
+      (click)="periodo.mover(-1)"
+    >
+      <svg lucideChevronLeft class="size-5" aria-hidden="true"></svg>
+    </button>
+    <span class="min-w-36 text-center text-sm font-semibold" aria-live="polite">{{
+      periodo.etiqueta()
+    }}</span>
+    <button
+      type="button"
+      class="btn btn-ghost px-2"
+      aria-label="Mes siguiente"
+      (click)="periodo.mover(1)"
+    >
+      <svg lucideChevronRight class="size-5" aria-hidden="true"></svg>
+    </button>
+  </div>
+
+  <div class="ml-auto">
+    <button
+      type="button"
+      class="btn btn-ghost px-2"
+      [attr.aria-label]="preferencias.tema() === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'"
+      (click)="preferencias.alternarTema()"
+    >
+      @if (preferencias.tema() === 'dark') {
+        <svg lucideSun class="size-5" aria-hidden="true"></svg>
+      } @else {
+        <svg lucideMoon class="size-5" aria-hidden="true"></svg>
+      }
+    </button>
+  </div>
+</header>

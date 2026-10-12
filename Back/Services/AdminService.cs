@@ -125,10 +125,20 @@ namespace Back.Services
         {
             if (usuarioId == adminId) throw new BusinessException("No puedes eliminar tu propia cuenta desde el panel.");
             var usuario = await UsuarioAsync(usuarioId);
+            if (await _context.Set<AuditoriaContable>().AnyAsync(a => a.UsuarioId == usuarioId, ct)
+                || await _context.Set<PeriodoContable>().AnyAsync(p => p.UsuarioId == usuarioId, ct))
+                throw BusinessException.Conflict("La cuenta tiene historial contable que debe conservarse. Suspéndela en lugar de eliminarla.");
+            if (await _context.Facturas.AnyAsync(f => f.UsuarioId == usuarioId || f.Cliente.UsuarioId == usuarioId ||
+                f.Detalles.Any(d => d.Producto.UsuarioId == usuarioId), ct))
+                throw BusinessException.Conflict("La cuenta tiene facturas del catálogo antiguo vinculadas. Revisa esas referencias antes de eliminarla.");
             if (await _context.Suscripciones.AnyAsync(s => s.UsuarioId == usuarioId && s.Estado != EstadoSuscripcion.Cancelada, ct))
                 await _suscripciones.CancelarAsync(usuarioId, ct);
+            await using var transaccion = await _context.Database.BeginTransactionAsync(ct);
+            await _context.Productos.Where(p => p.UsuarioId == usuarioId).ExecuteDeleteAsync(ct);
+            await _context.Clientes.Where(c => c.UsuarioId == usuarioId).ExecuteDeleteAsync(ct);
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync(ct);
+            await transaccion.CommitAsync(ct);
         }
 
         public Task<List<AvisoCuentaDto>> ActividadAsync(int usuarioId) => _avisos.ObtenerRecientesAsync(usuarioId);

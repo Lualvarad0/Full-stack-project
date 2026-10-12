@@ -1,0 +1,120 @@
+/* Los campos alojados de Kushki reciben estas clases mediante su API de estilos. */
+@utility campo-tarjeta {
+  @apply h-11 w-full rounded-lg border border-border bg-card px-3 py-0 font-body text-[15px] text-fg;
+}
+
+@utility campo-tarjeta-focus {
+  @apply campo-tarjeta border-ring outline-none;
+}
+
+@utility campo-tarjeta-invalid {
+  @apply campo-tarjeta border-danger;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-border bg-card shadow-card;
+  }
+
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-5 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  /* Se combinan con .btn: class="btn btn-primary" */
+  .btn-primary {
+    @apply bg-ink text-ink-fg hover:opacity-90;
+  }
+  .btn-secondary {
+    @apply border border-border bg-card text-fg hover:bg-muted;
+  }
+  .btn-ghost {
+    @apply text-muted-fg hover:bg-muted hover:text-fg;
+  }
+  .btn-danger {
+    @apply bg-danger text-danger-fg hover:opacity-90;
+  }
+  .btn-acento {
+    @apply bg-brand text-brand-ink hover:bg-brand-hover;
+  }
+
+  .nav-item {
+    @apply flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm text-nav transition-colors duration-150 hover:bg-muted hover:text-fg [&>svg]:size-[18px] [&>svg]:shrink-0;
+  }
+  .nav-activo {
+    @apply bg-muted font-medium text-fg;
+  }
+
+  /* Etiqueta pequeña de tarjeta o sección. */
+  .etiqueta {
+    @apply text-sm text-muted-fg;
+  }
+  .seccion {
+    @apply text-xs font-medium text-muted-fg;
+  }
+  .cifra {
+    @apply font-semibold tracking-tight tabular-nums;
+  }
+
+  /* Titulares con Instrument Serif. */
+  .titular {
+    @apply font-display leading-[0.95] font-normal tracking-tight;
+  }
+
+  .aviso-atencion {
+    @apply aviso border-warning-border bg-warning-soft;
+  }
+  .aviso-ok {
+    @apply aviso border-success-border bg-success-soft;
+  }
+  .aviso-error {
+    @apply aviso border-danger-border bg-danger-soft;
+  }
+
+  /* Estado en píldora (Pendiente / Verificado). */
+  .pildora {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-fg;
+  }
+  .input {
+    @apply block min-h-10 w-full rounded-lg border border-border bg-card px-3 text-sm text-fg placeholder:text-muted-fg transition-colors duration-150 focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/15;
+  }
+  .field-error {
+    @apply mt-1.5 text-sm text-danger;
+  }
+
+  .money {
+    @apply tabular-nums;
+  }
+}
+
+@layer components {
+  .estado-ok {
+    @apply bg-success-soft text-success;
+  }
+  .estado-error {
+    @apply bg-danger-soft text-danger;
+  }
+  .estado-atencion {
+    @apply bg-warning-soft text-warning;
+  }
+  .tabla-encabezado {
+    @apply hidden bg-muted/60 text-left text-xs font-medium tracking-wide text-muted-fg uppercase md:table-header-group;
+  }
+  .tabla-celda-fecha {
+    @apply order-3 text-xs text-muted-fg md:px-5 md:py-3 md:text-sm md:text-fg;
+  }
+  .tabla {
+    @apply w-full text-left text-sm;
+  }
+  .tabla th {
+    @apply bg-muted/60 px-3 py-3 text-xs font-medium text-muted-fg;
+  }
+  .tabla td {
+    @apply border-b border-border px-3 py-3 align-top;
+  }
+  .enlace {
+    @apply text-accent underline-offset-4 hover:underline;
+  }
+}

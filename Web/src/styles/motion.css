@@ -1,0 +1,74 @@
+/* Transición entre páginas (View Transitions del router): fundido con un leve desplazamiento. */
+::view-transition-old(root) {
+  animation: 180ms ease-in both salir-vista;
+}
+::view-transition-new(root) {
+  animation: 320ms ease-out both entrar-vista;
+}
+@keyframes salir-vista {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes entrar-vista {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Con "reducir movimiento" se conservan los fundidos (sin desplazamientos), para que nada quede invisible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes llegar {
+    0%,
+    92%,
+    100% {
+      opacity: 0;
+    }
+    10%,
+    80% {
+      opacity: 1;
+    }
+  }
+  @keyframes deriva {
+    to {
+      transform: none;
+    }
+  }
+  @keyframes flotar {
+    to {
+      transform: none;
+    }
+  }
+  @keyframes resaltar {
+    from {
+      background-color: var(--primary-soft);
+    }
+  }
+  @keyframes deslizar {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes salir-vista {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes entrar-vista {
+    from {
+      opacity: 0;
+    }
+  }
+}

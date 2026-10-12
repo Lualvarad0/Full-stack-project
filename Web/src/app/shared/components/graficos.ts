@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-import { Barra, PuntoComparado, PuntoMes } from '@core/models';
+import { Barra, PuntoComparado, PuntoMes } from '@core/ui';
 import { DineroPipe } from '@shared/pipes';
-
 /**
  * Barras horizontales con etiqueta y valor directos (magnitud por categoría).
  * Marcas delgadas, extremo redondeado, valores en tinta de texto.
@@ -13,10 +12,17 @@ import { DineroPipe } from '@shared/pipes';
   template: `
     <ul class="space-y-3" [attr.aria-label]="titulo()">
       @for (b of barras(); track b.etiqueta) {
-        <li class="group" [title]="b.etiqueta + ': ' + (b.valor | dinero) + (b.detalle ? ' · ' + b.detalle : '')">
+        <li
+          class="group"
+          [title]="b.etiqueta + ': ' + (b.valor | dinero) + (b.detalle ? ' · ' + b.detalle : '')"
+        >
           <div class="mb-1 flex items-baseline justify-between gap-3 text-sm">
             <span class="inline-flex min-w-0 items-center gap-2">
-              <span class="size-2.5 shrink-0 rounded-full" [style.background]="b.color" aria-hidden="true"></span>
+              <span
+                class="size-2.5 shrink-0 rounded-full"
+                [style.background]="b.color"
+                aria-hidden="true"
+              ></span>
               <span class="truncate">{{ b.etiqueta }}</span>
               @if (b.detalle) {
                 <span class="hidden shrink-0 text-xs text-muted-fg sm:inline">{{ b.detalle }}</span>
@@ -40,7 +46,9 @@ export class BarrasHorizontales {
   readonly barras = input.required<Barra[]>();
   readonly titulo = input('');
 
-  private readonly maximo = computed(() => Math.max(...this.barras().map((b) => Math.abs(b.valor)), 0));
+  private readonly maximo = computed(() =>
+    Math.max(...this.barras().map((b) => Math.abs(b.valor)), 0),
+  );
 
   protected ancho(valor: number): number {
     const max = this.maximo();
@@ -58,31 +66,67 @@ export class BarrasHorizontales {
   imports: [DineroPipe],
   template: `
     <div class="mb-4 flex flex-wrap gap-4 text-xs text-muted-fg">
-      <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm" [style.background]="colorA()"></span>{{ serieA() }}</span>
-      <span class="inline-flex items-center gap-1.5"><span class="size-2.5 rounded-sm" [style.background]="colorB()"></span>{{ serieB() }}</span>
+      <span class="inline-flex items-center gap-1.5"
+        ><span class="size-2.5 rounded-sm" [style.background]="colorA()"></span>{{ serieA() }}</span
+      >
+      <span class="inline-flex items-center gap-1.5"
+        ><span class="size-2.5 rounded-sm" [style.background]="colorB()"></span>{{ serieB() }}</span
+      >
     </div>
     <div class="relative">
-      <div class="flex h-48 items-end gap-1 border-b border-border sm:gap-2" role="list" [attr.aria-label]="titulo()">
+      <div
+        class="flex h-48 items-end gap-1 border-b border-border sm:gap-2"
+        role="list"
+        [attr.aria-label]="titulo()"
+      >
         @for (p of puntos(); track p.mes) {
           <button
             type="button"
             role="listitem"
             class="group relative flex h-full flex-1 items-end justify-center gap-[2px] rounded-t"
-            [attr.aria-label]="p.etiqueta + ': ' + serieA() + ' ' + (p.a | dinero) + ', ' + serieB() + ' ' + (p.b | dinero)"
+            [attr.aria-label]="
+              p.etiqueta +
+              ': ' +
+              serieA() +
+              ' ' +
+              (p.a | dinero) +
+              ', ' +
+              serieB() +
+              ' ' +
+              (p.b | dinero)
+            "
             (mouseenter)="activo.set(p.mes)"
             (mouseleave)="activo.set(null)"
             (focus)="activo.set(p.mes)"
             (blur)="activo.set(null)"
           >
-            <span class="block w-full max-w-4 rounded-t-[3px] transition-opacity group-hover:opacity-80" [style.height.%]="alto(p.a)" [style.background]="colorA()"
-              [style.opacity]="resaltado() && p.mes !== resaltado() ? 0.45 : 1"></span>
-            <span class="block w-full max-w-4 rounded-t-[3px] transition-opacity group-hover:opacity-80" [style.height.%]="alto(p.b)" [style.background]="colorB()"
-              [style.opacity]="resaltado() && p.mes !== resaltado() ? 0.45 : 1"></span>
+            <span
+              class="block w-full max-w-4 rounded-t-[3px] transition-opacity group-hover:opacity-80"
+              [style.height.%]="alto(p.a)"
+              [style.background]="colorA()"
+              [style.opacity]="resaltado() && p.mes !== resaltado() ? 0.45 : 1"
+            ></span>
+            <span
+              class="block w-full max-w-4 rounded-t-[3px] transition-opacity group-hover:opacity-80"
+              [style.height.%]="alto(p.b)"
+              [style.background]="colorB()"
+              [style.opacity]="resaltado() && p.mes !== resaltado() ? 0.45 : 1"
+            ></span>
             @if (activo() === p.mes) {
-              <span class="pointer-events-none absolute bottom-full z-10 mb-2 rounded-lg border border-border bg-card px-3 py-2 text-left text-xs whitespace-nowrap shadow-lg">
+              <span
+                class="pointer-events-none absolute bottom-full z-10 mb-2 rounded-lg border border-border bg-card px-3 py-2 text-left text-xs whitespace-nowrap shadow-lg"
+              >
                 <span class="block font-medium text-fg">{{ p.etiqueta }}</span>
-                <span class="mt-1 flex items-center gap-1.5 text-fg"><span class="size-2 rounded-sm" [style.background]="colorA()"></span>{{ serieA() }} <span class="money ml-auto pl-3 font-semibold">{{ p.a | dinero }}</span></span>
-                <span class="flex items-center gap-1.5 text-fg"><span class="size-2 rounded-sm" [style.background]="colorB()"></span>{{ serieB() }} <span class="money ml-auto pl-3 font-semibold">{{ p.b | dinero }}</span></span>
+                <span class="mt-1 flex items-center gap-1.5 text-fg"
+                  ><span class="size-2 rounded-sm" [style.background]="colorA()"></span
+                  >{{ serieA() }}
+                  <span class="money ml-auto pl-3 font-semibold">{{ p.a | dinero }}</span></span
+                >
+                <span class="flex items-center gap-1.5 text-fg"
+                  ><span class="size-2 rounded-sm" [style.background]="colorB()"></span
+                  >{{ serieB() }}
+                  <span class="money ml-auto pl-3 font-semibold">{{ p.b | dinero }}</span></span
+                >
               </span>
             }
           </button>
@@ -90,7 +134,12 @@ export class BarrasHorizontales {
       </div>
       <div class="mt-2 flex gap-1 text-center text-xs text-muted-fg sm:gap-2" aria-hidden="true">
         @for (p of puntos(); track p.mes) {
-          <span class="flex-1" [class.font-semibold]="p.mes === resaltado()" [class.text-fg]="p.mes === resaltado()">{{ p.etiqueta.slice(0, 3) }}</span>
+          <span
+            class="flex-1"
+            [class.font-semibold]="p.mes === resaltado()"
+            [class.text-fg]="p.mes === resaltado()"
+            >{{ p.etiqueta.slice(0, 3) }}</span
+          >
         }
       </div>
     </div>
@@ -106,7 +155,9 @@ export class BarrasComparadas {
   readonly titulo = input('');
 
   protected readonly activo = signal<number | null>(null);
-  private readonly maximo = computed(() => Math.max(...this.puntos().flatMap((p) => [p.a, p.b]), 0));
+  private readonly maximo = computed(() =>
+    Math.max(...this.puntos().flatMap((p) => [p.a, p.b]), 0),
+  );
 
   protected alto(valor: number): number {
     const max = this.maximo();
@@ -122,7 +173,11 @@ export class BarrasComparadas {
   imports: [DineroPipe],
   template: `
     <div class="relative">
-      <div class="flex h-44 items-end gap-1.5 border-b border-border sm:gap-2" role="list" [attr.aria-label]="titulo()">
+      <div
+        class="flex h-44 items-end gap-1.5 border-b border-border sm:gap-2"
+        role="list"
+        [attr.aria-label]="titulo()"
+      >
         @for (p of puntos(); track p.mes) {
           <button
             type="button"
@@ -141,9 +196,13 @@ export class BarrasComparadas {
               [style.height.%]="alto(p.valor)"
             ></span>
             @if (activo() === p.mes) {
-              <span class="pointer-events-none absolute bottom-full z-10 mb-2 whitespace-nowrap rounded-lg border border-border bg-card px-3 py-2 text-left text-xs shadow-lg">
+              <span
+                class="pointer-events-none absolute bottom-full z-10 mb-2 whitespace-nowrap rounded-lg border border-border bg-card px-3 py-2 text-left text-xs shadow-lg"
+              >
                 <span class="block font-medium text-fg">{{ p.etiqueta }}</span>
-                <span class="money block text-sm font-semibold text-fg">{{ p.valor | dinero }}</span>
+                <span class="money block text-sm font-semibold text-fg">{{
+                  p.valor | dinero
+                }}</span>
                 @if (p.detalle) {
                   <span class="block text-muted-fg">{{ p.detalle }}</span>
                 }
@@ -154,7 +213,11 @@ export class BarrasComparadas {
       </div>
       <div class="mt-2 flex gap-1.5 text-center text-xs text-muted-fg sm:gap-2" aria-hidden="true">
         @for (p of puntos(); track p.mes) {
-          <span class="flex-1" [class.font-semibold]="p.mes === resaltado()" [class.text-fg]="p.mes === resaltado()">
+          <span
+            class="flex-1"
+            [class.font-semibold]="p.mes === resaltado()"
+            [class.text-fg]="p.mes === resaltado()"
+          >
             {{ p.etiqueta.slice(0, 3) }}
           </span>
         }

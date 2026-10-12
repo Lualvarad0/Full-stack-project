@@ -1,6 +1,11 @@
 /** "14 oct, 09:30" en hora local. */
 export function fechaHora(iso: string): string {
-  return new Intl.DateTimeFormat('es-EC', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+  return new Intl.DateTimeFormat('es-EC', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
 }
 
 export function fechaIso(fecha: Date): string {

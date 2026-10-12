@@ -1,0 +1,95 @@
+<a routerLink="/facturacion" class="btn btn-ghost -ml-3">
+  <svg lucideArrowLeft class="size-4" aria-hidden="true"></svg> Volver a facturas
+</a>
+<app-titulo class="mt-2 block" linea1="Nueva" linea2="factura" />
+
+@if (pendientes().length) {
+  <div class="aviso-atencion mt-6">
+    <svg lucideTriangleAlert class="mt-0.5 size-5 shrink-0 text-warning" aria-hidden="true"></svg>
+    <p>
+      Para emitir completa: {{ pendientes().join(', ') }}.
+      <a
+        routerLink="/configuracion"
+        fragment="facturacion"
+        class="ml-1 font-medium text-accent hover:underline"
+        >Ir a Configuración</a
+      >
+    </p>
+  </div>
+}
+
+<form
+  class="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]"
+  (submit)="$event.preventDefault(); emitir()"
+  novalidate
+>
+  <div class="min-w-0 space-y-6">
+    <!-- Cliente -->
+    <app-cliente-factura
+      [(tipo)]="tipo"
+      [(identificacion)]="identificacion"
+      [(razonSocial)]="razonSocial"
+      [(correo)]="correo"
+      [(direccion)]="direccion"
+      [clientes]="clientes()"
+      (tipoChange)="error.set(null)"
+    />
+
+    <!-- Detalle -->
+    <app-lineas-factura [(lineas)]="lineas" [servicios]="servicios()" />
+  </div>
+
+  <!-- Resumen -->
+  <aside class="card h-fit p-5 lg:sticky lg:top-24" aria-labelledby="titulo-totales">
+    <h2 id="titulo-totales" class="font-semibold">Totales</h2>
+    <dl class="mt-4 space-y-2 text-sm">
+      <div class="flex justify-between">
+        <dt class="text-muted-fg">Subtotal sin impuestos</dt>
+        <dd class="money">{{ totales().subtotal | dinero }}</dd>
+      </div>
+      @if (totales().descuento > 0) {
+        <div class="flex justify-between">
+          <dt class="text-muted-fg">Descuentos</dt>
+          <dd class="money">−{{ totales().descuento | dinero }}</dd>
+        </div>
+      }
+      @for (t of totales().porTarifa; track t.etiqueta) {
+        <div class="flex justify-between">
+          <dt class="text-muted-fg">{{ t.etiqueta }} sobre {{ t.base | dinero }}</dt>
+          <dd class="money">{{ t.iva | dinero }}</dd>
+        </div>
+      }
+      <div class="flex justify-between border-t border-border pt-3 text-base font-semibold">
+        <dt>Total</dt>
+        <dd class="money">{{ totales().total | dinero }}</dd>
+      </div>
+    </dl>
+
+    <label class="field-label mt-5" for="pago">Forma de pago</label>
+    <select id="pago" class="input" (change)="formaPago.set($any($event.target).value)">
+      @for (f of formasPago; track f.valor) {
+        <option [value]="f.valor" [selected]="f.valor === formaPago()">{{ f.etiqueta }}</option>
+      }
+    </select>
+
+    <app-mensaje-error class="mt-4 block" [mensaje]="error()" />
+
+    <button
+      type="submit"
+      class="btn btn-primary mt-5 min-h-11 w-full"
+      [disabled]="emitiendo() || pendientes().length > 0"
+    >
+      @if (emitiendo()) {
+        <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg> Firmando y enviando
+        al SRI…
+      } @else {
+        <svg lucideSend class="size-4" aria-hidden="true"></svg> Firmar y emitir
+      }
+    </button>
+    @if (emitiendo()) {
+      <p class="mt-2 text-center text-xs text-muted-fg" role="status">
+        El SRI puede tardar unos segundos en autorizarla.
+      </p>
+    }
+  </aside>
+</form>

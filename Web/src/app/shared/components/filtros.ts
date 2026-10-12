@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
 import { LucideCalendarRange, LucideSlidersHorizontal, LucideX } from '@lucide/angular';
-import { FILTRO_VACIO } from '@core/constants';
-import { FiltroRango } from '@core/models';
+import { FILTRO_VACIO, FiltroRango } from '@core/comprobantes';
 import { fechaIso } from '@core/utils';
 import { Segmentado } from './controles';
-
 @Component({
   selector: 'app-filtros',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,7 +18,10 @@ import { Segmentado } from './controles';
       <svg lucideSlidersHorizontal class="size-4" aria-hidden="true"></svg>
       Filtros
       @if (activos() > 0) {
-        <span class="grid size-5 place-items-center rounded-full bg-brand text-[11px] font-semibold text-brand-ink">{{ activos() }}</span>
+        <span
+          class="grid size-5 place-items-center rounded-full bg-brand text-[11px] font-semibold text-brand-ink"
+          >{{ activos() }}</span
+        >
       }
     </button>
 
@@ -29,23 +30,45 @@ import { Segmentado } from './controles';
         <div class="grid gap-5 md:grid-cols-2">
           <fieldset>
             <legend class="field-label">Fechas</legend>
-            <app-segmentado [opciones]="tiposPeriodo()" [valor]="valor().rango" (valorChange)="cambiar({ rango: $event })" etiqueta="Tipo de período" />
+            <app-segmentado
+              [opciones]="tiposPeriodo()"
+              [valor]="valor().rango"
+              (valorChange)="cambiar({ rango: $event })"
+              etiqueta="Tipo de período"
+            />
 
             @if (valor().rango) {
               <div class="mt-3 grid grid-cols-2 gap-3">
                 <label class="text-sm">
                   <span class="mb-1 block text-muted-fg">Desde</span>
-                  <input type="date" class="input" [value]="valor().desde" [max]="valor().hasta || null" (change)="cambiar({ desde: $any($event.target).value })" />
+                  <input
+                    type="date"
+                    class="input"
+                    [value]="valor().desde"
+                    [max]="valor().hasta || null"
+                    (change)="cambiar({ desde: $any($event.target).value })"
+                  />
                 </label>
                 <label class="text-sm">
                   <span class="mb-1 block text-muted-fg">Hasta</span>
-                  <input type="date" class="input" [value]="valor().hasta" [min]="valor().desde || null" (change)="cambiar({ hasta: $any($event.target).value })" />
+                  <input
+                    type="date"
+                    class="input"
+                    [value]="valor().hasta"
+                    [min]="valor().desde || null"
+                    (change)="cambiar({ hasta: $any($event.target).value })"
+                  />
                 </label>
               </div>
               <div class="mt-3 flex flex-wrap gap-2">
                 @for (p of atajos; track p.nombre) {
-                  <button type="button" class="pildora border border-border bg-card px-3 py-1 text-fg hover:bg-muted" (click)="aplicarAtajo(p.meses)">
-                    <svg lucideCalendarRange class="size-3.5" aria-hidden="true"></svg> {{ p.nombre }}
+                  <button
+                    type="button"
+                    class="pildora border border-border bg-card px-3 py-1 text-fg hover:bg-muted"
+                    (click)="aplicarAtajo(p.meses)"
+                  >
+                    <svg lucideCalendarRange class="size-3.5" aria-hidden="true"></svg>
+                    {{ p.nombre }}
                   </button>
                 }
               </div>
@@ -57,13 +80,29 @@ import { Segmentado } from './controles';
             <div class="grid grid-cols-2 gap-3">
               <label class="text-sm">
                 <span class="mb-1 block text-muted-fg">Mínimo</span>
-                <input type="number" inputmode="decimal" min="0" step="0.01" class="input" placeholder="0,00"
-                  [value]="valor().min ?? ''" (change)="cambiar({ min: numero($any($event.target).value) })" />
+                <input
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="0.01"
+                  class="input"
+                  placeholder="0,00"
+                  [value]="valor().min ?? ''"
+                  (change)="cambiar({ min: numero($any($event.target).value) })"
+                />
               </label>
               <label class="text-sm">
                 <span class="mb-1 block text-muted-fg">Máximo</span>
-                <input type="number" inputmode="decimal" min="0" step="0.01" class="input" placeholder="Sin límite"
-                  [value]="valor().max ?? ''" (change)="cambiar({ max: numero($any($event.target).value) })" />
+                <input
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="0.01"
+                  class="input"
+                  placeholder="Sin límite"
+                  [value]="valor().max ?? ''"
+                  (change)="cambiar({ max: numero($any($event.target).value) })"
+                />
               </label>
             </div>
             @if (montoInvalido()) {
@@ -113,7 +152,10 @@ export class Filtros {
 
   protected aplicarAtajo(meses: number): void {
     const hoy = new Date();
-    const desde = meses === 0 ? new Date(hoy.getFullYear(), 0, 1) : new Date(hoy.getFullYear(), hoy.getMonth() - meses + 1, 1);
+    const desde =
+      meses === 0
+        ? new Date(hoy.getFullYear(), 0, 1)
+        : new Date(hoy.getFullYear(), hoy.getMonth() - meses + 1, 1);
     this.cambiar({ rango: true, desde: fechaIso(desde), hasta: fechaIso(hoy) });
   }
 

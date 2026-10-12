@@ -4,6 +4,8 @@ using Back.Helpers;
 using Back.Interfaces;
 using Back.Models;
 using Microsoft.Extensions.Options;
+using Back.Data;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Back.Services
 {
@@ -12,12 +14,15 @@ namespace Back.Services
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly AvisoService _avisos;
         private readonly JwtOptions _jwtOptions;
+        private readonly AppDbContext _db;
+        private readonly IHttpContextAccessor _http;
 
-        public AuthService(IUsuarioRepository usuarioRepository, AvisoService avisos, IOptions<JwtOptions> jwtOptions)
+        public AuthService(IUsuarioRepository usuarioRepository, AvisoService avisos, IOptions<JwtOptions> jwtOptions, AppDbContext db, IHttpContextAccessor http)
         {
             _usuarioRepository = usuarioRepository;
             _avisos = avisos;
             _jwtOptions = jwtOptions.Value;
+            _db = db; _http = http;
         }
 
         public async Task<AuthResponse> RegistrarAsync(RegisterRequest request)
@@ -41,14 +46,14 @@ namespace Back.Services
                 Plan = PlanSuscripcion.Personal,
                 Correo = correo,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                // El primer usuario del sistema queda como administrador.
-                Rol = await _usuarioRepository.AnyAsync() ? Roles.User : Roles.Admin,
+                // El registro público jamás concede privilegios administrativos.
+                Rol = Roles.User,
             };
             await _usuarioRepository.AddAsync(usuario);
             await _avisos.NotificarAsync(usuario.Id, TipoAviso.Registro, "Te damos la bienvenida a Nudo",
                 "Creaste tu cuenta. Te avisaremos por este medio cada vez que alguien ingrese o cambie la configuración.");
 
-            return CrearRespuesta(usuario);
+            return await CrearRespuestaAsync(usuario);
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -64,12 +69,16 @@ namespace Back.Services
 
             await _avisos.NotificarAsync(usuario.Id, TipoAviso.Ingreso, "Nuevo ingreso a tu cuenta",
                 "Se inició sesión en tu cuenta de Nudo.");
-            return CrearRespuesta(usuario);
+            return await CrearRespuestaAsync(usuario);
         }
 
-        private AuthResponse CrearRespuesta(Usuario usuario)
+        private async Task<AuthResponse> CrearRespuestaAsync(Usuario usuario)
         {
             var (token, expiraEn) = JwtHelper.GenerateToken(_jwtOptions, usuario);
+            var jti = new JwtSecurityTokenHandler().ReadJwtToken(token).Id;
+            _db.Set<SesionCuenta>().Add(new() { Id = jti, UsuarioId = usuario.Id, ExpiraEn = expiraEn,
+                Dispositivo = AvisoService.DescribirDispositivo(_http.HttpContext?.Request.Headers.UserAgent.ToString()) });
+            await _db.SaveChangesAsync();
             return new AuthResponse(token, expiraEn, UsuarioDto.From(usuario));
         }
     }

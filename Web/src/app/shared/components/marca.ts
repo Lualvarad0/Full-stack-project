@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { AUTORIA, NOMBRE_APP } from '@core/constants';
+import { AUTORIA, NOMBRE_APP } from '@core/ui';
 import { MONEDA } from '@core/utils';
-
 /**
  * Logo de Nudo: círculo carbón con un khipu (cordón principal, tres hilos colgantes y nudos),
  * el registro de cuerdas de los Andes: cada nudo es un registro.
@@ -11,17 +10,39 @@ import { MONEDA } from '@core/utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <span class="inline-flex items-center gap-2">
-      <svg [attr.width]="tamano()" [attr.height]="tamano()" viewBox="0 0 38 38" aria-hidden="true" class="shrink-0">
-        <circle cx="19" cy="19" r="19" fill="#252b31" />
-        <path d="M8.5 12.6 Q19 9.6 29.5 12.6" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" />
-        <path d="M13 12 V25 M19 11.2 V29.5 M25 12 V22.5" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" />
-        <circle cx="13" cy="19" r="1.9" fill="#fff" />
-        <circle cx="19" cy="16" r="1.5" fill="#fff" />
-        <circle cx="19" cy="23" r="2.6" fill="#6467f1" />
-        <circle cx="25" cy="17.5" r="1.9" fill="#fff" />
+      <svg
+        [attr.width]="tamano()"
+        [attr.height]="tamano()"
+        viewBox="0 0 38 38"
+        aria-hidden="true"
+        class="shrink-0"
+      >
+        <circle cx="19" cy="19" r="19" fill="var(--logo-bg)" />
+        <path
+          d="M8.5 12.6 Q19 9.6 29.5 12.6"
+          stroke="var(--logo-fg)"
+          stroke-width="1.8"
+          fill="none"
+          stroke-linecap="round"
+        />
+        <path
+          d="M13 12 V25 M19 11.2 V29.5 M25 12 V22.5"
+          stroke="var(--logo-fg)"
+          stroke-width="1.4"
+          fill="none"
+          stroke-linecap="round"
+        />
+        <circle cx="13" cy="19" r="1.9" fill="var(--logo-fg)" />
+        <circle cx="19" cy="16" r="1.5" fill="var(--logo-fg)" />
+        <circle cx="19" cy="23" r="2.6" fill="var(--logo-accent)" />
+        <circle cx="25" cy="17.5" r="1.9" fill="var(--logo-fg)" />
       </svg>
       @if (conNombre()) {
-        <span class="font-body leading-none font-semibold tracking-tight text-fg" [style.font-size.px]="tamano() * 0.72">{{ nombre }}</span>
+        <span
+          class="font-body leading-none font-semibold tracking-tight text-fg"
+          [style.font-size.px]="tamano() * 0.72"
+          >{{ nombre }}</span
+        >
       }
     </span>
   `,
@@ -39,7 +60,13 @@ export class Marca {
   template: `
     <p class="text-xs text-muted-fg">
       Diseño y desarrollo:
-      <a [href]="autoria.url" target="_blank" rel="noopener" class="font-medium text-fg underline-offset-2 hover:underline">{{ autoria.nombre }}</a>
+      <a
+        [href]="autoria.url"
+        target="_blank"
+        rel="noopener"
+        class="font-medium text-fg underline-offset-2 hover:underline"
+        >{{ autoria.nombre }}</a
+      >
     </p>
   `,
 })
@@ -75,7 +102,10 @@ export class Titulo {
 @Component({
   selector: 'app-monto',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="cifra" [class]="clase()">{{ partes().entero }}<span class="text-[0.55em] font-medium text-muted-fg">{{ partes().decimales }}</span></span>`,
+  template: `<span class="cifra" [class]="clase()"
+    >{{ partes().entero
+    }}<span class="text-[0.55em] font-medium text-muted-fg">{{ partes().decimales }}</span></span
+  >`,
 })
 export class Monto {
   readonly valor = input<number | null | undefined>(0);
@@ -84,6 +114,8 @@ export class Monto {
   protected readonly partes = computed(() => {
     const texto = MONEDA.format(this.valor() ?? 0);
     const coma = texto.lastIndexOf(',');
-    return coma < 0 ? { entero: texto, decimales: '' } : { entero: texto.slice(0, coma), decimales: texto.slice(coma) };
+    return coma < 0
+      ? { entero: texto, decimales: '' }
+      : { entero: texto.slice(0, coma), decimales: texto.slice(coma) };
   });
 }

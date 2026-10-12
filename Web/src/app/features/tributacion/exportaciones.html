@@ -1,0 +1,98 @@
+<app-titulo
+  linea1="Exportar"
+  linea2="y entregar al contador"
+  subtitulo="Descarga tus bases, libros y XML originales del contribuyente seleccionado."
+/>
+<div class="flex gap-4 flex-wrap my-5">
+  <label
+    >Período<select class="input" [(ngModel)]="meses" (ngModelChange)="periodo()">
+      <option [ngValue]="1">Mes</option>
+      <option [ngValue]="6">Semestre</option>
+      <option [ngValue]="12">Ejercicio completo 2026</option>
+    </select></label
+  ><label
+    >Mes inicial<select class="input" [(ngModel)]="mes">
+      @for (
+        m of meses === 12 ? [1] : meses === 6 ? [1, 7] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        track m
+      ) {
+        <option [ngValue]="m">{{ m }}</option>
+      }
+    </select></label
+  >
+</div>
+<div class="grid gap-5 md:grid-cols-2">
+  <section class="card p-5">
+    <h2 class="font-semibold">Bases de comprobantes</h2>
+    <p class="text-sm text-muted-fg my-3">
+      Gastos e ingresos con importes, clasificaciones, sustento ATS y forma de pago. Excel conserva
+      claves e identificaciones como texto.
+    </p>
+    <div class="flex gap-3">
+      <button class="btn btn-primary" [disabled]="ocupado()" (click)="descargar('comprobantes')">
+        Excel XLSX</button
+      ><button
+        class="btn btn-secondary"
+        [disabled]="ocupado()"
+        (click)="descargar('comprobantes', 'csv')"
+      >
+        CSV
+      </button>
+    </div>
+  </section>
+  <section class="card p-5">
+    <h2 class="font-semibold">Balance de comprobación</h2>
+    <p class="text-sm text-muted-fg my-3">
+      Saldos acumulados hasta el final del mes seleccionado, provenientes de asientos
+      contabilizados.
+    </p>
+    <button class="btn btn-primary" [disabled]="ocupado()" (click)="descargar('balance')">
+      Descargar balance Excel
+    </button>
+  </section>
+  <section class="card p-5">
+    <h2 class="font-semibold">Entrega contable en ZIP</h2>
+    <p class="text-sm text-muted-fg my-3">
+      Incluye XML originales, bases Excel/CSV, diario, tesorería y preparaciones de IVA, renta,
+      retenciones y ATS. La preparación de renta es anual, aunque elijas un mes.
+    </p>
+    <button class="btn btn-primary" [disabled]="ocupado()" (click)="descargar('paquete')">
+      Descargar paquete</button
+    ><a routerLink="/cartera" class="btn btn-ghost mt-3">Autorizar acceso a mi contador</a>
+  </section>
+  <section class="card p-5">
+    <h2 class="font-semibold">Validar formato del XML ATS</h2>
+    <p class="text-sm text-muted-fg my-3">
+      Comprueba el RUC del informante y la estructura del esquema publicado por el SRI. La base
+      descargada no es un XML ATS presentado.
+    </p>
+    <label class="field-label" for="archivo-ats">Archivo XML completo (máximo 5 MB)</label
+    ><input
+      class="input"
+      id="archivo-ats"
+      type="file"
+      accept=".xml"
+      [disabled]="ocupado()"
+      (change)="validar($event)"
+    />
+    @if (validacion(); as v) {
+      <p class="font-semibold mt-4" [class.text-success]="v.valido" [class.text-danger]="!v.valido">
+        {{ v.valido ? 'Estructura válida' : 'Hay errores de formato' }}
+      </p>
+      <p class="text-xs text-muted-fg mt-2">{{ v.esquema }}</p>
+      <ul class="list-disc pl-5 mt-3">
+        @for (e of v.errores; track $index) {
+          <li>{{ e }}</li>
+        }
+      </ul>
+      <p class="text-sm mt-3">{{ v.alcance }}</p>
+    }
+    <a
+      class="enlace inline-block mt-4"
+      href="https://www.sri.gob.ec/web/intersri/formularios-e-instructivos1"
+      target="_blank"
+      rel="noopener noreferrer"
+      >Programa ATS, catálogos e instructivos oficiales</a
+    >
+  </section>
+</div>

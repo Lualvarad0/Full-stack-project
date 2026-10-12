@@ -21,11 +21,11 @@ namespace Back.Controllers
 
         [HttpGet]
         public async Task<ActionResult<PerfilDto>> GetPerfil() =>
-            Ok(await _perfilService.ObtenerAsync(JwtHelper.GetUsuarioId(User)));
+            Ok(await _perfilService.ObtenerAsync(JwtHelper.GetContribuyenteId(User)));
 
         /// <summary>Guarda el perfil. Si cambia el RUC, reclasifica los comprobantes en ingresos y gastos.</summary>
         [HttpPut]
         public async Task<ActionResult<PerfilActualizadoDto>> PutPerfil(PerfilRequest request) =>
-            Ok(await _perfilService.ActualizarAsync(JwtHelper.GetUsuarioId(User), request));
+            Ok(await _perfilService.ActualizarAsync(JwtHelper.GetContribuyenteId(User), request));
     }
 }

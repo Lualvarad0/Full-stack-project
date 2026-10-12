@@ -1,0 +1,9 @@
+<a class="btn btn-ghost" routerLink="/facturacion">Volver a comprobantes</a><app-titulo linea1="Nota" linea2="de crédito" />
+<app-error-carga [mensaje]="carga().error" />
+@if (carga().datos; as f) {
+  <section class="card mt-5 p-5"><h2 class="font-semibold">Factura original {{ f.numero }}</h2><p class="mt-2 text-sm">{{ f.razonSocialComprador }} · total {{ f.total | dinero }}</p><p class="mt-2 text-sm text-muted-fg">Se conservarán cliente, precios, descuentos y tarifas de la factura original. El sistema comprueba cantidades e importes ya acreditados antes de emitir.</p>
+    <label class="field-label mt-4" for="motivo-credito">Motivo</label><textarea id="motivo-credito" class="input" rows="3" maxlength="300" [formControl]="motivo"></textarea>
+    @for (r of filas.controls; track r.controls.detalleId.value; let i = $index) { <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_10rem]" [formGroup]="r"><div><p class="font-medium">{{ f.detalles![i].descripcion }}</p><p class="text-sm text-muted-fg">Cantidad original: {{ f.detalles![i].cantidad }} · precio {{ f.detalles![i].precioUnitario | dinero }}</p></div><div><label class="field-label" [for]="'cantidad-credito-' + i">Cantidad a acreditar</label><input class="input" type="number" min="0" [max]="f.detalles![i].cantidad" step="0.000001" [id]="'cantidad-credito-' + i" formControlName="cantidad" /></div></div> }
+    <p class="mt-4 text-xs text-muted-fg">No se admiten notas de crédito de consumidor final ni facturas que excedan el plazo aplicable de doce meses.</p><button class="btn btn-primary mt-4" [disabled]="ocupado() || !cartera.puedeEditar()" (click)="emitir()">{{ ocupado() ? 'Procesando…' : 'Firmar y enviar al SRI' }}</button>
+  </section>
+}

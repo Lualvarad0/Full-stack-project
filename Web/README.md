@@ -1,59 +1,126 @@
-# Web
+# Frontend de Nudo
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.2.
+El frontend vigente es `Web/` (Angular standalone). `Front/` conserva la versión antigua y no se usa para esta aplicación.
 
-## Development server
+## Ejecutar
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Desde `Web/`:
 
 ```bash
-ng generate component component-name
+npm install
+npm run setup:env
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+La aplicación abre en http://localhost:4200. Para compilar: `npm run build`. Para verificar la configuración local: `npm run build -- --configuration development`.
 
-```bash
-ng generate --help
+## Organización
+
+```text
+src/app/
+  app.routes.ts       Rutas, carga diferida y permisos de entrada
+  app.config.ts       Proveedores globales de Angular
+  core/
+    auth/             Sesión, modelos, guards e interceptor de autenticación
+    admin/            Servicio, modelos y guard de administración
+    comprobantes/     Comprobantes, categorías, importación, filtros y período
+    facturacion/      Emisión, firma, servicios, modelos y tarifas
+    perfil/           Perfil tributario, deducibles y validators compartidos
+    suscripcion/      Planes, pagos, modelos y guard del plan
+    correo/           Buzón, actividad y sus contratos
+    ui/               Preferencias, avisos, marca y tipos visuales
+    http/             Carga reactiva y tratamiento de errores HTTP
+    storage/          Persistencia local
+    utils/            Texto, fechas, formato, archivos y búsqueda generales
+  features/
+    auth/             Inicio de sesión y registro
+    landing/          Presentación pública y demostración
+    resumen/          Resumen de la cuenta
+    gastos/           Gastos recibidos y deducibles
+    ingresos/         Ingresos del RUC
+    comprobante/      Detalle de un comprobante
+    importar/         Importación de comprobantes
+    proveedores/      Proveedores de los gastos
+    clientes/         Clientes de los ingresos
+    facturacion/      Emisión, detalle y catálogo de servicios
+    suscripcion/      Planes, prueba y pagos
+    configuracion/    Perfil y configuración de la cuenta
+    admin/            Administración por rol
+    proximamente/     Pantalla común de funciones futuras
+  layout/             Estructura de navegación de la sesión
+  shared/
+    components/       Componentes reutilizados entre funcionalidades
+    pipes/            Formato para las plantillas
+src/environments/     Configuración local ignorada por Git y plantillas públicas
 ```
 
-## Building
+Cada funcionalidad mantiene juntos sus componentes y sus plantillas. Un componente usado solamente por una funcionalidad pertenece a esa carpeta; pasa a `shared/` cuando se reutiliza. `core/` contiene infraestructura y contratos compartidos. Los alias existentes son `@core/*`, `@features/*`, `@shared/*` y `@env/*`.
 
-To build the project run:
+## Core por área y validadores
 
-```bash
-ng build
-```
+Cada área de `core/` reúne sus archivos en subcarpetas `services/`, `models/`, `constants/`, `guards/`, `interceptors/`, `utils/` o `validators/` según corresponda. Solo se crean las subcarpetas que tienen contenido. Los imports identifican el área, por ejemplo `@core/auth` o `@core/facturacion`; dentro del área se usan imports directos para evitar dependencias sobre su propio índice.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Los validadores exclusivos van en `features/<área>/validators/`. Los compartidos entre áreas, como cédula y RUC, van en `core/perfil/validators/identificacion.validator.ts`. Los modelos privados de la landing están en `features/landing/models/`. Las utilidades generales permanecen en `core/utils/`; no se mezclan allí reglas del perfil o de facturación.
 
-## Running unit tests
+## Responsabilidades, herencia y reutilización
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Las páginas coordinan componentes y acciones. Las plantillas extensas viven en archivos HTML, y los bloques con estado o responsabilidad propia son componentes independientes.
 
-```bash
-ng test
-```
+| Carpeta | Responsabilidades |
+| --- | --- |
+| `layout/` | `Shell` controla el menú móvil y la navegación; `Sidebar` presenta los enlaces y la cuenta; `Header` maneja el período y el tema. |
+| `gastos/`, `ingresos/`, `comprobante/` | `Gastos` e `Ingresos` heredan de `ListadoComprobantes`. La base implementa carga, búsqueda, filtros y sumas netas; los métodos `filtrosAdicionales`, `filtrosActivos` y `seleccionar` permiten especializar el comportamiento. Ambos componen `TablaComprobantes`, que solo presenta los datos y emite cambios de categoría. El detalle conserva sus acciones específicas. |
+| `admin/` | La página selecciona una pestaña. `AdminResumen`, `AdminUsuarios`, `AdminPagos` y `AdminSistema` tienen sus propios datos y vistas; solo se carga la pestaña activa. |
+| `facturacion/` | `NuevaFactura` coordina emisión y validación final; `ClienteFacturaFormulario` y `LineasFacturaEditor` manejan sus campos. `calculos-factura.ts` centraliza subtotales y totales; `validators/cliente.validator.ts` comparte la validación progresiva y `validators/factura.validator.ts` valida la emisión. Listado, servicios y detalle mantienen sus acciones específicas. |
+| `configuracion/` | La página compone tarjetas. `PerfilFormulario` concentra el formulario tributario y sus validaciones. |
+| `importar/` | `Importar` maneja archivos y peticiones; `ResultadoImportacion` presenta los resultados y observaciones. |
+| `resumen/` | `ResumenEstado` carga datos y calcula indicadores; es un proveedor local de la página, sin estado global entre sesiones. `Resumen` compone la vista y los gráficos existentes. |
+| `landing/` | Planes y preguntas tienen componentes propios; el contador animado y los datos ilustrativos están separados de la demo y su recorrido. |
+| `auth/` | La pantalla compone `FormularioAcceso`; los validadores de edad se encuentran en `validators/registro.validator.ts`. |
+| `clientes/`, `proveedores/` | Listados independientes con filtros y acciones propios. Reutilizan el esqueleto de carga; clientes e ingresos comparten el aviso para completar el perfil. |
+| `suscripcion/` | La página coordina selección del plan, alta y cancelación. `TarjetaPago` encapsula el SDK y los campos seguros. |
+| `proximamente/` | Componente pequeño parametrizado por la ruta. |
 
-## Running end-to-end tests
+La herencia se usa para algoritmos comunes con variaciones del dominio. La composición se usa para bloques visuales, formularios y tarjetas. No se crean jerarquías de componentes por plan ni se duplican páginas. `crearBusqueda` centraliza la espera de búsqueda y cancela los temporizadores al limpiar o destruir la vista.
 
-For end-to-end (e2e) testing, run:
+## Tailwind y colores
 
-```bash
-ng e2e
-```
+`src/styles.css` importa Tailwind y los archivos del sistema visual:
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- `styles/tokens.css`: única definición de colores del producto, marca y temas claro/oscuro.
+- `styles/theme.css`: tokens expuestos como utilidades de Tailwind y animaciones del producto.
+- `styles/components.css`: estilos reutilizables con `@apply` (`card`, `btn`, `input`, `estado-ok`, `estado-error`, `estado-atencion`, etc.).
+- `styles/base.css`: reglas base y utilidades generales.
+- `styles/motion.css`: transiciones y preferencias de movimiento reducido.
 
-## Additional Resources
+Usar clases semánticas como `text-success`, `bg-card` o `btn-primary`, sin repetir códigos hexadecimales en los componentes. Kushki acepta nombres de clases: `TarjetaPago` pasa `campo-tarjeta`, `campo-tarjeta-focus` y `campo-tarjeta-invalid`, definidos con `@utility` y `@apply` en `styles/components.css`. El SDK toma los estilos calculados de esas clases al montar los campos seguros; así no se duplican medidas, tipografía o colores en TypeScript. Los estados visuales repetidos se definen una sola vez con Tailwind y se llaman por clase.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Verificación de la estructura
+
+`npm test -- --watch=false` verifica la búsqueda diferida (incluida su limpieza), las especializaciones de gastos e ingresos, las notas de crédito, los cálculos de la factura y la comunicación entre el formulario padre y sus componentes. Las pruebas del formulario usan servicios simulados y no emiten facturas ni realizan cobros.
+
+## Planes y permisos
+
+Se organiza por funcionalidades porque los planes comparten pantallas. No crear copias de gastos, configuración o resumen por cada plan.
+
+| Plan de la API | Acceso actual |
+| --- | --- |
+| Personal (gratuito) | Resumen, gastos, importación, proveedores, comprobantes y cuenta, con límites aplicados por la API |
+| Profesional (de pago) | Funciones comunes más ingresos, clientes y facturación |
+| Contadores (de pago) | Acceso profesional; la propuesta comercial incluye varios RUC y un panel por cliente anunciado como próximo |
+
+`core/suscripcion/constants/planes.ts` contiene los textos del catálogo; `core/suscripcion/models/suscripcion.model.ts` define los identificadores. Los precios efectivos y límites vienen del backend. `core/suscripcion/guards/plan-profesional.guard.ts` y `core/admin/guards/admin.guard.ts` controlan sus respectivas rutas. Los controles de plan dentro de las pantallas se mantienen para las funciones compartidas. El rol administrador tiene sus reglas independientes del plan.
+
+Al añadir una función exclusiva, usar la misma funcionalidad y el guard correspondiente en `app.routes.ts`. Los permisos efectivos también deben validarse en la API.
+
+## Entornos fuera de Git
+
+`environment.ts` y `environment.development.ts` son locales y no se versionan. Las plantillas `.ts.example` son públicas y permiten reconstruir la configuración de un clon nuevo con `npm run setup:env`. El comando conserva archivos existentes.
+
+- Desarrollo: editar `src/environments/environment.development.ts` (API local por defecto).
+- Producción: crear o proporcionar `src/environments/environment.ts` antes de compilar (ruta `/api` por defecto).
+- CI/despliegue: ejecutar `npm run setup:env` antes del build o generar los archivos con la configuración de ese entorno.
+
+Angular sustituye el archivo de producción por el de desarrollo al usar la configuración `development`. Todo valor incluido en el frontend puede verse en el navegador: los secretos pertenecen al backend.
+
+Excluir los archivos evita futuras versiones; no borra las versiones de commits anteriores.

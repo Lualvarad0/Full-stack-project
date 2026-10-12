@@ -5,6 +5,7 @@ using Back.Helpers;
 using Back.Interfaces;
 using Back.Models;
 using Back.Services;
+using Back.Clasificacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +26,7 @@ namespace Back.Controllers
             _comprobanteService = comprobanteService;
         }
 
-        private int UsuarioId => JwtHelper.GetUsuarioId(User);
+        private int UsuarioId => JwtHelper.GetContribuyenteId(User);
 
         /// <summary>
         /// Importa desde archivos: el reporte .txt de "Comprobantes electrónicos recibidos" de SRI en Línea
@@ -35,6 +36,8 @@ namespace Back.Controllers
         [RequestSizeLimit(MaxBytesArchivos)]
         public async Task<ActionResult<ImportacionResponse>> ImportarArchivos([FromForm] List<IFormFile> archivos, CancellationToken ct)
         {
+            if (archivos.Count > 20)
+                throw new BusinessException("Adjunta como máximo 20 archivos por solicitud.");
             if (archivos.Count == 0)
                 throw new BusinessException("Adjunta al menos un archivo .txt o .xml.");
 
@@ -60,13 +63,13 @@ namespace Back.Controllers
         // desde/hasta filtran por fecha de emisión (inclusive) y min/max por total; se combinan con el resto.
         [HttpGet]
         public async Task<ActionResult<List<ComprobanteListaDto>>> GetComprobantes(
-            [FromQuery] Direccion direccion,
+            [FromQuery, EnumDataType(typeof(Direccion))] Direccion direccion,
             [FromQuery, Range(2000, 2100)] int? anio,
             [FromQuery, Range(1, 12)] int? mes,
-            [FromQuery] CategoriaGasto? categoria,
-            [FromQuery] string? ruc,
-            [FromQuery] string? q,
-            [FromQuery] string? cliente,
+            [FromQuery, EnumDataType(typeof(CategoriaGasto))] CategoriaGasto? categoria,
+            [FromQuery, RegularExpression(@"^[0-9]{13}$")] string? ruc,
+            [FromQuery, StringLength(200)] string? q,
+            [FromQuery, StringLength(20)] string? cliente,
             [FromQuery] DateOnly? desde,
             [FromQuery] DateOnly? hasta,
             [FromQuery, Range(0, 99_999_999)] decimal? min,
@@ -98,6 +101,17 @@ namespace Back.Controllers
         [HttpPut("{id:int}/categoria")]
         public async Task<ActionResult<ComprobanteDto>> CambiarCategoria(int id, CambiarCategoriaRequest request) =>
             Ok(await _comprobanteService.CambiarCategoriaAsync(UsuarioId, id, request));
+
+        [HttpPut("{id:int}/categoria-ingreso")]
+        public async Task<ActionResult<ComprobanteDto>> CambiarCategoriaIngreso(int id, CambiarCategoriaIngresoRequest request) =>
+            Ok(await _comprobanteService.CambiarCategoriaIngresoAsync(UsuarioId, id, request));
+
+        [HttpPut("{id:int}/partidas")]
+        public async Task<ActionResult<ComprobanteDto>> Partidas(int id, ClasificarPartidasRequest request, [FromServices] ClasificacionPartidasService clasificacion, CancellationToken ct)
+        { await clasificacion.ClasificarAsync(UsuarioId, id, request, ct); return Ok(await _comprobanteService.ObtenerComprobanteAsync(UsuarioId, id)); }
+        [HttpPut("{id:int}/finalidad")]
+        public async Task<ActionResult<ComprobanteDto>> Finalidad(int id, FinalidadComprobanteRequest request, [FromServices] ClasificacionPartidasService clasificacion, CancellationToken ct)
+        { await clasificacion.FinalidadAsync(UsuarioId, id, request, ct); return Ok(await _comprobanteService.ObtenerComprobanteAsync(UsuarioId, id)); }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteComprobante(int id)

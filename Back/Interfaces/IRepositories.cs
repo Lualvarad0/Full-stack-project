@@ -4,10 +4,10 @@ namespace Back.Interfaces
 {
     public interface IClienteRepository
     {
-        Task<List<Cliente>> GetAllAsync(string? busqueda);
-        Task<Cliente?> GetByIdAsync(int id);
-        Task<bool> ExisteIdentificacionAsync(string identificacion, int? excluirId = null);
-        Task<bool> TieneFacturasAsync(int id);
+        Task<List<Cliente>> GetAllAsync(int usuarioId, string? busqueda);
+        Task<Cliente?> GetByIdAsync(int usuarioId, int id);
+        Task<bool> ExisteIdentificacionAsync(int usuarioId, string identificacion, int? excluirId = null);
+        Task<bool> TieneFacturasAsync(int usuarioId, int id);
         Task AddAsync(Cliente cliente);
         Task UpdateAsync(Cliente cliente);
         Task DeleteAsync(Cliente cliente);
@@ -15,10 +15,10 @@ namespace Back.Interfaces
 
     public interface IProductoRepository
     {
-        Task<List<Producto>> GetAllAsync(string? busqueda);
-        Task<Producto?> GetByIdAsync(int id);
-        Task<List<Producto>> GetByIdsAsync(IEnumerable<int> ids);
-        Task<bool> TieneFacturasAsync(int id);
+        Task<List<Producto>> GetAllAsync(int usuarioId, string? busqueda);
+        Task<Producto?> GetByIdAsync(int usuarioId, int id);
+        Task<List<Producto>> GetByIdsAsync(int usuarioId, IEnumerable<int> ids);
+        Task<bool> TieneFacturasAsync(int usuarioId, int id);
         Task AddAsync(Producto producto);
         Task UpdateAsync(Producto producto);
         Task DeleteAsync(Producto producto);
@@ -38,8 +38,8 @@ namespace Back.Interfaces
 
     public interface IFacturaRepository
     {
-        Task<List<Factura>> GetAllAsync(DateTime? desde, DateTime? hasta, int? clienteId);
-        Task<Factura?> GetByIdAsync(int id);
+        Task<List<Factura>> GetAllAsync(int usuarioId, DateTime? desde, DateTime? hasta, int? clienteId);
+        Task<Factura?> GetByIdAsync(int usuarioId, int id);
         Task AddAsync(Factura factura);
         Task DeleteAsync(Factura factura);
     }

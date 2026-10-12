@@ -1,0 +1,14 @@
+<span class="pildora whitespace-nowrap" [class]="clase()">
+  @switch (info().tono) {
+    @case ('ok') {
+      <svg lucideCircleCheck class="size-3.5" aria-hidden="true"></svg>
+    }
+    @case ('error') {
+      <svg lucideCircleX class="size-3.5" aria-hidden="true"></svg>
+    }
+    @default {
+      <svg lucideClock class="size-3.5" aria-hidden="true"></svg>
+    }
+  }
+  {{ info().texto }}
+</span>

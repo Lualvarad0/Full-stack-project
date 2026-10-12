@@ -1,0 +1,142 @@
+<aside
+  id="menu-lateral"
+  class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-border bg-bg-2 transition-transform duration-200 lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0"
+  [class.-translate-x-full]="!menuAbierto()"
+  aria-label="Navegación principal"
+>
+  <div class="flex h-16 items-center justify-between gap-2 px-5">
+    <a routerLink="/resumen" class="rounded-md" aria-label="Nudo, ir al resumen">
+      <app-marca [tamano]="28" />
+    </a>
+    <button
+      type="button"
+      class="btn btn-ghost -mr-2 px-2 lg:hidden"
+      aria-label="Cerrar menú"
+      (click)="cerrar.emit()"
+    >
+      <svg lucideX class="size-5" aria-hidden="true"></svg>
+    </button>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto px-3 pb-4">
+    <ul class="space-y-1">
+      <li>
+        <a routerLink="/resumen" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideLayoutDashboard class="size-5" aria-hidden="true"></svg> Resumen
+        </a>
+      </li>
+      <li>
+        <a routerLink="/importar" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideFileUp class="size-5" aria-hidden="true"></svg> Traer facturas
+        </a>
+      </li>
+    </ul>
+
+    <p class="seccion mt-6 mb-2 px-3">Lo que facturas</p>
+    <ul class="space-y-1">
+      <li>
+        <a routerLink="/facturacion" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideFileText class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Emitir facturas</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
+        </a>
+      </li>
+      <li>
+        <a routerLink="/ingresos" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideHandCoins class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Ingresos</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
+        </a>
+      </li>
+      <li>
+        <a routerLink="/clientes" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideUsers class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Clientes</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
+        </a>
+      </li>
+    </ul>
+
+    <p class="seccion mt-6 mb-2 px-3">Lo que gastas</p>
+    <ul class="space-y-1">
+      <li>
+        <a routerLink="/gastos" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideReceipt class="size-5" aria-hidden="true"></svg> Gastos
+        </a>
+      </li>
+      <li>
+        <a routerLink="/proveedores" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideStore class="size-5" aria-hidden="true"></svg> Proveedores
+        </a>
+      </li>
+    </ul>
+
+    <p class="seccion mt-6 mb-2 px-3">Obligaciones y reportes</p>
+    <ul class="space-y-1">
+      @for (item of proximos; track item.ruta) {
+        <li>
+          <a [routerLink]="item.ruta" routerLinkActive="nav-activo" class="nav-item">
+            @switch (item.icono) {
+              @case ('declaracion') {
+                <svg lucideCalculator class="size-5" aria-hidden="true"></svg>
+              }
+              @case ('ruc') {
+                <svg lucideIdCard class="size-5" aria-hidden="true"></svg>
+              }
+            }
+            <span class="flex-1">{{ item.nombre }}</span>
+            @if (!auth.esProfesional()) { <app-insignia-pro /> }
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="border-t border-border p-3">
+    <a routerLink="/cartera" routerLinkActive="nav-activo" class="nav-item"><svg lucideUsers class="size-5" aria-hidden="true"></svg> Cartera y accesos</a>
+    @if (auth.esProfesional()) { <a routerLink="/libros" routerLinkActive="nav-activo" class="nav-item"><svg lucideCalculator class="size-5" aria-hidden="true"></svg> Libros contables</a> }
+    @if (auth.esProfesional()) { <a routerLink="/cierre" routerLinkActive="nav-activo" class="nav-item"><svg lucideCalculator class="size-5" aria-hidden="true"></svg> Revisión y cierre</a> }
+    @if (auth.esProfesional()) { <a routerLink="/retenciones" routerLinkActive="nav-activo" class="nav-item"><svg lucideReceipt class="size-5" aria-hidden="true"></svg> Retenciones</a> }
+    @if (auth.esProfesional()) { <a routerLink="/cobros-pagos" routerLinkActive="nav-activo" class="nav-item"><svg lucideHandCoins class="size-5" aria-hidden="true"></svg> Cobros y pagos</a><a routerLink="/bancos" routerLinkActive="nav-activo" class="nav-item"><svg lucideStore class="size-5" aria-hidden="true"></svg> Bancos</a> }
+    @if (auth.usuario()?.rol === 'admin') {
+      <a routerLink="/admin" routerLinkActive="nav-activo" class="nav-item mb-1">
+        <svg lucideShieldUser class="size-5" aria-hidden="true"></svg> Administración
+      </a>
+    }
+    <a routerLink="/configuracion" routerLinkActive="nav-activo" class="nav-item">
+      <svg lucideSettings class="size-5" aria-hidden="true"></svg>
+      <span class="flex-1">Configuración</span>
+      @if (!perfil.completo()) {
+        <span class="size-2 rounded-full bg-warning" aria-hidden="true"></span>
+        <span class="sr-only">(perfil incompleto)</span>
+      }
+    </a>
+    <div class="mt-2 flex items-center gap-3 rounded-lg px-3 py-2">
+      <span
+        class="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-sm font-semibold text-primary"
+        aria-hidden="true"
+        >{{ iniciales() }}</span
+      >
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-sm font-medium">{{ auth.usuario()?.nombre }}</p>
+        <p class="truncate text-xs text-muted-fg">{{ auth.usuario()?.email }}</p>
+      </div>
+      <button
+        type="button"
+        class="btn btn-ghost -mr-2 px-2"
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+        (click)="auth.salir()"
+      >
+        <svg lucideLogOut class="size-5" aria-hidden="true"></svg>
+      </button>
+    </div>
+  </div>
+  <app-credito class="block px-6 pb-4" />
+</aside>

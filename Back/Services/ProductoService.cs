@@ -14,32 +14,32 @@ namespace Back.Services
             _productoRepository = productoRepository;
         }
 
-        public Task<List<Producto>> ObtenerProductosAsync(string? busqueda) =>
-            _productoRepository.GetAllAsync(busqueda);
+        public Task<List<Producto>> ObtenerProductosAsync(int usuarioId, string? busqueda) =>
+            _productoRepository.GetAllAsync(usuarioId, busqueda);
 
-        public async Task<Producto> ObtenerProductoPorIdAsync(int id) =>
-            await _productoRepository.GetByIdAsync(id) ?? throw BusinessException.NotFound("Producto no encontrado.");
+        public async Task<Producto> ObtenerProductoPorIdAsync(int usuarioId, int id) =>
+            await _productoRepository.GetByIdAsync(usuarioId, id) ?? throw BusinessException.NotFound("Producto no encontrado.");
 
-        public async Task<Producto> CrearProductoAsync(ProductoRequest request)
+        public async Task<Producto> CrearProductoAsync(int usuarioId, ProductoRequest request)
         {
-            var producto = new Producto();
+            var producto = new Producto { UsuarioId = usuarioId };
             Mapear(request, producto);
             await _productoRepository.AddAsync(producto);
             return producto;
         }
 
-        public async Task<Producto> ActualizarProductoAsync(int id, ProductoRequest request)
+        public async Task<Producto> ActualizarProductoAsync(int usuarioId, int id, ProductoRequest request)
         {
-            var producto = await ObtenerProductoPorIdAsync(id);
+            var producto = await ObtenerProductoPorIdAsync(usuarioId, id);
             Mapear(request, producto);
             await _productoRepository.UpdateAsync(producto);
             return producto;
         }
 
-        public async Task EliminarProductoAsync(int id)
+        public async Task EliminarProductoAsync(int usuarioId, int id)
         {
-            var producto = await ObtenerProductoPorIdAsync(id);
-            if (await _productoRepository.TieneFacturasAsync(id))
+            var producto = await ObtenerProductoPorIdAsync(usuarioId, id);
+            if (await _productoRepository.TieneFacturasAsync(usuarioId, id))
                 throw BusinessException.Conflict("El producto aparece en facturas y no puede eliminarse.");
 
             await _productoRepository.DeleteAsync(producto);

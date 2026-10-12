@@ -1,0 +1,16 @@
+<a routerLink="/retenciones" class="btn btn-ghost">Volver a retenciones</a><app-titulo linea1="Emitir" linea2="retención" />
+<p class="mt-3 max-w-3xl text-sm text-muted-fg">El titular debe tener RUC, firma y habilitación como agente de retención configurados. Revisa los códigos y porcentajes vigentes para la operación antes de enviar.</p>
+<app-error-carga [mensaje]="carga().error" />
+<section class="card mt-5 p-5"><div class="grid gap-4 sm:grid-cols-2" [formGroup]="form">
+  <div><label class="field-label" for="sustento-retencion">Factura de compra del período</label><select id="sustento-retencion" class="input" formControlName="comprobanteId"><option value="0" disabled>Selecciona la factura</option>@for (c of carga().datos ?? []; track c.id) { @if (c.tipoComprobante === 'Factura' && c.aNombreDelUsuario !== false) { <option [value]="c.id">{{ c.numeroComprobante }} · {{ c.razonSocialEmisor }} · {{ c.total | dinero }}</option> } }</select></div>
+  <div><label class="field-label" for="codigo-sustento">Código de sustento ATS</label><input id="codigo-sustento" class="input" maxlength="2" inputmode="numeric" formControlName="codigoSustento" /></div>
+</div>
+@for (f of filas.controls; track $index; let i = $index) { <div class="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-4" [formGroup]="f">
+  <div><label class="field-label" [for]="'impuesto-ret-' + i">Impuesto</label><select class="input" [id]="'impuesto-ret-' + i" formControlName="codigoImpuesto"><option value="1">Renta</option><option value="2">IVA</option></select></div>
+  <div><label class="field-label" [for]="'codigo-ret-' + i">Código de retención</label><input class="input" [id]="'codigo-ret-' + i" maxlength="10" inputmode="numeric" formControlName="codigoRetencion" /></div>
+  <div><label class="field-label" [for]="'base-ret-' + i">Base imponible</label><input class="input" [id]="'base-ret-' + i" type="number" min="0.01" max="999999999" step="0.01" formControlName="baseImponible" /></div>
+  <div><label class="field-label" [for]="'porcentaje-ret-' + i">Porcentaje</label><input class="input" [id]="'porcentaje-ret-' + i" type="number" min="0.01" max="100" step="0.0001" formControlName="porcentaje" /></div>
+  <p class="text-sm text-muted-fg sm:col-span-3">Valor retenido estimado: {{ f.controls.baseImponible.value * f.controls.porcentaje.value / 100 | dinero }}</p><button class="btn btn-ghost text-danger" [disabled]="ocupado()" (click)="quitar(i)">Quitar concepto</button>
+</div> }
+<div class="mt-5 flex flex-wrap gap-2"><button class="btn btn-secondary" [disabled]="ocupado()" (click)="agregar()">Agregar retención</button><button class="btn btn-primary" [disabled]="ocupado() || !cartera.puedeEditar()" (click)="emitir()">{{ ocupado() ? 'Procesando…' : 'Firmar y enviar al SRI' }}</button></div>
+</section>

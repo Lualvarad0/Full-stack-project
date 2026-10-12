@@ -1,0 +1,81 @@
+<section class="card p-5 sm:p-6" aria-labelledby="titulo-cliente">
+  <h2 id="titulo-cliente" class="font-semibold">Cliente</h2>
+  <app-segmentado
+    class="mt-4 block"
+    [opciones]="tipos"
+    [valor]="tipo()"
+    (valorChange)="cambiarTipo($event)"
+    etiqueta="Tipo de identificación"
+  />
+
+  @if (tipo() === '07') {
+    <p class="mt-4 text-sm text-muted-fg">
+      Se emite a CONSUMIDOR FINAL (9999999999999). El SRI permite hasta $50 por factura.
+    </p>
+  } @else {
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class="field-label" for="identificacion">{{ etiquetaIdentificacion() }}</label>
+        <input
+          id="identificacion"
+          maxlength="20"
+          class="input font-mono"
+          list="clientes-conocidos"
+          autocomplete="off"
+          [attr.inputmode]="tipo() === '06' ? 'text' : 'numeric'"
+          [attr.aria-invalid]="identificacionInvalida()"
+          [value]="identificacion()"
+          (input)="escribirIdentificacion($any($event.target).value)"
+        />
+        <datalist id="clientes-conocidos">
+          @for (c of clientes(); track c.identificacion) {
+            <option [value]="c.identificacion">{{ c.razonSocial }}</option>
+          }
+        </datalist>
+        @if (identificacionInvalida()) {
+          <p class="field-error">
+            {{ tipo() === '04' ? 'El RUC no es válido.' : 'La cédula no es válida.' }}
+          </p>
+        }
+      </div>
+      <div>
+        <label class="field-label" for="razon">Nombre o razón social</label>
+        <input
+          id="razon"
+          maxlength="300"
+          class="input"
+          autocomplete="off"
+          [value]="razonSocial()"
+          (input)="razonSocial.set($any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="correo"
+          >Correo <span class="font-normal text-muted-fg">(para enviarle la factura)</span></label
+        >
+        <input
+          id="correo"
+          maxlength="150"
+          type="email"
+          class="input"
+          autocomplete="off"
+          [value]="correo()"
+          (input)="correo.set($any($event.target).value)"
+        />
+      </div>
+      <div>
+        <label class="field-label" for="direccion"
+          >Dirección <span class="font-normal text-muted-fg">(opcional)</span></label
+        >
+        <input
+          id="direccion"
+          maxlength="300"
+          class="input"
+          autocomplete="off"
+          [value]="direccion()"
+          (input)="direccion.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+  }
+</section>

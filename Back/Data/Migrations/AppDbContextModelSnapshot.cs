@@ -22,6 +22,131 @@ namespace Back.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Back.Models.AsientoContable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_id");
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("concepto");
+
+                    b.Property<DateTime?>("ContabilizadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("contabilizado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("motivo_anulacion");
+
+                    b.Property<int?>("PagoComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("pago_comprobante_id");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_asientos_contables");
+
+                    b.HasIndex("ComprobanteId")
+                        .HasDatabaseName("ix_asientos_contables_comprobante_id");
+
+                    b.HasIndex("PagoComprobanteId")
+                        .HasDatabaseName("ix_asientos_contables_pago_comprobante_id");
+
+                    b.HasIndex("UsuarioId", "ComprobanteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_asientos_contables_usuario_id_comprobante_id")
+                        .HasFilter("\"comprobante_id\" IS NOT NULL AND \"estado\" <> 'Anulado'");
+
+                    b.HasIndex("UsuarioId", "Fecha")
+                        .HasDatabaseName("ix_asientos_contables_usuario_id_fecha");
+
+                    b.HasIndex("UsuarioId", "PagoComprobanteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_asientos_contables_usuario_id_pago_comprobante_id")
+                        .HasFilter("\"pago_comprobante_id\" IS NOT NULL AND \"estado\" <> 'Anulado'");
+
+                    b.ToTable("asientos_contables", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.AuditoriaContable", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("accion");
+
+                    b.Property<int>("ActorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("actor_id");
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("detalle");
+
+                    b.Property<string>("Entidad")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("entidad");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("referencia");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_auditoria_contable");
+
+                    b.HasIndex("UsuarioId", "Fecha")
+                        .HasDatabaseName("ix_auditoria_contable_usuario_id_fecha");
+
+                    b.ToTable("auditoria_contable", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.AvisoCuenta", b =>
                 {
                     b.Property<int>("Id")
@@ -135,6 +260,72 @@ namespace Back.Data.Migrations
                     b.ToTable("buzones_correo", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.CargaFamiliar", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<bool>("DependenciaConfirmada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("dependencia_confirmada");
+
+                    b.Property<bool>("Discapacidad")
+                        .HasColumnType("boolean")
+                        .HasColumnName("discapacidad");
+
+                    b.Property<bool>("EnfermedadCatastrofica")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enfermedad_catastrofica");
+
+                    b.Property<DateOnly>("FechaNacimiento")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_nacimiento");
+
+                    b.Property<string>("Identificacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("identificacion");
+
+                    b.Property<decimal>("IngresosGravados")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ingresos_gravados");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Parentesco")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("parentesco");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cargas_familiares");
+
+                    b.HasIndex("UsuarioId", "Anio", "Identificacion")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cargas_familiares_usuario_id_anio_identificacion");
+
+                    b.ToTable("cargas_familiares", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.Cliente", b =>
                 {
                     b.Property<int>("ClienteId")
@@ -166,12 +357,16 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("telefono");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
                     b.HasKey("ClienteId")
                         .HasName("pk_clientes");
 
-                    b.HasIndex("Identificacion")
+                    b.HasIndex("UsuarioId", "Identificacion")
                         .IsUnique()
-                        .HasDatabaseName("ix_clientes_identificacion");
+                        .HasDatabaseName("ix_clientes_usuario_id_identificacion");
 
                     b.ToTable("clientes", (string)null);
                 });
@@ -200,6 +395,11 @@ namespace Back.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("categoria");
+
+                    b.Property<string>("CategoriaIngreso")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("categoria_ingreso");
 
                     b.Property<string>("ClaveAcceso")
                         .IsRequired()
@@ -235,6 +435,16 @@ namespace Back.Data.Migrations
                     b.Property<DateTime>("FechaImportacion")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_importacion");
+
+                    b.Property<DateOnly?>("FechaVencimiento")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_vencimiento");
+
+                    b.Property<string>("Finalidad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("finalidad");
 
                     b.Property<string>("IdentificacionComprador")
                         .IsRequired()
@@ -286,6 +496,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("razon_social_emisor");
 
+                    b.Property<DateTime?>("RevisadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_en");
+
                     b.Property<string>("RucEmisor")
                         .IsRequired()
                         .HasMaxLength(13)
@@ -308,6 +522,12 @@ namespace Back.Data.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("total");
+
+                    b.Property<string>("TratamientoIva")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tratamiento_iva");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("integer")
@@ -343,6 +563,16 @@ namespace Back.Data.Migrations
                         .HasColumnType("numeric(18,6)")
                         .HasColumnName("cantidad");
 
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("categoria");
+
+                    b.Property<string>("CategoriaIngreso")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("categoria_ingreso");
+
                     b.Property<string>("Codigo")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
@@ -363,15 +593,41 @@ namespace Back.Data.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("descuento");
 
+                    b.Property<string>("Finalidad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("finalidad");
+
+                    b.Property<decimal?>("Iva")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("iva");
+
                     b.Property<decimal>("PrecioUnitario")
                         .HasPrecision(18, 6)
                         .HasColumnType("numeric(18,6)")
                         .HasColumnName("precio_unitario");
 
+                    b.Property<DateTime?>("RevisadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_en");
+
                     b.Property<decimal>("Subtotal")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("subtotal");
+
+                    b.Property<decimal?>("TarifaIva")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("tarifa_iva");
+
+                    b.Property<string>("TratamientoIva")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tratamiento_iva");
 
                     b.HasKey("Id")
                         .HasName("pk_comprobantes_detalle");
@@ -397,6 +653,87 @@ namespace Back.Data.Migrations
                         .HasName("pk_comprobantes_xml");
 
                     b.ToTable("comprobantes_xml", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.ConciliacionBancaria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Importe")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("importe");
+
+                    b.Property<int>("MovimientoBancarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("movimiento_bancario_id");
+
+                    b.Property<int>("PagoComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("pago_comprobante_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_conciliaciones_bancarias");
+
+                    b.HasIndex("PagoComprobanteId")
+                        .HasDatabaseName("ix_conciliaciones_bancarias_pago_comprobante_id");
+
+                    b.HasIndex("MovimientoBancarioId", "PagoComprobanteId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_conciliaciones_bancarias_movimiento_bancario_id_pago_compro");
+
+                    b.ToTable("conciliaciones_bancarias", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.CorreoAccesoPendiente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContenidoCifrado")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contenido_cifrado");
+
+                    b.Property<DateTime?>("EnviadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("enviado_en");
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expira_en");
+
+                    b.Property<int>("Intentos")
+                        .HasColumnType("integer")
+                        .HasColumnName("intentos");
+
+                    b.Property<DateTime>("ProximoIntentoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("proximo_intento_en");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_correos_acceso_pendientes");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_correos_acceso_pendientes_usuario_id");
+
+                    b.HasIndex("EnviadoEn", "ProximoIntentoEn")
+                        .HasDatabaseName("ix_correos_acceso_pendientes_enviado_en_proximo_intento_en");
+
+                    b.ToTable("correos_acceso_pendientes", (string)null);
                 });
 
             modelBuilder.Entity("Back.Models.CorreoRecibido", b =>
@@ -479,6 +816,109 @@ namespace Back.Data.Migrations
                     b.ToTable("correos_recibidos", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.CuentaBancaria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activa");
+
+                    b.Property<string>("Entidad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("entidad");
+
+                    b.Property<DateOnly>("FechaInicial")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_inicial");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("NumeroCifrado")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("numero_cifrado");
+
+                    b.Property<decimal>("SaldoInicial")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("saldo_inicial");
+
+                    b.Property<string>("UltimosDigitos")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("ultimos_digitos");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cuentas_bancarias");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_cuentas_bancarias_usuario_id");
+
+                    b.ToTable("cuentas_bancarias", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.CuentaContable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("boolean")
+                        .HasColumnName("activa");
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("codigo");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("nombre");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_cuentas_contables");
+
+                    b.HasIndex("UsuarioId", "Codigo")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cuentas_contables_usuario_id_codigo");
+
+                    b.ToTable("cuentas_contables", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.DatosEmisor", b =>
                 {
                     b.Property<int>("Id")
@@ -487,6 +927,10 @@ namespace Back.Data.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AgenteRetencion")
+                        .HasColumnType("boolean")
+                        .HasColumnName("agente_retencion");
 
                     b.Property<string>("Ambiente")
                         .IsRequired()
@@ -663,6 +1107,15 @@ namespace Back.Data.Migrations
                         .HasColumnName("clave_acceso")
                         .IsFixedLength();
 
+                    b.Property<string>("CodigoSustento")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("codigo_sustento");
+
+                    b.Property<int?>("ComprobanteSustentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_sustento_id");
+
                     b.Property<string>("CorreoComprador")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
@@ -682,6 +1135,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("direccion_comprador");
 
+                    b.Property<int?>("DocumentoSustentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("documento_sustento_id");
+
                     b.Property<string>("Establecimiento")
                         .IsRequired()
                         .HasMaxLength(3)
@@ -698,6 +1155,10 @@ namespace Back.Data.Migrations
                     b.Property<DateTime?>("FechaAutorizacion")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_autorizacion");
+
+                    b.Property<DateOnly?>("FechaDocumentoSustento")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_documento_sustento");
 
                     b.Property<DateOnly>("FechaEmision")
                         .HasColumnType("date")
@@ -726,10 +1187,20 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("mensajes");
 
+                    b.Property<string>("Motivo")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("motivo");
+
                     b.Property<string>("NumeroAutorizacion")
                         .HasMaxLength(49)
                         .HasColumnType("character varying(49)")
                         .HasColumnName("numero_autorizacion");
+
+                    b.Property<string>("NumeroDocumentoSustento")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("numero_documento_sustento");
 
                     b.Property<string>("PuntoEmision")
                         .IsRequired()
@@ -752,6 +1223,14 @@ namespace Back.Data.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("subtotal");
+
+                    b.Property<string>("TipoDocumento")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasDefaultValue("01")
+                        .HasColumnName("tipo_documento");
 
                     b.Property<string>("TipoIdentificacionComprador")
                         .IsRequired()
@@ -780,6 +1259,12 @@ namespace Back.Data.Migrations
                     b.HasIndex("ClaveAcceso")
                         .IsUnique()
                         .HasDatabaseName("ix_facturas_emitidas_clave_acceso");
+
+                    b.HasIndex("ComprobanteSustentoId")
+                        .HasDatabaseName("ix_facturas_emitidas_comprobante_sustento_id");
+
+                    b.HasIndex("DocumentoSustentoId")
+                        .HasDatabaseName("ix_facturas_emitidas_documento_sustento_id");
 
                     b.HasIndex("UsuarioId", "CreadaEn")
                         .HasDatabaseName("ix_facturas_emitidas_usuario_id_creada_en");
@@ -820,6 +1305,10 @@ namespace Back.Data.Migrations
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("descuento");
+
+                    b.Property<int?>("DetalleSustentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("detalle_sustento_id");
 
                     b.Property<int>("FacturaEmitidaId")
                         .HasColumnType("integer")
@@ -923,6 +1412,181 @@ namespace Back.Data.Migrations
                     b.ToTable("firmas_electronicas", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.LineaAsiento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AsientoContableId")
+                        .HasColumnType("integer")
+                        .HasColumnName("asiento_contable_id");
+
+                    b.Property<int>("CuentaContableId")
+                        .HasColumnType("integer")
+                        .HasColumnName("cuenta_contable_id");
+
+                    b.Property<decimal>("Debe")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("debe");
+
+                    b.Property<decimal>("Haber")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("haber");
+
+                    b.HasKey("Id")
+                        .HasName("pk_lineas_asientos");
+
+                    b.HasIndex("AsientoContableId")
+                        .HasDatabaseName("ix_lineas_asientos_asiento_contable_id");
+
+                    b.HasIndex("CuentaContableId")
+                        .HasDatabaseName("ix_lineas_asientos_cuenta_contable_id");
+
+                    b.ToTable("lineas_asientos", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.MovimientoBancario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("concepto");
+
+                    b.Property<int>("CuentaBancariaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("cuenta_bancaria_id");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<string>("IdExterno")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("id_externo");
+
+                    b.Property<decimal>("Importe")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("importe");
+
+                    b.Property<string>("MotivoRevision")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("motivo_revision");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("referencia");
+
+                    b.Property<DateTime?>("RevisadoSinFacturaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_sin_factura_en");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_movimientos_bancarios");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_movimientos_bancarios_usuario_id");
+
+                    b.HasIndex("CuentaBancariaId", "IdExterno")
+                        .IsUnique()
+                        .HasDatabaseName("ix_movimientos_bancarios_cuenta_bancaria_id_id_externo");
+
+                    b.ToTable("movimientos_bancarios", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.PagoComprobante", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AnuladoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("anulado_en");
+
+                    b.Property<int>("ComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_id");
+
+                    b.Property<int?>("CuentaBancariaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("cuenta_bancaria_id");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha");
+
+                    b.Property<decimal>("Importe")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("importe");
+
+                    b.Property<string>("Medio")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("medio");
+
+                    b.Property<string>("MotivoAnulacion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("motivo_anulacion");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("referencia");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("tipo");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pagos_comprobantes");
+
+                    b.HasIndex("ComprobanteId")
+                        .HasDatabaseName("ix_pagos_comprobantes_comprobante_id");
+
+                    b.HasIndex("CuentaBancariaId")
+                        .HasDatabaseName("ix_pagos_comprobantes_cuenta_bancaria_id");
+
+                    b.HasIndex("UsuarioId", "Fecha")
+                        .HasDatabaseName("ix_pagos_comprobantes_usuario_id_fecha");
+
+                    b.ToTable("pagos_comprobantes", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.PagoSuscripcion", b =>
                 {
                     b.Property<int>("Id")
@@ -972,6 +1636,263 @@ namespace Back.Data.Migrations
                     b.ToTable("pagos_suscripcion", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.PerfilObligaciones", b =>
+                {
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("Actividades")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("actividades");
+
+                    b.Property<string>("Ats")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ats");
+
+                    b.Property<DateTime?>("ConfirmadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmado_en");
+
+                    b.Property<bool>("Especial")
+                        .HasColumnType("boolean")
+                        .HasColumnName("especial");
+
+                    b.Property<string>("Feriados")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("feriados");
+
+                    b.Property<bool>("Galapagos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("galapagos");
+
+                    b.Property<bool>("GastosPersonales")
+                        .HasColumnType("boolean")
+                        .HasColumnName("gastos_personales");
+
+                    b.Property<string>("Iva")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("iva");
+
+                    b.Property<bool>("Renta")
+                        .HasColumnType("boolean")
+                        .HasColumnName("renta");
+
+                    b.Property<string>("Retenciones")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("retenciones");
+
+                    b.Property<bool>("Sociedad")
+                        .HasColumnType("boolean")
+                        .HasColumnName("sociedad");
+
+                    b.HasKey("UsuarioId")
+                        .HasName("pk_perfil_obligaciones");
+
+                    b.ToTable("perfil_obligaciones", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.PeriodoContable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<DateTime?>("CerradoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cerrado_en");
+
+                    b.Property<int?>("CerradoPorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("cerrado_por_id");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_periodos_contables");
+
+                    b.HasIndex("UsuarioId", "Anio", "Mes")
+                        .IsUnique()
+                        .HasDatabaseName("ix_periodos_contables_usuario_id_anio_mes");
+
+                    b.ToTable("periodos_contables", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.PreparacionIva", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AjusteCredito")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ajuste_credito");
+
+                    b.Property<decimal>("AjusteDebito")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ajuste_debito");
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<decimal>("CreditoAnterior")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("credito_anterior");
+
+                    b.Property<decimal>("FactorCredito")
+                        .HasPrecision(6, 4)
+                        .HasColumnType("numeric(6,4)")
+                        .HasColumnName("factor_credito");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes");
+
+                    b.Property<int>("Meses")
+                        .HasColumnType("integer")
+                        .HasColumnName("meses");
+
+                    b.Property<string>("SustentoAjustes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("sustento_ajustes");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_preparacion_iva");
+
+                    b.HasIndex("UsuarioId", "Anio", "Mes", "Meses")
+                        .IsUnique()
+                        .HasDatabaseName("ix_preparacion_iva_usuario_id_anio_mes_meses");
+
+                    b.ToTable("preparacion_iva", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.PreparacionRenta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<decimal>("AnticiposRenta")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("anticipos_renta");
+
+                    b.Property<bool>("BeneficioEspecial")
+                        .HasColumnType("boolean")
+                        .HasColumnName("beneficio_especial");
+
+                    b.Property<decimal>("Exoneraciones")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("exoneraciones");
+
+                    b.Property<bool>("Galapagos")
+                        .HasColumnType("boolean")
+                        .HasColumnName("galapagos");
+
+                    b.Property<decimal>("IessPersonal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("iess_personal");
+
+                    b.Property<decimal>("IngresosRimpeAjuste")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("ingresos_rimpe_ajuste");
+
+                    b.Property<decimal>("OtrosGastosGeneral")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("otros_gastos_general");
+
+                    b.Property<decimal>("OtrosIngresosGeneral")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("otros_ingresos_general");
+
+                    b.Property<string>("Proyeccion")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("proyeccion");
+
+                    b.Property<decimal>("RetencionesSueldo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("retenciones_sueldo");
+
+                    b.Property<decimal>("SueldosGravados")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("sueldos_gravados");
+
+                    b.Property<string>("SustentoAjustes")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("sustento_ajustes");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_preparacion_renta");
+
+                    b.HasIndex("UsuarioId", "Anio")
+                        .IsUnique()
+                        .HasDatabaseName("ix_preparacion_renta_usuario_id_anio");
+
+                    b.ToTable("preparacion_renta", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.Producto", b =>
                 {
                     b.Property<int>("ProductoId")
@@ -1000,6 +1921,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("stock");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1008,6 +1933,9 @@ namespace Back.Data.Migrations
 
                     b.HasKey("ProductoId")
                         .HasName("pk_productos");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_productos_usuario_id");
 
                     b.ToTable("productos", null, t =>
                         {
@@ -1050,6 +1978,333 @@ namespace Back.Data.Migrations
                         .HasDatabaseName("ix_proveedores_categoria_usuario_id_ruc");
 
                     b.ToTable("proveedores_categoria", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionEmitidaDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BaseImponible")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("base_imponible");
+
+                    b.Property<string>("CodigoImpuesto")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("codigo_impuesto");
+
+                    b.Property<string>("CodigoRetencion")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("codigo_retencion");
+
+                    b.Property<int>("FacturaEmitidaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("factura_emitida_id");
+
+                    b.Property<decimal>("Porcentaje")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("porcentaje");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("valor");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retenciones_emitidas_detalle");
+
+                    b.HasIndex("FacturaEmitidaId")
+                        .HasDatabaseName("ix_retenciones_emitidas_detalle_factura_emitida_id");
+
+                    b.ToTable("retenciones_emitidas_detalle", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionSri", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaveAcceso")
+                        .IsRequired()
+                        .HasMaxLength(49)
+                        .HasColumnType("character varying(49)")
+                        .HasColumnName("clave_acceso");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("direccion");
+
+                    b.Property<DateTime?>("FechaAutorizacion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_autorizacion");
+
+                    b.Property<DateOnly>("FechaEmision")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_emision");
+
+                    b.Property<string>("IdentificacionRetenido")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("identificacion_retenido");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("numero");
+
+                    b.Property<string>("NumeroAutorizacion")
+                        .IsRequired()
+                        .HasMaxLength(49)
+                        .HasColumnType("character varying(49)")
+                        .HasColumnName("numero_autorizacion");
+
+                    b.Property<DateOnly>("PeriodoFiscal")
+                        .HasColumnType("date")
+                        .HasColumnName("periodo_fiscal");
+
+                    b.Property<string>("RazonSocialEmisor")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("razon_social_emisor");
+
+                    b.Property<string>("RazonSocialRetenido")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("razon_social_retenido");
+
+                    b.Property<DateTime?>("RevisadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_en");
+
+                    b.Property<string>("RucEmisor")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)")
+                        .HasColumnName("ruc_emisor");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<string>("Xml")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("xml");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retenciones_sri");
+
+                    b.HasIndex("UsuarioId", "ClaveAcceso")
+                        .IsUnique()
+                        .HasDatabaseName("ix_retenciones_sri_usuario_id_clave_acceso");
+
+                    b.ToTable("retenciones_sri", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionSriDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BaseImponible")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("base_imponible");
+
+                    b.Property<string>("CodigoImpuesto")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("codigo_impuesto");
+
+                    b.Property<string>("CodigoRetencion")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("codigo_retencion");
+
+                    b.Property<int?>("ComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_id");
+
+                    b.Property<string>("DocumentoSustento")
+                        .HasMaxLength(49)
+                        .HasColumnType("character varying(49)")
+                        .HasColumnName("documento_sustento");
+
+                    b.Property<decimal>("Porcentaje")
+                        .HasPrecision(8, 4)
+                        .HasColumnType("numeric(8,4)")
+                        .HasColumnName("porcentaje");
+
+                    b.Property<int>("RetencionSriId")
+                        .HasColumnType("integer")
+                        .HasColumnName("retencion_sri_id");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("valor");
+
+                    b.HasKey("Id")
+                        .HasName("pk_retenciones_sri_detalle");
+
+                    b.HasIndex("ComprobanteId")
+                        .HasDatabaseName("ix_retenciones_sri_detalle_comprobante_id");
+
+                    b.HasIndex("RetencionSriId")
+                        .HasDatabaseName("ix_retenciones_sri_detalle_retencion_sri_id");
+
+                    b.ToTable("retenciones_sri_detalle", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.RevisionFiscalComprobante", b =>
+                {
+                    b.Property<int>("ComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_id");
+
+                    b.Property<string>("CodigoSustento")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("codigo_sustento");
+
+                    b.Property<string>("FormaPago")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("forma_pago");
+
+                    b.Property<string>("Observacion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("observacion");
+
+                    b.Property<bool>("ParteRelacionada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("parte_relacionada");
+
+                    b.Property<string>("Renta")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("renta");
+
+                    b.Property<DateTime>("RevisadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_en");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("ComprobanteId")
+                        .HasName("pk_revision_fiscal_comprobantes");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("ix_revision_fiscal_comprobantes_usuario_id");
+
+                    b.ToTable("revision_fiscal_comprobantes", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.RevisionTributaria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Anio")
+                        .HasColumnType("integer")
+                        .HasColumnName("anio");
+
+                    b.Property<string>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contenido");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("estado");
+
+                    b.Property<string>("Huella")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("huella");
+
+                    b.Property<int>("Mes")
+                        .HasColumnType("integer")
+                        .HasColumnName("mes");
+
+                    b.Property<int>("Meses")
+                        .HasColumnType("integer")
+                        .HasColumnName("meses");
+
+                    b.Property<DateTime?>("PresentadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("presentado_en");
+
+                    b.Property<string>("ReferenciaPresentacion")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("referencia_presentacion");
+
+                    b.Property<DateTime?>("RevisadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revisado_en");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("tipo");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_revisiones_tributarias");
+
+                    b.HasIndex("UsuarioId", "Anio", "Tipo")
+                        .HasDatabaseName("ix_revisiones_tributarias_usuario_id_anio_tipo");
+
+                    b.ToTable("revisiones_tributarias", (string)null);
                 });
 
             modelBuilder.Entity("Back.Models.ServicioFacturable", b =>
@@ -1098,6 +2353,43 @@ namespace Back.Data.Migrations
                         .HasDatabaseName("ix_servicios_facturables_usuario_id_descripcion");
 
                     b.ToTable("servicios_facturables", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.SesionCuenta", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creada_en");
+
+                    b.Property<string>("Dispositivo")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("dispositivo");
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expira_en");
+
+                    b.Property<DateTime?>("RevocadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revocada_en");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sesiones_cuenta");
+
+                    b.HasIndex("UsuarioId", "ExpiraEn")
+                        .HasDatabaseName("ix_sesiones_cuenta_usuario_id_expira_en");
+
+                    b.ToTable("sesiones_cuenta", (string)null);
                 });
 
             modelBuilder.Entity("Back.Models.Suscripcion", b =>
@@ -1191,6 +2483,56 @@ namespace Back.Data.Migrations
                     b.ToTable("suscripciones", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.TokenCuenta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expira_en");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("hash");
+
+                    b.Property<string>("Proposito")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("proposito");
+
+                    b.Property<DateTime?>("UsadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("usado_en");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tokens_cuenta");
+
+                    b.HasIndex("Hash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tokens_cuenta_hash");
+
+                    b.HasIndex("UsuarioId", "Proposito", "CreadoEn")
+                        .HasDatabaseName("ix_tokens_cuenta_usuario_id_proposito_creado_en");
+
+                    b.ToTable("tokens_cuenta", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -1224,6 +2566,10 @@ namespace Back.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("correo");
+
+                    b.Property<bool>("CorreoVerificado")
+                        .HasColumnType("boolean")
+                        .HasColumnName("correo_verificado");
 
                     b.Property<bool>("EnfermedadCatastrofica")
                         .HasColumnType("boolean")
@@ -1279,6 +2625,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ultimo_ingreso_en");
 
+                    b.Property<int>("VersionSeguridad")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_seguridad");
+
                     b.HasKey("Id")
                         .HasName("pk_usuarios");
 
@@ -1287,6 +2637,96 @@ namespace Back.Data.Migrations
                         .HasDatabaseName("ix_usuarios_correo");
 
                     b.ToTable("usuarios", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.VinculoContador", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContadorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("contador_id");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateTime>("ExpiraEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expira_en");
+
+                    b.Property<string>("Permiso")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("permiso");
+
+                    b.Property<int>("PropietarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("propietario_id");
+
+                    b.Property<DateTime?>("RespondidoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("respondido_en");
+
+                    b.Property<DateTime>("SolicitadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("solicitado_en");
+
+                    b.Property<int>("SolicitadoPorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("solicitado_por_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_vinculos_contador");
+
+                    b.HasIndex("ContadorId")
+                        .HasDatabaseName("ix_vinculos_contador_contador_id");
+
+                    b.HasIndex("PropietarioId", "ContadorId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vinculos_contador_propietario_id_contador_id");
+
+                    b.ToTable("vinculos_contador", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.AsientoContable", b =>
+                {
+                    b.HasOne("Back.Models.Comprobante", null)
+                        .WithMany()
+                        .HasForeignKey("ComprobanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_asientos_contables_comprobantes_comprobante_id");
+
+                    b.HasOne("Back.Models.PagoComprobante", null)
+                        .WithMany()
+                        .HasForeignKey("PagoComprobanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_asientos_contables_pago_comprobante_pago_comprobante_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_asientos_contables_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.AuditoriaContable", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_auditoria_contable_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.AvisoCuenta", b =>
@@ -1307,6 +2747,25 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_buzones_correo_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.CargaFamiliar", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cargas_familiares_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.Cliente", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_clientes_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.Comprobante", b =>
@@ -1341,6 +2800,33 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_comprobantes_xml_comprobantes_comprobante_id");
                 });
 
+            modelBuilder.Entity("Back.Models.ConciliacionBancaria", b =>
+                {
+                    b.HasOne("Back.Models.MovimientoBancario", null)
+                        .WithMany()
+                        .HasForeignKey("MovimientoBancarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_conciliaciones_bancarias_movimientos_bancarios_movimiento_b");
+
+                    b.HasOne("Back.Models.PagoComprobante", null)
+                        .WithMany()
+                        .HasForeignKey("PagoComprobanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_conciliaciones_bancarias_pagos_comprobantes_pago_comprobant");
+                });
+
+            modelBuilder.Entity("Back.Models.CorreoAccesoPendiente", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_correos_acceso_pendientes_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.CorreoRecibido", b =>
                 {
                     b.HasOne("Back.Models.Usuario", null)
@@ -1349,6 +2835,26 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_correos_recibidos_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.CuentaBancaria", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cuentas_bancarias_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.CuentaContable", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_cuentas_contables_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.DatosEmisor", b =>
@@ -1405,6 +2911,18 @@ namespace Back.Data.Migrations
 
             modelBuilder.Entity("Back.Models.FacturaEmitida", b =>
                 {
+                    b.HasOne("Back.Models.Comprobante", null)
+                        .WithMany()
+                        .HasForeignKey("ComprobanteSustentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_facturas_emitidas_comprobantes_comprobante_sustento_id");
+
+                    b.HasOne("Back.Models.FacturaEmitida", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentoSustentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_facturas_emitidas_facturas_emitidas_documento_sustento_id");
+
                     b.HasOne("Back.Models.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -1433,6 +2951,67 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_firmas_electronicas_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.LineaAsiento", b =>
+                {
+                    b.HasOne("Back.Models.AsientoContable", null)
+                        .WithMany("Lineas")
+                        .HasForeignKey("AsientoContableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_lineas_asientos_asientos_contables_asiento_contable_id");
+
+                    b.HasOne("Back.Models.CuentaContable", "Cuenta")
+                        .WithMany()
+                        .HasForeignKey("CuentaContableId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_lineas_asientos_cuentas_contables_cuenta_contable_id");
+
+                    b.Navigation("Cuenta");
+                });
+
+            modelBuilder.Entity("Back.Models.MovimientoBancario", b =>
+                {
+                    b.HasOne("Back.Models.CuentaBancaria", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaBancariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_movimientos_bancarios_cuentas_bancarias_cuenta_bancaria_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_movimientos_bancarios_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PagoComprobante", b =>
+                {
+                    b.HasOne("Back.Models.Comprobante", "Comprobante")
+                        .WithMany()
+                        .HasForeignKey("ComprobanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pagos_comprobantes_comprobantes_comprobante_id");
+
+                    b.HasOne("Back.Models.CuentaBancaria", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaBancariaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_pagos_comprobantes_cuenta_bancaria_cuenta_bancaria_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_pagos_comprobantes_usuarios_usuario_id");
+
+                    b.Navigation("Comprobante");
+                });
+
             modelBuilder.Entity("Back.Models.PagoSuscripcion", b =>
                 {
                     b.HasOne("Back.Models.Suscripcion", null)
@@ -1441,6 +3020,55 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_pagos_suscripcion_suscripciones_suscripcion_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PerfilObligaciones", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_perfil_obligaciones_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PeriodoContable", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_periodos_contables_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PreparacionIva", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_preparacion_iva_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.PreparacionRenta", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_preparacion_renta_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.Producto", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_productos_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.ProveedorCategoria", b =>
@@ -1453,6 +3081,69 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_proveedores_categoria_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.RetencionEmitidaDetalle", b =>
+                {
+                    b.HasOne("Back.Models.FacturaEmitida", null)
+                        .WithMany("Retenciones")
+                        .HasForeignKey("FacturaEmitidaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_retenciones_emitidas_detalle_facturas_emitidas_factura_emit");
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionSri", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_retenciones_sri_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionSriDetalle", b =>
+                {
+                    b.HasOne("Back.Models.Comprobante", null)
+                        .WithMany()
+                        .HasForeignKey("ComprobanteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_retenciones_sri_detalle_comprobantes_comprobante_id");
+
+                    b.HasOne("Back.Models.RetencionSri", null)
+                        .WithMany("Detalles")
+                        .HasForeignKey("RetencionSriId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_retenciones_sri_detalle_retenciones_sri_retencion_sri_id");
+                });
+
+            modelBuilder.Entity("Back.Models.RevisionFiscalComprobante", b =>
+                {
+                    b.HasOne("Back.Models.Comprobante", null)
+                        .WithMany()
+                        .HasForeignKey("ComprobanteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_revision_fiscal_comprobantes_comprobantes_comprobante_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_revision_fiscal_comprobantes_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.RevisionTributaria", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_revisiones_tributarias_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.ServicioFacturable", b =>
                 {
                     b.HasOne("Back.Models.Usuario", null)
@@ -1463,6 +3154,16 @@ namespace Back.Data.Migrations
                         .HasConstraintName("fk_servicios_facturables_usuarios_usuario_id");
                 });
 
+            modelBuilder.Entity("Back.Models.SesionCuenta", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sesiones_cuenta_usuarios_usuario_id");
+                });
+
             modelBuilder.Entity("Back.Models.Suscripcion", b =>
                 {
                     b.HasOne("Back.Models.Usuario", null)
@@ -1471,6 +3172,38 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_suscripciones_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.TokenCuenta", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tokens_cuenta_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.VinculoContador", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("ContadorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vinculos_contador_usuarios_contador_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("PropietarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_vinculos_contador_usuarios_propietario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.AsientoContable", b =>
+                {
+                    b.Navigation("Lineas");
                 });
 
             modelBuilder.Entity("Back.Models.Comprobante", b =>
@@ -1486,6 +3219,13 @@ namespace Back.Data.Migrations
                 });
 
             modelBuilder.Entity("Back.Models.FacturaEmitida", b =>
+                {
+                    b.Navigation("Detalles");
+
+                    b.Navigation("Retenciones");
+                });
+
+            modelBuilder.Entity("Back.Models.RetencionSri", b =>
                 {
                     b.Navigation("Detalles");
                 });

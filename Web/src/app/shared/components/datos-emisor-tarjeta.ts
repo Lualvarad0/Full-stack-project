@@ -1,37 +1,55 @@
 import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LucideLoader, LucideReceiptText } from '@lucide/angular';
-import { AmbienteSri, DatosEmisor } from '@core/models';
-import { AvisosService, FacturacionService } from '@core/services';
-import { mensajeDeError } from '@core/utils';
+import { AmbienteSri, DatosEmisor, FacturacionService } from '@core/facturacion';
+import { AvisosService } from '@core/ui';
+import { mensajeDeError } from '@core/http';
 import { Segmentado } from './controles';
 import { MensajeError } from './mensaje-error';
-
 /** Configuración → datos con los que se emiten las facturas (ambiente, punto de emisión, secuencial, dirección…). */
 @Component({
   selector: 'app-datos-emisor-tarjeta',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MensajeError, ReactiveFormsModule, Segmentado, LucideLoader, LucideReceiptText],
   template: `
-    <form class="card p-5 sm:p-6" [formGroup]="form" (ngSubmit)="guardar()" novalidate aria-labelledby="titulo-emision">
+    <form
+      class="card p-5 sm:p-6"
+      [formGroup]="form"
+      (ngSubmit)="guardar()"
+      novalidate
+      aria-labelledby="titulo-emision"
+    >
       <div class="flex items-start gap-3">
-        <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
+        <span
+          class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary"
+        >
           <svg lucideReceiptText class="size-5" aria-hidden="true"></svg>
         </span>
         <div>
           <h2 id="titulo-emision" class="font-semibold">Datos de facturación</h2>
-          <p class="mt-1 text-sm text-muted-fg">Así aparecerán tus facturas. Los encuentras en tu RUC (establecimiento y dirección).</p>
+          <p class="mt-1 text-sm text-muted-fg">
+            Así aparecerán tus facturas. Los encuentras en tu RUC (establecimiento y dirección).
+          </p>
         </div>
       </div>
 
       <div class="mt-5">
         <span class="field-label">Ambiente del SRI</span>
-        <app-segmentado [opciones]="ambientes" [valor]="form.controls.ambiente.value" (valorChange)="cambiarAmbiente($event)" etiqueta="Ambiente del SRI" />
-        <p class="mt-2 text-xs" [class]="form.controls.ambiente.value === 'Produccion' ? 'text-warning' : 'text-muted-fg'">
+        <app-segmentado
+          [opciones]="ambientes"
+          [valor]="form.controls.ambiente.value"
+          (valorChange)="cambiarAmbiente($event)"
+          etiqueta="Ambiente del SRI"
+        />
+        <p
+          class="mt-2 text-xs"
+          [class]="form.controls.ambiente.value === 'Produccion' ? 'text-warning' : 'text-muted-fg'"
+        >
           @if (form.controls.ambiente.value === 'Produccion') {
             Producción: las facturas tienen validez tributaria y se suman a tus ingresos.
           } @else {
-            Pruebas: el SRI las valida pero no tienen validez tributaria. Úsalo para probar antes de facturar de verdad.
+            Pruebas: el SRI las valida pero no tienen validez tributaria. Úsalo para probar antes de
+            facturar de verdad.
           }
         </p>
       </div>
@@ -39,15 +57,35 @@ import { MensajeError } from './mensaje-error';
       <div class="mt-5 grid gap-5 sm:grid-cols-3">
         <div>
           <label class="field-label" for="estab">Establecimiento</label>
-          <input id="estab" class="input font-mono" formControlName="establecimiento" inputmode="numeric" maxlength="3" placeholder="001" />
+          <input
+            id="estab"
+            class="input font-mono"
+            formControlName="establecimiento"
+            inputmode="numeric"
+            maxlength="3"
+            placeholder="001"
+          />
         </div>
         <div>
           <label class="field-label" for="pto">Punto de emisión</label>
-          <input id="pto" class="input font-mono" formControlName="puntoEmision" inputmode="numeric" maxlength="3" placeholder="001" />
+          <input
+            id="pto"
+            class="input font-mono"
+            formControlName="puntoEmision"
+            inputmode="numeric"
+            maxlength="3"
+            placeholder="001"
+          />
         </div>
         <div>
           <label class="field-label" for="secuencial">Siguiente número</label>
-          <input id="secuencial" type="number" min="1" class="input font-mono" formControlName="siguienteSecuencial" />
+          <input
+            id="secuencial"
+            type="number"
+            min="1"
+            class="input font-mono"
+            formControlName="siguienteSecuencial"
+          />
         </div>
         <p class="-mt-3 text-xs text-muted-fg sm:col-span-3">
           Si ya facturabas con otro sistema, continúa desde tu último número + 1 para no repetirlo.
@@ -55,31 +93,63 @@ import { MensajeError } from './mensaje-error';
 
         <div class="sm:col-span-3">
           <label class="field-label" for="dirMatriz">Dirección matriz</label>
-          <input id="dirMatriz" class="input" formControlName="direccionMatriz" autocomplete="street-address" maxlength="300" />
+          <input
+            id="dirMatriz"
+            class="input"
+            formControlName="direccionMatriz"
+            autocomplete="street-address"
+            maxlength="300"
+          />
         </div>
         <div class="sm:col-span-3">
-          <label class="field-label" for="dirEstab">Dirección del establecimiento <span class="font-normal text-muted-fg">(si es distinta)</span></label>
-          <input id="dirEstab" class="input" formControlName="direccionEstablecimiento" maxlength="300" />
+          <label class="field-label" for="dirEstab"
+            >Dirección del establecimiento
+            <span class="font-normal text-muted-fg">(si es distinta)</span></label
+          >
+          <input
+            id="dirEstab"
+            class="input"
+            formControlName="direccionEstablecimiento"
+            maxlength="300"
+          />
         </div>
         <div class="sm:col-span-2">
-          <label class="field-label" for="comercial">Nombre comercial <span class="font-normal text-muted-fg">(opcional)</span></label>
+          <label class="field-label" for="comercial"
+            >Nombre comercial <span class="font-normal text-muted-fg">(opcional)</span></label
+          >
           <input id="comercial" class="input" formControlName="nombreComercial" maxlength="300" />
         </div>
         <div>
-          <label class="field-label" for="especial">Contribuyente especial N.º <span class="font-normal text-muted-fg">(opcional)</span></label>
-          <input id="especial" class="input font-mono" formControlName="contribuyenteEspecial" inputmode="numeric" maxlength="13" />
+          <label class="field-label" for="especial"
+            >Contribuyente especial N.º
+            <span class="font-normal text-muted-fg">(opcional)</span></label
+          >
+          <input
+            id="especial"
+            class="input font-mono"
+            formControlName="contribuyenteEspecial"
+            inputmode="numeric"
+            maxlength="13"
+          />
         </div>
         <label class="flex items-center gap-2 text-sm sm:col-span-3">
-          <input type="checkbox" class="size-4 accent-[var(--accent)]" formControlName="obligadoContabilidad" />
+          <input
+            type="checkbox"
+            class="size-4 accent-[var(--accent)]"
+            formControlName="obligadoContabilidad"
+          />
           Obligado a llevar contabilidad
         </label>
+        <label class="flex items-start gap-2 text-sm sm:col-span-3"><input type="checkbox" class="mt-0.5 size-4 accent-[var(--accent)]" formControlName="agenteRetencion" /><span>Confirmo que estoy habilitado como agente de retención según el SRI. Esto permite emitir retenciones; revisa tu RUC antes de activarlo.</span></label>
       </div>
 
       <app-mensaje-error class="mt-5 block" [mensaje]="error()" />
 
       <div class="mt-6 flex items-center gap-3">
         <button type="submit" class="btn btn-primary" [disabled]="guardando()">
-          @if (guardando()) { <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg> }
+          @if (guardando()) {
+            <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg>
+          }
           Guardar datos de facturación
         </button>
         @if (form.dirty) {
@@ -113,21 +183,24 @@ export class DatosEmisorTarjeta {
     nombreComercial: [''],
     contribuyenteEspecial: [''],
     obligadoContabilidad: [false],
+    agenteRetencion: [false],
   });
 
   constructor() {
     this.servicio.datos().subscribe({
-      next: (d) => this.form.reset({
-        ambiente: d.ambiente,
-        establecimiento: d.establecimiento,
-        puntoEmision: d.puntoEmision,
-        siguienteSecuencial: d.siguienteSecuencial,
-        direccionMatriz: d.direccionMatriz,
-        direccionEstablecimiento: d.direccionEstablecimiento ?? '',
-        nombreComercial: d.nombreComercial ?? '',
-        contribuyenteEspecial: d.contribuyenteEspecial ?? '',
-        obligadoContabilidad: d.obligadoContabilidad,
-      }),
+      next: (d) =>
+        this.form.reset({
+          ambiente: d.ambiente,
+          establecimiento: d.establecimiento,
+          puntoEmision: d.puntoEmision,
+          siguienteSecuencial: d.siguienteSecuencial,
+          direccionMatriz: d.direccionMatriz,
+          direccionEstablecimiento: d.direccionEstablecimiento ?? '',
+          nombreComercial: d.nombreComercial ?? '',
+          contribuyenteEspecial: d.contribuyenteEspecial ?? '',
+          obligadoContabilidad: d.obligadoContabilidad,
+          agenteRetencion: d.agenteRetencion ?? false,
+        }),
       error: (e) => this.error.set(mensajeDeError(e)),
     });
   }
@@ -141,29 +214,33 @@ export class DatosEmisorTarjeta {
     this.error.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.error.set('Revisa los datos: establecimiento y punto de emisión son 3 dígitos, y la dirección matriz es obligatoria.');
+      this.error.set(
+        'Revisa los datos: establecimiento y punto de emisión son 3 dígitos, y la dirección matriz es obligatoria.',
+      );
       return;
     }
     const v = this.form.getRawValue();
     this.guardando.set(true);
-    this.servicio.guardarDatos({
-      ...v,
-      siguienteSecuencial: Number(v.siguienteSecuencial),
-      direccionMatriz: v.direccionMatriz.trim(),
-      direccionEstablecimiento: v.direccionEstablecimiento.trim() || null,
-      nombreComercial: v.nombreComercial.trim() || null,
-      contribuyenteEspecial: v.contribuyenteEspecial.trim() || null,
-    }).subscribe({
-      next: (d) => {
-        this.guardando.set(false);
-        this.form.markAsPristine();
-        this.avisos.exito('Datos de facturación guardados.');
-        this.cambio.emit(d);
-      },
-      error: (e) => {
-        this.guardando.set(false);
-        this.error.set(mensajeDeError(e));
-      },
-    });
+    this.servicio
+      .guardarDatos({
+        ...v,
+        siguienteSecuencial: Number(v.siguienteSecuencial),
+        direccionMatriz: v.direccionMatriz.trim(),
+        direccionEstablecimiento: v.direccionEstablecimiento.trim() || null,
+        nombreComercial: v.nombreComercial.trim() || null,
+        contribuyenteEspecial: v.contribuyenteEspecial.trim() || null,
+      })
+      .subscribe({
+        next: (d) => {
+          this.guardando.set(false);
+          this.form.markAsPristine();
+          this.avisos.exito('Datos de facturación guardados.');
+          this.cambio.emit(d);
+        },
+        error: (e) => {
+          this.guardando.set(false);
+          this.error.set(mensajeDeError(e));
+        },
+      });
   }
 }

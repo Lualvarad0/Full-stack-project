@@ -46,10 +46,11 @@ namespace Back.Facturacion
         /// Fecha (ddMMyyyy) | 01 | RUC | ambiente | establecimiento + punto | secuencial (9) | código numérico (8) |
         /// tipo de emisión 1 | dígito verificador módulo 11.
         /// </summary>
-        public static string GenerarClave(DateOnly fecha, string ruc, AmbienteSri ambiente, string establecimiento, string puntoEmision, int secuencial, int? codigoNumerico = null)
+        public static string GenerarClave(DateOnly fecha, string ruc, AmbienteSri ambiente, string establecimiento, string puntoEmision, int secuencial, int? codigoNumerico = null, string tipoDocumento = "01")
         {
             var codigo = codigoNumerico ?? RandomNumberGenerator.GetInt32(10_000_000, 100_000_000);
-            var base48 = $"{fecha:ddMMyyyy}01{ruc}{(int)ambiente}{establecimiento}{puntoEmision}{secuencial:D9}{codigo:D8}1";
+            if (tipoDocumento is not ("01" or "04" or "07")) throw new ArgumentException("Tipo de documento no soportado.");
+            var base48 = $"{fecha:ddMMyyyy}{tipoDocumento}{ruc}{(int)ambiente}{establecimiento}{puntoEmision}{secuencial:D9}{codigo:D8}1";
             return base48 + ClaveAcceso.DigitoVerificador(base48);
         }
 
@@ -70,7 +71,7 @@ namespace Back.Facturacion
                 Opcional("nombreComercial", datos.NombreComercial),
                 new XElement("ruc", emisor.Ruc),
                 new XElement("claveAcceso", factura.ClaveAcceso),
-                new XElement("codDoc", TiposComprobante.Factura),
+                new XElement("codDoc", factura.TipoDocumento),
                 new XElement("estab", factura.Establecimiento),
                 new XElement("ptoEmi", factura.PuntoEmision),
                 new XElement("secuencial", factura.Secuencial.ToString("D9")),

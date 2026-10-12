@@ -1,0 +1,60 @@
+<app-titulo
+  linea1="Tus"
+  linea2="clientes"
+  subtitulo="Las personas y empresas a las que facturas, según tus facturas emitidas."
+/>
+
+@if (!perfil.tieneRuc()) {
+  <app-perfil-requerido
+    titulo="Registra tu RUC para ver tus clientes"
+    descripcion="Los clientes salen de las facturas que emites con tu RUC."
+  />
+} @else {
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <app-buscador
+      placeholder="Buscar por nombre o identificación"
+      [valor]="busqueda()"
+      (valorChange)="busqueda.set($event)"
+    />
+    <app-segmentado [opciones]="periodos()" [(valor)]="soloAnio" etiqueta="Período" />
+  </div>
+
+  <app-error-carga [mensaje]="carga().error" />
+
+  <section class="card mt-4 overflow-hidden" [attr.aria-busy]="carga().cargando">
+    @if (carga().cargando && !carga().datos) {
+      <app-lista-carga [cantidad]="3" etiqueta="Cargando datos" />
+    } @else if (filtrados().length === 0) {
+      <p class="px-6 py-14 text-center text-sm text-muted-fg">
+        {{
+          (carga().datos?.length ?? 0) === 0
+            ? 'Aún no hay facturas emitidas. Importa sus XML o claves de acceso.'
+            : 'Ningún cliente coincide.'
+        }}
+      </p>
+    } @else {
+      <ul class="divide-y divide-border">
+        @for (c of filtrados(); track c.identificacion) {
+          <li>
+            <a
+              routerLink="/ingresos"
+              [queryParams]="{ cliente: c.identificacion }"
+              class="grid gap-1 px-4 py-4 transition-colors hover:bg-muted/50 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-6 sm:px-5"
+            >
+              <span class="min-w-0">
+                <span class="block truncate font-medium">{{ c.razonSocial }}</span>
+                <span class="text-xs text-muted-fg"
+                  >{{ c.identificacion }} · última factura {{ c.ultimaFactura | fechaCorta }}</span
+                >
+              </span>
+              <span class="text-sm text-muted-fg"
+                >{{ c.comprobantes }} {{ c.comprobantes === 1 ? 'factura' : 'facturas' }}</span
+              >
+              <span class="money text-sm font-semibold sm:text-right">{{ c.total | dinero }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

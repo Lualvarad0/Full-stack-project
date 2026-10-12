@@ -1,0 +1,238 @@
+<app-titulo
+  linea1="Preparación"
+  linea2="tributaria 2026"
+  subtitulo="Bases de tus documentos, ajustes con sustento y revisión antes de declarar."
+/>
+<div class="flex gap-3 flex-wrap my-5 items-end">
+  @for (t of ['Iva', 'Renta', 'Retenciones', 'Ats', 'Historial']; track t) {
+    <button
+      type="button"
+      class="btn"
+      [class.btn-primary]="tipo() === t"
+      [class.btn-secondary]="tipo() !== t"
+      (click)="tipo.set(t)"
+    >
+      {{ t === 'Iva' ? 'IVA' : t === 'Ats' ? 'ATS' : t }}
+    </button>
+  }
+  @if (tipo() !== 'Renta' && tipo() !== 'Historial') {
+    <label
+      >Período<select class="input" [ngModel]="meses()" (ngModelChange)="cambiarMeses(+$event)">
+        <option [ngValue]="1">Mensual</option>
+        <option [ngValue]="6">Semestral</option>
+      </select></label
+    ><label
+      >Mes inicial<select class="input" [ngModel]="mes()" (ngModelChange)="mes.set(+$event)">
+        @for (m of meses() === 6 ? [1, 7] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track m) {
+          <option [ngValue]="m">{{ m }}</option>
+        }
+      </select></label
+    >
+  }
+  <a routerLink="/mi-ruc" class="btn btn-ghost">Obligaciones y vencimientos</a
+  ><a routerLink="/gastos-personales" class="btn btn-ghost">Gastos personales</a
+  ><a routerLink="/exportaciones" class="btn btn-ghost">Exportar y entregar</a>
+</div>
+<p class="text-sm text-muted-fg mb-5">
+  Reglas EC-2026.1. Preparar o revisar aquí no envía declaraciones al SRI. Añade las operaciones
+  externas y revisa exenciones, proporcionalidad y requisitos que correspondan a tu caso.
+</p>
+<app-error-carga [mensaje]="carga().error" />
+@if (carga().datos; as d) {
+  @if (tipo() === 'Iva') {
+    <div class="grid gap-3 md:grid-cols-4 mb-5">
+      <div class="card p-4">
+        IVA de ventas
+        <p class="text-xl font-semibold">{{ d.iva.debito | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Crédito aplicado
+        <p class="text-xl font-semibold">{{ d.iva.creditoAplicado | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Retenciones recibidas
+        <p class="text-xl font-semibold">{{ d.iva.retencionesRecibidas | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        IVA estimado a pagar
+        <p class="text-xl font-semibold">{{ d.iva.pagar | dinero }}</p>
+        <span class="text-sm">Saldo a favor: {{ d.iva.saldoFavor | dinero }}</span>
+      </div>
+    </div>
+    <section class="card p-5 mb-5">
+      <h2 class="font-semibold">Bases por tarifa del XML</h2>
+      <div class="overflow-x-auto">
+        <table class="tabla w-full">
+          <thead>
+            <tr>
+              <th>Tarifa</th>
+              <th>Base de ventas</th>
+              <th>IVA de ventas</th>
+              <th>Base de compras</th>
+              <th>IVA de compras</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of d.iva.tarifas; track t.tarifa) {
+              <tr>
+                <td>{{ t.tarifa }}</td>
+                <td>{{ t.ventasBase | dinero }}</td>
+                <td>{{ t.ventasIva | dinero }}</td>
+                <td>{{ t.comprasBase | dinero }}</td>
+                <td>{{ t.comprasIva | dinero }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-muted-fg mt-3">
+        IVA con derecho a crédito confirmado: {{ d.iva.creditoElegible | dinero }}. Las compras
+        personales se muestran en las bases y quedan fuera del crédito.
+      </p>
+    </section>
+    <app-parametros-iva
+      [parametros]="d.iva.parametros"
+      [mes]="periodoMes()"
+      [meses]="periodoMeses()"
+      (cambiado)="refrescar()"
+    />
+  }
+  @if (tipo() === 'Renta') {
+    <div class="grid gap-3 md:grid-cols-3 mb-5">
+      <div class="card p-4">
+        Base régimen general
+        <p class="text-xl font-semibold">{{ d.renta.baseGeneral | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Ingresos RIMPE percibidos
+        <p class="text-xl font-semibold">{{ d.renta.ingresosRimpe | dinero }}</p>
+      </div>
+      <div class="card p-4">
+        Renta estimada a pagar
+        <p class="text-xl font-semibold">{{ d.renta.pagar | dinero }}</p>
+      </div>
+    </div>
+    <section class="card p-5 mb-5">
+      <h2 class="font-semibold">Liquidación estimada de persona natural</h2>
+      <dl class="grid gap-3 mt-4 md:grid-cols-2">
+        <div>Impuesto régimen general: {{ d.renta.impuestoGeneral | dinero }}</div>
+        <div>Impuesto RIMPE: {{ d.renta.impuestoRimpe | dinero }}</div>
+        <div>Rebaja personal aplicada: {{ d.renta.rebaja | dinero }}</div>
+        <div>Retenciones: {{ d.renta.retenciones | dinero }}</div>
+        <div>Anticipos: {{ d.renta.anticipos | dinero }}</div>
+        <div>Saldo a favor: {{ d.renta.saldoFavor | dinero }}</div>
+      </dl>
+      <p class="text-sm text-muted-fg mt-4">
+        RIMPE utiliza cobros y retenciones revisados, más el ajuste de ingresos externos. Sus costos
+        no reducen el impuesto RIMPE. La rebaja personal se limita al impuesto del régimen general.
+      </p>
+    </section>
+    <app-parametros-renta [parametros]="d.renta.parametros" (cambiado)="refrescar()" />
+  }
+  @if (tipo() === 'Retenciones') {
+    <section class="card p-5">
+      <h2 class="font-semibold">Retenciones revisadas del período fiscal</h2>
+      <dl class="grid gap-4 mt-4 md:grid-cols-2">
+        <div>IR retenido a proveedores: {{ d.retenciones.irEmitida | dinero }}</div>
+        <div>IVA retenido a proveedores: {{ d.retenciones.ivaEmitida | dinero }}</div>
+        <div>IR retenido por clientes: {{ d.retenciones.irRecibida | dinero }}</div>
+        <div>IVA retenido por clientes: {{ d.retenciones.ivaRecibida | dinero }}</div>
+      </dl>
+      <a routerLink="/retenciones" class="btn btn-secondary mt-4"
+        >Revisar documentos de retención</a
+      >
+    </section>
+  }
+  @if (tipo() === 'Ats') {
+    <section class="card p-5 mb-5">
+      <h2 class="font-semibold">Base de preparación ATS</h2>
+      <p class="mt-3 text-sm">
+        {{ d.ats.documentos.length }} documentos del período, con sustento y formas de pago
+        revisables. Descarga la base y los XML desde Exportaciones. Valida el anexo completo con el
+        programa ATS vigente antes de presentarlo.
+      </p>
+      <a routerLink="/exportaciones" class="btn btn-secondary mt-4"
+        >Exportar base y validar XML ATS</a
+      >
+    </section>
+  }
+  @if (tipo() !== 'Historial') {
+    <section class="card p-5 my-5">
+      <h2 class="font-semibold">Revisión final</h2>
+      @if (pendientes().length) {
+        <ul class="list-disc pl-5 mt-3">
+          @for (p of pendientes(); track p) {
+            <li>{{ p }}</li>
+          }
+        </ul>
+      } @else {
+        <p class="mt-3">No hay pendientes detectados en los datos registrados.</p>
+      }
+      <label class="flex gap-2 mt-4"
+        ><input type="checkbox" [(ngModel)]="confirmado" /> Revisé las bases y completé las
+        operaciones externas y beneficios aplicables.</label
+      ><button
+        class="btn btn-primary mt-4"
+        [disabled]="ocupado() || !cartera.puedeEditar() || !confirmado || pendientes().length > 0"
+        (click)="revisar()"
+      >
+        Guardar revisión interna
+      </button>
+    </section>
+    <app-revision-fiscal-documentos [documentos]="d.documentos" (cambiado)="refrescar()" />
+  }
+  @if (tipo() === 'Historial') {
+    <section class="card p-5">
+      <h2 class="font-semibold">Revisiones y presentaciones informadas</h2>
+      <div class="grid gap-3 md:grid-cols-2 my-4">
+        <label
+          >Referencia del comprobante SRI<input
+            class="input"
+            maxlength="150"
+            [(ngModel)]="referencia" /></label
+        ><label
+          >Fecha de presentación<input class="input" type="date" [(ngModel)]="fechaPresentacion"
+        /></label>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="tabla w-full">
+          <thead>
+            <tr>
+              <th>Preparación</th>
+              <th>Período</th>
+              <th>Estado</th>
+              <th>Referencia</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of d.revisiones; track r.id) {
+              <tr>
+                <td>{{ r.tipo }} #{{ r.id }}</td>
+                <td>{{ r.anio }} / {{ r.mes }} · {{ r.meses }} meses</td>
+                <td>
+                  {{ r.estado }}
+                  @if (r.desactualizada) {
+                    <span class="text-warning"> · Bases modificadas</span>
+                  }
+                </td>
+                <td>{{ r.referenciaPresentacion || 'Sin presentación' }}</td>
+                <td>
+                  @if (r.estado === 'Revisado' && !r.desactualizada && cartera.puedeEditar()) {
+                    <button
+                      class="btn btn-secondary"
+                      [disabled]="ocupado() || referencia.trim().length < 5"
+                      (click)="presentar(r.id)"
+                    >
+                      Registrar presentación manual
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}
