@@ -14,26 +14,26 @@ namespace Back.Repositories
             _context = context;
         }
 
-        public Task<List<Producto>> GetAllAsync(string? busqueda)
+        public Task<List<Producto>> GetAllAsync(int usuarioId, string? busqueda)
         {
-            var query = _context.Productos.AsNoTracking();
+            var query = _context.Productos.AsNoTracking().Where(p => p.UsuarioId == usuarioId);
             if (!string.IsNullOrWhiteSpace(busqueda))
                 query = query.Where(p => EF.Functions.ILike(p.Nombre, $"%{busqueda.Trim()}%"));
             return query.OrderBy(p => p.Nombre).ToListAsync();
         }
 
-        public Task<Producto?> GetByIdAsync(int id) =>
-            _context.Productos.FirstOrDefaultAsync(p => p.ProductoId == id);
+        public Task<Producto?> GetByIdAsync(int usuarioId, int id) =>
+            _context.Productos.FirstOrDefaultAsync(p => p.UsuarioId == usuarioId && p.ProductoId == id);
 
         // Devuelve entidades con tracking: FacturaService descuenta stock sobre ellas.
-        public Task<List<Producto>> GetByIdsAsync(IEnumerable<int> ids)
+        public Task<List<Producto>> GetByIdsAsync(int usuarioId, IEnumerable<int> ids)
         {
             var lista = ids.Distinct().ToList();
-            return _context.Productos.Where(p => lista.Contains(p.ProductoId)).ToListAsync();
+            return _context.Productos.Where(p => p.UsuarioId == usuarioId && lista.Contains(p.ProductoId)).ToListAsync();
         }
 
-        public Task<bool> TieneFacturasAsync(int id) =>
-            _context.DetallesFactura.AnyAsync(d => d.ProductoId == id);
+        public Task<bool> TieneFacturasAsync(int usuarioId, int id) =>
+            _context.DetallesFactura.AnyAsync(d => d.Factura.UsuarioId == usuarioId && d.ProductoId == id);
 
         public async Task AddAsync(Producto producto)
         {

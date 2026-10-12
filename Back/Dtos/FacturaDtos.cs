@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.ComponentModel.DataAnnotations;
 using Back.Models;
 
@@ -9,8 +10,8 @@ namespace Back.Dtos
 
     public record FacturaRequest(
         [Range(1, int.MaxValue)] int ClienteId,
-        [Required, StringLength(50)] string FormaPago,
-        [Required, MinLength(1)] List<DetalleFacturaRequest> Detalles);
+        [TextoPlano, Required, StringLength(50)] string FormaPago,
+        [Required, MinLength(1), MaxLength(100)] List<DetalleFacturaRequest> Detalles);
 
     public record DetalleFacturaDto(int ProductoId, string Producto, int Cantidad, decimal PrecioUnitario, decimal PrecioTotal);
 

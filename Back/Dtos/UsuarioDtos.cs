@@ -1,3 +1,4 @@
+using Back.Seguridad;
 using System.ComponentModel.DataAnnotations;
 using Back.Models;
 
@@ -10,8 +11,8 @@ namespace Back.Dtos
     }
 
     public record UsuarioRequest(
-        [Required, StringLength(100, MinimumLength = 2)] string Nombre,
-        [Required, EmailAddress] string Email,
+        [TextoPlano, Required, StringLength(100, MinimumLength = 2)] string Nombre,
+        [TextoPlano, Required, EmailAddress, StringLength(150)] string Email,
         [Required, StringLength(100, MinimumLength = 8)] string Password,
         [Required, RegularExpression("^(admin|user)$")] string Rol);
 }
