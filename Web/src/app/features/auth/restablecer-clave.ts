@@ -18,9 +18,9 @@ import { claveCuenta, clavesIguales } from './validators/clave.validator';
       @else {
         <form class="mt-5 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
           <div><label for="nueva-clave" class="field-label">Nueva contraseña</label><app-campo-clave idCampo="nueva-clave" autocomplete="new-password" formControlName="password" /></div>
-          <p class="text-xs text-muted-fg">Usa al menos 8 caracteres. El máximo es 72 bytes; los acentos y emojis pueden ocupar más de uno.</p>
+          <p class="text-xs text-muted-fg">Usa al menos 8 caracteres, sin espacios. El máximo es 72 bytes; los acentos y emojis pueden ocupar más de uno.</p>
           <div><label for="confirmar-clave" class="field-label">Repite la contraseña</label><app-campo-clave idCampo="confirmar-clave" autocomplete="new-password" formControlName="confirmacion" /></div>
-          @if (form.touched && form.invalid) { <p class="field-error">Revisa la longitud y comprueba que las contraseñas coincidan.</p> }
+          @if (form.touched && form.invalid) { <p class="field-error">Revisa la longitud, quita los espacios y comprueba que las contraseñas coincidan.</p> }
           <app-mensaje-error [mensaje]="error()" />
           <button class="btn btn-primary w-full" type="submit" [disabled]="enviando()">{{ enviando() ? 'Guardando…' : 'Guardar contraseña' }}</button>
         </form>

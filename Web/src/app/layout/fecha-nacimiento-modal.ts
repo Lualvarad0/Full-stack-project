@@ -43,7 +43,6 @@ import { MensajeError, SelectorFecha } from '@shared/components';
           idCampo="fecha-nacimiento-completar"
           min="1900-01-01"
           [max]="fechaMaxima"
-          [empezarEnAnios]="true"
           [(valor)]="fecha"
         />
         <app-mensaje-error class="mt-3 block" [mensaje]="error()" />

@@ -17,9 +17,17 @@ export class CarteraService {
   constructor() {
     effect(cleanup => {
       const id = this.auth.usuario()?.id;
-      this.estado.set(null); this.auth.seleccionarContribuyente(null);
+      // Se conserva el contribuyente elegido en esta pestaña (recargar no cambia de perfil) mientras siga en la cartera.
+      this.estado.set(null);
       if (!id) return;
-      const solicitud = this.http.get<Contribuyente[]>(this.url).subscribe({ next: lista => { if (this.auth.usuario()?.id === id) this.estado.set({ usuario: id, lista }); }, error: () => {} });
+      const solicitud = this.http.get<Contribuyente[]>(this.url).subscribe({
+        next: lista => {
+          if (this.auth.usuario()?.id !== id) return;
+          this.estado.set({ usuario: id, lista });
+          if (!lista.some(c => c.id === this.auth.contribuyenteId())) this.auth.seleccionarContribuyente(null);
+        },
+        error: () => this.auth.seleccionarContribuyente(null),
+      });
       cleanup(() => solicitud.unsubscribe());
     });
   }
