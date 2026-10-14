@@ -1,15 +1,32 @@
+import { CategoriaGasto } from '@core/comprobantes';
+import { CategoriaCuenta } from '@core/cuentas';
 // Tipos de las animaciones de la landing (demo del panel y flujo de facturas).
-export type VistaDemo = 'resumen' | 'gastos' | 'ingresos' | 'buzon';
+// Las vistas son las mismas pantallas de la app (Resumen, Mis cuentas, Traer facturas, Ingresos, Gastos).
+export type VistaDemo = 'resumen' | 'cuentas' | 'importar' | 'ingresos' | 'gastos';
 
-export type CategoriaDemo = 'Vivienda' | 'Salud' | 'Alimentación' | 'Educación' | 'Vestimenta';
-
+/** Movimiento de ejemplo con los mismos datos que muestra la tabla de comprobantes. */
 export interface MovimientoDemo {
   id: number;
   fecha: string;
   nombre: string;
+  /** RUC del proveedor o identificación del cliente. */
+  identificacion: string;
+  numero: string;
   monto: number;
   ingreso: boolean;
-  categoria: CategoriaDemo | null;
+  /** Categoría de gasto (mismos valores que la app); null en ingresos. */
+  categoria: CategoriaGasto | null;
+}
+
+/** Cuenta de Mis cuentas con las mismas categorías que la app. */
+export interface CuentaDemo {
+  id: number;
+  nombre: string;
+  categoria: CategoriaCuenta;
+  monto: number;
+  diaVencimiento: number;
+  /** Día del mes en que se pagó; null si está pendiente. */
+  pagadaEl: number | null;
 }
 
 export interface LlegadaDemo {

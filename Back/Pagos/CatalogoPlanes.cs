@@ -15,8 +15,8 @@ namespace Back.Pagos
 
         private static readonly Dictionary<(PlanSuscripcion, Periodicidad), decimal> Subtotales = new()
         {
-            [(PlanSuscripcion.Profesional, Periodicidad.Mensual)] = 14.99m,
-            [(PlanSuscripcion.Profesional, Periodicidad.Anual)] = 149.00m,
+            [(PlanSuscripcion.Profesional, Periodicidad.Mensual)] = 9.99m,
+            [(PlanSuscripcion.Profesional, Periodicidad.Anual)] = 99.00m,
             [(PlanSuscripcion.Contadores, Periodicidad.Mensual)] = 49.00m,
             [(PlanSuscripcion.Contadores, Periodicidad.Anual)] = 490.00m,
         };

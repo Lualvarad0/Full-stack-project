@@ -17,7 +17,7 @@ namespace Back.Pagos
         public const int LimiteFacturasMes = 300;
 
         /// <summary>Contribuyentes que un contador puede tener en su cartera (activos + solicitudes vigentes).</summary>
-        public const int LimiteContribuyentesCartera = 10;
+        public const int LimiteContribuyentesCartera = 15;
 
         public const string MensajeSubirFacturas =
             "Subir facturas o traerlas del SRI es parte del plan Profesional. En el plan gratuito registras tus cuentas a mano en Mis cuentas.";

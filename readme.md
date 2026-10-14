@@ -117,7 +117,7 @@ Cada ingreso al sistema y cada cambio de configuración (perfil, RUC, dirección
 
 ## Planes y pagos (Kushki)
 
-Personal es gratis. Profesional ($14,99/mes o $149/año + IVA) y Contadores ($49/mes o $490/año + IVA) se cobran con tarjeta mediante suscripciones de [Kushki](https://docs.kushki.com/ec/recurring-payments/overview), con 14 días gratis. Emitir facturas electrónicas requiere un plan de pago (el administrador está exento). Los precios están en `Back/Pagos/CatalogoPlanes.cs` y los textos en `Web/src/app/core/suscripcion/constants/planes.ts`.
+Personal es gratis. Profesional ($9,99/mes o $99/año + IVA) y Contadores ($49/mes o $490/año + IVA, hasta 15 RUC) se cobran con tarjeta mediante suscripciones de [Kushki](https://docs.kushki.com/ec/recurring-payments/overview), con 14 días gratis. Emitir facturas electrónicas requiere un plan de pago (el administrador está exento). Los precios están en `Back/Pagos/CatalogoPlanes.cs` y los textos en `Web/src/app/core/suscripcion/constants/planes.ts`.
 
 1. En la consola de Kushki (UAT para pruebas), copia la clave pública, la privada y la firma de webhooks (Desarrolladores → Webhooks).
 2. Configura `Kushki:ClavePublica`, `Kushki:ClavePrivada`, `Kushki:FirmaWebhook` y `Kushki:Pruebas` (`true` en UAT).
