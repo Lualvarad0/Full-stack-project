@@ -1,38 +1,38 @@
-/* ---- Tokens Nudo: blanco, tinta carbón, acento índigo; Instrument Serif + Inter ---- */
+/* ---- Tokens Nudo: blanco hielo, tinta azul petróleo, acento coral; Instrument Serif + Inter ---- */
 /* .tema-claro fuerza los tokens claros en una sección (la landing es siempre clara). */
 :root,
 .tema-claro {
   color-scheme: light;
-  --logo-bg: #252b31;
+  --logo-bg: #0b3c49;
   --logo-fg: #ffffff;
-  --logo-accent: #6467f1;
-  --flow-ingreso: #2bd4a0;
-  --flow-sri: #a5a8ff;
+  --logo-accent: #ff6b4a;
+  --flow-ingreso: #5cc8c2;
+  --flow-sri: #ffb09c;
   --danger-fg: #ffffff;
-  --bg: #fafafa;
+  --bg: #f5f9fa;
   --bg-2: #ffffff;
-  --fg: #252b31;
+  --fg: #10262c;
   --card: #ffffff;
-  --muted: #f5f5f5;
-  /* Gris del sistema (hsl 184 5%) oscurecido para cumplir 4.5:1 sobre blanco. */
-  --muted-fg: #606b6c;
-  --border: #e5e5e5;
-  --nav: #606b6c;
+  --muted: #edf4f5;
+  /* Gris azulado; cumple 4.5:1 sobre blanco y sobre --muted. */
+  --muted-fg: #52666b;
+  --border: #dce7e9;
+  --nav: #52666b;
 
-  /* Botón principal: carbón sobre blanco. */
-  --ink: #252b31;
+  /* Botón principal y secciones oscuras: azul petróleo. */
+  --ink: #0b3c49;
   --ink-fg: #ffffff;
-  /* Acento índigo (hsl 239 84% 67%) para rellenos; versión más oscura para texto. */
-  --brand: #6467f1;
-  --brand-hover: #5558e8;
-  --brand-border: #5558e8;
-  --brand-ink: #ffffff;
-  --primary: #4f46e5;
+  /* Acento coral para rellenos (con texto petróleo oscuro: 5:1); petróleo medio para texto. */
+  --brand: #ff6b4a;
+  --brand-hover: #ff8266;
+  --brand-border: #f2563a;
+  --brand-ink: #072a33;
+  --primary: #0e6577;
   --primary-fg: #ffffff;
-  --primary-soft: #eef0fe;
-  --accent-strong: #4f46e5;
-  --accent: #4f46e5;
-  --ring: #6467f1;
+  --primary-soft: #e1f0f2;
+  --accent-strong: #0e6577;
+  --accent: #0e6577;
+  --ring: #ff6b4a;
 
   --success: #047857;
   --success-soft: #ecfdf5;
@@ -44,7 +44,7 @@
   --danger-soft: #fef2f2;
   --danger-border: #fecaca;
 
-  --shadow-dashboard: 0 25px 80px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-dashboard: 0 25px 80px -12px rgba(7, 42, 51, 0.18), 0 0 0 1px rgba(7, 42, 51, 0.07);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
 
   /* Paleta categórica validada (dataviz): orden fijo, nunca ciclado. */
@@ -56,33 +56,33 @@
   --cat-6: #008300;
   --cat-7: #4a3aa7;
   --cat-neutral: #a3a9aa;
-  --bar: #6467f1;
-  --bar-soft: #dfe0fc;
+  --bar: #0e6577;
+  --bar-soft: #cfe5e8;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --bg: #111417;
-  --bg-2: #15191c;
-  --fg: #eef1f3;
-  --card: #181c20;
-  --muted: #21262b;
-  --muted-fg: #9aa4a6;
-  --border: #2b3137;
-  --nav: #9aa4a6;
+  --bg: #0a1a1f;
+  --bg-2: #0d1f25;
+  --fg: #eaf3f4;
+  --card: #10252b;
+  --muted: #163139;
+  --muted-fg: #93abb0;
+  --border: #1f3b43;
+  --nav: #93abb0;
 
-  --ink: #eef1f3;
-  --ink-fg: #111417;
-  --brand: #818cf8;
-  --brand-hover: #949ef9;
-  --brand-border: #818cf8;
-  --brand-ink: #111417;
-  --primary: #a5b4fc;
-  --primary-fg: #111417;
-  --primary-soft: #232650;
-  --accent-strong: #a5b4fc;
-  --accent: #a5b4fc;
-  --ring: #818cf8;
+  --ink: #eaf3f4;
+  --ink-fg: #0a1a1f;
+  --brand: #ff7e61;
+  --brand-hover: #ff957d;
+  --brand-border: #ff7e61;
+  --brand-ink: #0a1a1f;
+  --primary: #6fd0d9;
+  --primary-fg: #0a1a1f;
+  --primary-soft: #123a42;
+  --accent-strong: #6fd0d9;
+  --accent: #6fd0d9;
+  --ring: #ff7e61;
 
   --success: #34d399;
   --success-soft: #0f2a22;
@@ -105,6 +105,6 @@
   --cat-6: #008300;
   --cat-7: #9085e9;
   --cat-neutral: #6b7275;
-  --bar: #818cf8;
-  --bar-soft: #2a2d5a;
+  --bar: #6fd0d9;
+  --bar-soft: #173d45;
 }
