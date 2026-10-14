@@ -1,0 +1,267 @@
+<app-titulo
+  linea1="Mis"
+  linea2="tarjetas"
+  subtitulo="Registra tus tarjetas de crédito y sube su estado de cuenta: anotamos lo que debes en Mis cuentas con su fecha máxima de pago."
+/>
+
+@if (datos(); as d) {
+  <!-- Estados de cuenta leídos que esperan confirmación -->
+  @if (d.porConfirmar.length) {
+    <section class="card mt-6 border-warning-border" aria-labelledby="titulo-por-revisar">
+      <div class="border-b border-border px-5 py-4">
+        <h2 id="titulo-por-revisar" class="font-semibold">Estados de cuenta por revisar</h2>
+        <p class="mt-0.5 text-sm text-muted-fg">
+          Revisa lo que leímos. Al confirmarlo, la deuda queda en Mis cuentas en el mes de su fecha máxima de pago.
+        </p>
+      </div>
+      <ul class="divide-y divide-border">
+        @for (e of d.porConfirmar; track e.id) {
+          <li class="px-5 py-5">
+            <p class="mb-3 text-sm">
+              @if (tarjetaDe(e); as t) {
+                <span class="font-medium">{{ t.alias }}</span>
+                <span class="text-muted-fg"> · {{ t.banco ?? t.marca }} •••• {{ t.ultimos4 }}</span>
+              }
+              <span class="pildora ml-2 bg-muted text-muted-fg">{{ e.origen === 'Correo' ? 'Llegó a tu buzón' : 'Subido' }}</span>
+            </p>
+            <app-estado-cuenta-form
+              [id]="'confirmar-' + e.id"
+              [inicial]="e"
+              etiqueta="Confirmar y anotar deuda"
+              [guardando]="confirmando() === e.id"
+              [error]="confirmando() === null ? errorConfirmar() : null"
+              (guardar)="confirmar(e, $event)"
+            >
+              <button type="button" class="btn btn-ghost text-danger" (click)="descartar(e)">Descartar</button>
+            </app-estado-cuenta-form>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
+    <!-- Tarjetas -->
+    <section aria-labelledby="titulo-tarjetas">
+      <h2 id="titulo-tarjetas" class="sr-only">Tus tarjetas</h2>
+      <div class="grid gap-4">
+        @for (t of d.tarjetas; track t.id) {
+          <article class="card overflow-hidden">
+            <div class="flex flex-wrap items-start gap-4 p-5">
+              <!-- Tarjeta dibujada -->
+              <div
+                class="flex h-24 w-40 shrink-0 flex-col justify-between rounded-xl bg-ink p-3 text-ink-fg shadow-card"
+                aria-hidden="true"
+              >
+                <div class="flex items-center justify-between text-[11px] font-medium opacity-80">
+                  <span class="truncate">{{ t.banco ?? 'Banco' }}</span>
+                  <svg lucideCreditCard class="size-4 shrink-0"></svg>
+                </div>
+                <div>
+                  <p class="font-mono text-sm tracking-widest">•••• {{ t.ultimos4 }}</p>
+                  <p class="text-[11px] uppercase opacity-80">{{ t.marca }}</p>
+                </div>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0">
+                    <h3 class="truncate font-semibold">{{ t.alias }}</h3>
+                    <p class="text-sm text-muted-fg">{{ t.banco ?? t.marca }} •••• {{ t.ultimos4 }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-ghost -mt-1 -mr-2 min-h-8 px-2 text-danger"
+                    [attr.aria-label]="'Quitar la tarjeta ' + t.alias"
+                    (click)="eliminar(t)"
+                  >
+                    <svg lucideTrash2 class="size-4" aria-hidden="true"></svg>
+                  </button>
+                </div>
+                @if (t.verificada) {
+                  <span class="pildora estado-ok mt-2">
+                    <svg lucideBadgeCheck class="size-3.5" aria-hidden="true"></svg> Banco emisor verificado
+                  </span>
+                }
+
+                @if (t.ultimoEstado; as u) {
+                  <dl class="mt-4 grid grid-cols-3 gap-3 text-sm">
+                    <div>
+                      <dt class="etiqueta text-xs">Saldo</dt>
+                      <dd class="cifra">{{ u.saldoTotal | dinero }}</dd>
+                    </div>
+                    <div>
+                      <dt class="etiqueta text-xs">Pago mínimo</dt>
+                      <dd class="cifra">
+                        @if (u.pagoMinimo !== null) {
+                          {{ u.pagoMinimo | dinero }}
+                        } @else {
+                          —
+                        }
+                      </dd>
+                    </div>
+                    <div>
+                      <dt class="etiqueta text-xs">Pagar hasta</dt>
+                      <dd class="cifra">{{ u.fechaMaximaPago | fechaCorta }}</dd>
+                    </div>
+                  </dl>
+                  <a routerLink="/cuentas" class="enlace mt-2 inline-block text-sm">Ver la deuda en Mis cuentas</a>
+                } @else {
+                  <p class="mt-4 text-sm text-muted-fg">Aún no conocemos su deuda: sube su estado de cuenta.</p>
+                }
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 border-t border-border bg-muted/40 px-5 py-3">
+              <button type="button" class="btn btn-secondary min-h-9 text-sm" (click)="abrir(t.id, 'subir')">
+                <svg lucideFileScan class="size-4" aria-hidden="true"></svg> Subir estado de cuenta
+              </button>
+              <button type="button" class="btn btn-ghost min-h-9 text-sm" (click)="abrir(t.id, 'manual')">
+                <svg lucidePencil class="size-4" aria-hidden="true"></svg> Ingresar a mano
+              </button>
+            </div>
+
+            @if (panel(); as p) {
+              @if (p.tarjetaId === t.id) {
+                <div class="border-t border-border p-5">
+                  @if (p.tipo === 'subir') {
+                    <app-zona-archivos
+                      [idCampo]="'pdf-' + t.id"
+                      accept=".pdf,application/pdf"
+                      (archivos)="elegirArchivo($event)"
+                    >
+                      @if (archivo(); as a) {
+                        <span class="font-medium">{{ a.name }}</span>
+                        <span class="text-xs text-muted-fg">Elige otro si te equivocaste</span>
+                      } @else {
+                        <span class="font-medium">Arrastra el PDF del estado de cuenta</span>
+                        <span class="text-xs text-muted-fg">o haz clic para elegirlo (hasta 10 MB)</span>
+                      }
+                    </app-zona-archivos>
+                    <label class="field-label mt-4" [attr.for]="'clave-pdf-' + t.id">
+                      Clave del PDF <span class="text-muted-fg">(si tiene; suele ser tu cédula)</span>
+                    </label>
+                    <input
+                      [id]="'clave-pdf-' + t.id"
+                      type="password"
+                      class="input"
+                      autocomplete="off"
+                      [value]="clave()"
+                      (input)="clave.set($any($event.target).value)"
+                    />
+                    <p class="mt-1 text-xs text-muted-fg">
+                      Solo la usamos para abrir el PDF; no guardamos ni la clave ni el archivo.
+                    </p>
+                    <app-mensaje-error class="mt-3 block" [mensaje]="errorPanel()" />
+                    <div class="mt-4 flex justify-end gap-2">
+                      <button type="button" class="btn btn-ghost" (click)="panel.set(null)">Cancelar</button>
+                      <button type="button" class="btn btn-primary" [disabled]="procesando()" (click)="subir(t.id)">
+                        @if (procesando()) {
+                          <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg>
+                        }
+                        Leer estado de cuenta
+                      </button>
+                    </div>
+                  } @else {
+                    <app-estado-cuenta-form
+                      [id]="'manual-' + t.id"
+                      etiqueta="Anotar deuda"
+                      [guardando]="procesando()"
+                      [error]="errorPanel()"
+                      (guardar)="registrarManual(t.id, $event)"
+                    >
+                      <button type="button" class="btn btn-ghost" (click)="panel.set(null)">Cancelar</button>
+                    </app-estado-cuenta-form>
+                  }
+                </div>
+              }
+            }
+          </article>
+        } @empty {
+          <div class="card px-5 py-12 text-center text-sm text-muted-fg">
+            <svg lucideCreditCard class="mx-auto mb-3 size-8" aria-hidden="true"></svg>
+            Aún no registras tarjetas. Agrega la primera con el formulario.
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Nueva tarjeta -->
+    <aside class="space-y-6">
+      <section class="card p-5" aria-labelledby="titulo-nueva-tarjeta">
+        <h2 id="titulo-nueva-tarjeta" class="font-semibold">Agregar tarjeta de crédito</h2>
+        <form class="mt-4 space-y-4" (submit)="$event.preventDefault(); agregar()" novalidate>
+          <div>
+            <label class="field-label" for="alias-tarjeta">Nombre para reconocerla</label>
+            <input
+              id="alias-tarjeta"
+              class="input"
+              maxlength="60"
+              placeholder="Ej.: Visa del trabajo"
+              [value]="alias()"
+              (input)="alias.set($any($event.target).value)"
+            />
+          </div>
+          <div>
+            <label class="field-label" for="numero-tarjeta">Número de la tarjeta</label>
+            <input
+              id="numero-tarjeta"
+              class="input font-mono tracking-wider"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="23"
+              placeholder="0000 0000 0000 0000"
+              [value]="numero()"
+              [attr.aria-invalid]="digitos().length >= 13 && !numeroValido()"
+              aria-describedby="ayuda-numero"
+              (input)="escribirNumero($any($event.target).value)"
+            />
+            <p id="ayuda-numero" class="mt-1.5 text-xs">
+              @if (digitos().length >= 13 && !numeroValido()) {
+                <span class="text-danger">El número no es válido: revisa los dígitos.</span>
+              } @else if (numeroValido()) {
+                <span class="text-success">Número válido{{ marca() ? ' · ' + marca() : '' }}</span>
+              } @else if (marca()) {
+                <span class="text-muted-fg">{{ marca() }}</span>
+              }
+            </p>
+          </div>
+          <p class="flex gap-2 rounded-lg bg-muted px-3 py-2 text-xs text-muted-fg">
+            <svg lucideShieldCheck class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true"></svg>
+            El número completo no sale de tu navegador: solo enviamos los 6 primeros dígitos (para verificar el banco
+            emisor) y los 4 últimos. No pedimos fecha de vencimiento ni código de seguridad.
+          </p>
+          <app-mensaje-error [mensaje]="errorTarjeta()" />
+          <button type="submit" class="btn btn-primary w-full" [disabled]="guardandoTarjeta()">
+            @if (guardandoTarjeta()) {
+              <svg lucideLoader class="size-4 animate-spin" aria-hidden="true"></svg>
+            } @else {
+              <svg lucidePlus class="size-4" aria-hidden="true"></svg>
+            }
+            Verificar y agregar
+          </button>
+        </form>
+      </section>
+
+      <section class="card p-5 text-sm" aria-labelledby="titulo-buzon-tarjetas">
+        <h2 id="titulo-buzon-tarjetas" class="font-semibold">Que llegue solo cada mes</h2>
+        <p class="mt-2 text-muted-fg">
+          Reenvía el correo del estado de cuenta de tu banco a tu buzón de Nudo y lo leemos por ti. Quedará aquí para
+          que lo confirmes.
+        </p>
+        @if (buzon().datos?.direccion; as direccion) {
+          <p class="mt-3 rounded-lg bg-muted px-3 py-2 font-mono text-xs break-all">{{ direccion }}</p>
+        } @else {
+          <a routerLink="/importar" class="enlace mt-3 inline-block">Ver mi buzón</a>
+        }
+      </section>
+    </aside>
+  </div>
+} @else if (carga().cargando) {
+  <div class="mt-6 grid gap-4">
+    @for (i of [1, 2]; track i) {
+      <div class="card h-40 animate-pulse"></div>
+    }
+  </div>
+}
+<app-error-carga [mensaje]="carga().error" />

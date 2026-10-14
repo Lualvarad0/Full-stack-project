@@ -7,7 +7,7 @@ import { CuentaUsuarioService, DatosPersonales } from '@core/perfil';
 import { mensajeDeError } from '@core/http';
 import { AvisosService } from '@core/ui';
 import { fechaIso } from '@core/utils';
-import { MensajeError } from '@shared/components';
+import { MensajeError, SelectorFecha } from '@shared/components';
 
 /** Fecha más reciente aceptada: hay que ser mayor de edad (igual que al registrarse). */
 function fechaMaxima(): string {
@@ -21,6 +21,7 @@ function fechaMaxima(): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   imports: [
+    SelectorFecha,
     ReactiveFormsModule,
     RouterLink,
     DatePipe,
@@ -69,8 +70,8 @@ function fechaMaxima(): string {
           </div>
           <div>
             <label class="field-label" for="dp-nacimiento">Fecha de nacimiento</label>
-            <input id="dp-nacimiento" type="date" class="input" formControlName="fechaNacimiento" autocomplete="bday"
-              [max]="maxNacimiento" min="1900-01-01" [attr.aria-invalid]="invalido('fechaNacimiento')" />
+            <app-selector-fecha idCampo="dp-nacimiento" formControlName="fechaNacimiento" [empezarEnAnios]="true"
+              [max]="maxNacimiento" min="1900-01-01" [invalido]="invalido('fechaNacimiento')" />
           </div>
           <div>
             <label class="field-label" for="dp-correo">Correo</label>

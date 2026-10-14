@@ -26,6 +26,8 @@ namespace Back.Data
         public DbSet<PagoSuscripcion> PagosSuscripcion => Set<PagoSuscripcion>();
         public DbSet<CuentaPersonal> CuentasPersonales => Set<CuentaPersonal>();
         public DbSet<IngresoMensual> IngresosMensuales => Set<IngresoMensual>();
+        public DbSet<TarjetaCredito> TarjetasCredito => Set<TarjetaCredito>();
+        public DbSet<EstadoCuentaTarjeta> EstadosCuentaTarjeta => Set<EstadoCuentaTarjeta>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +35,26 @@ namespace Back.Data
             modelBuilder.Entity<CuentaPersonal>(e => {
                 e.ToTable("cuentas_personales"); e.Property(x => x.Nombre).HasMaxLength(120); e.Property(x => x.Monto).HasPrecision(18, 2);
                 e.Property(x => x.Categoria).HasConversion<string>().HasMaxLength(30); e.HasIndex(x => new { x.UsuarioId, x.Anio, x.Mes });
+                e.Property(x => x.Respaldo).HasConversion<string>().HasMaxLength(20);
                 e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne<Comprobante>().WithMany().HasForeignKey(x => x.ComprobanteId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne<CuentaPersonal>().WithMany().HasForeignKey(x => x.TrasladadaACuentaId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne<CuentaPersonal>().WithMany().HasForeignKey(x => x.TrasladadaDesdeId).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne<TarjetaCredito>().WithMany().HasForeignKey(x => x.TarjetaCreditoId).OnDelete(DeleteBehavior.SetNull);
+            });
+            modelBuilder.Entity<TarjetaCredito>(e => {
+                e.ToTable("tarjetas_credito"); e.Property(x => x.Alias).HasMaxLength(60); e.Property(x => x.Bin).HasMaxLength(6);
+                e.Property(x => x.Ultimos4).HasMaxLength(4); e.Property(x => x.Marca).HasMaxLength(40); e.Property(x => x.Banco).HasMaxLength(120);
+                e.HasIndex(x => new { x.UsuarioId, x.Bin, x.Ultimos4 }).IsUnique();
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<EstadoCuentaTarjeta>(e => {
+                e.ToTable("estados_cuenta_tarjeta"); e.Property(x => x.SaldoTotal).HasPrecision(18, 2); e.Property(x => x.PagoMinimo).HasPrecision(18, 2);
+                e.Property(x => x.Origen).HasConversion<string>().HasMaxLength(20); e.Property(x => x.Estado).HasConversion<string>().HasMaxLength(20);
+                e.HasIndex(x => new { x.UsuarioId, x.Estado });
+                e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne<TarjetaCredito>().WithMany().HasForeignKey(x => x.TarjetaCreditoId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne<CuentaPersonal>().WithMany().HasForeignKey(x => x.CuentaPersonalId).OnDelete(DeleteBehavior.SetNull);
             });
             modelBuilder.Entity<IngresoMensual>(e => {
                 e.ToTable("ingresos_mensuales"); e.Property(x => x.Monto).HasPrecision(18, 2);

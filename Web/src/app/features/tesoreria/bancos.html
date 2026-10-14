@@ -60,7 +60,7 @@
       </div>
       <div>
         <label class="field-label" for="fecha-inicial-banco">Fecha del saldo inicial</label
-        ><input id="fecha-inicial-banco" class="input" type="date" formControlName="fechaInicial" />
+        ><app-selector-fecha idCampo="fecha-inicial-banco" formControlName="fechaInicial" />
       </div>
       <button class="btn btn-primary self-end" [disabled]="ocupado()" type="submit">
         Guardar cuenta
@@ -101,7 +101,7 @@
         </div>
         <div>
           <label for="fecha-mov" class="field-label">Fecha</label
-          ><input id="fecha-mov" class="input" type="date" formControlName="fecha" />
+          ><app-selector-fecha idCampo="fecha-mov" formControlName="fecha" />
         </div>
         <div>
           <label for="importe-mov" class="field-label">Importe con signo</label

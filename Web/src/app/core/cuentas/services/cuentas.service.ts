@@ -2,7 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
-import { CuentaPersonal, CuentaPersonalRequest, MesCuentas } from '../models/cuentas.model';
+import {
+  CierreMes,
+  CuentaPersonal,
+  CuentaPersonalRequest,
+  DecisionCierre,
+  MesCuentas,
+} from '../models/cuentas.model';
 
 /** API de Mis cuentas (/api/cuentas). */
 @Injectable({ providedIn: 'root' })
@@ -35,6 +41,15 @@ export class CuentasService {
 
   guardarIngreso(anio: number, mes: number, monto: number): Observable<void> {
     return this.http.put<void>(`${this.url}/ingreso`, { anio, mes, monto });
+  }
+
+  /** Cuentas pendientes del mes que terminó; null si no hay nada que cerrar (o en el plan gratuito). */
+  cierre(): Observable<CierreMes | null> {
+    return this.http.get<CierreMes | null>(`${this.url}/cierre`);
+  }
+
+  cerrarMes(anio: number, mes: number, decisiones: DecisionCierre[]): Observable<{ pagadas: number; trasladadas: number }> {
+    return this.http.post<{ pagadas: number; trasladadas: number }>(`${this.url}/cierre`, { anio, mes, decisiones });
   }
 
   copiarMesAnterior(anio: number, mes: number): Observable<{ copiadas: number }> {

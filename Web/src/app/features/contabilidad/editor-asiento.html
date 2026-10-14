@@ -3,7 +3,7 @@
     {{ asiento() ? 'Editar borrador #' + asiento()!.id : 'Nuevo asiento' }}
   </h2>
   <div class="grid gap-3 md:grid-cols-[180px_1fr]">
-    <label>Fecha<input class="input" type="date" [(ngModel)]="fecha" /></label>
+    <label>Fecha<app-selector-fecha [(ngModel)]="fecha" /></label>
     <label>Concepto<input class="input" maxlength="500" [(ngModel)]="concepto" /></label>
   </div>
   <div class="overflow-x-auto">

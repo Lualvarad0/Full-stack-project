@@ -17,12 +17,13 @@ import { LucideCircleCheck, LucideLoader } from '@lucide/angular';
 import { AVISO_LANZAMIENTO, esDePago, esPlan, PLANES, PlanSuscripcion } from '@core/suscripcion';
 import { ModoAcceso, AuthService } from '@core/auth';
 import { mensajeDeError } from '@core/http';
-import { CampoClave, MensajeError } from '@shared/components';
+import { CampoClave, MensajeError, SelectorFecha } from '@shared/components';
 /** Formulario de inicio de sesión o de registro; la pantalla de acceso muestra uno de cada lado. */
 @Component({
   selector: 'app-formulario-acceso',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SelectorFecha,
     CampoClave,
     MensajeError,
     ReactiveFormsModule,
@@ -38,6 +39,7 @@ export class FormularioAcceso implements OnInit {
   readonly volver = input<string | undefined>();
   /** Plan sugerido desde la landing (?plan=Profesional). */
   readonly planInicial = input<string | undefined>();
+  readonly periodicidadInicial = input<string | undefined>();
 
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -145,7 +147,9 @@ export class FormularioAcceso implements OnInit {
         const destino = this.volver()?.startsWith('/') ? this.volver()! : this.auth.rutaInicio();
         if (this.registro() && esDePago(this.plan())) {
           // Eligió un plan de pago: pasa a ingresar la tarjeta (empieza en Personal hasta pagar).
-          void this.router.navigate(['/suscripcion'], { queryParams: { plan: this.plan() } });
+          void this.router.navigate(['/suscripcion'], {
+            queryParams: { plan: this.plan(), periodicidad: this.periodicidadInicial() === 'Anual' ? 'Anual' : null },
+          });
           return;
         }
         void this.router.navigateByUrl(this.registro() ? '/importar' : destino);

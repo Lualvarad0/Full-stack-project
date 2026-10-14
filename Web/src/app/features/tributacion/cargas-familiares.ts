@@ -3,15 +3,18 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CargaFamiliar, TributacionService } from '@core/contabilidad/services/tributacion.service';
 import { cedulaOPasaporteValido, cedulaOPasaporteValidator } from '@core/perfil';
+import { fechaIso } from '@core/utils';
+import { SelectorFecha } from '@shared/components';
 import { FechaCortaPipe } from '@shared/pipes';
 import { PaginaContable } from '../contabilidad/pagina-contable';
 @Component({
   selector: 'app-cargas-familiares',
-  imports: [ReactiveFormsModule, FechaCortaPipe],
+  imports: [ReactiveFormsModule, FechaCortaPipe, SelectorFecha],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './cargas-familiares.html',
 })
 export class CargasFamiliares extends PaginaContable {
+  protected readonly hoy = fechaIso(new Date());
   readonly cargas = input.required<CargaFamiliar[]>();
   readonly cambiado = output<void>();
   private readonly api = inject(TributacionService);

@@ -938,6 +938,10 @@ namespace Back.Data.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("categoria");
 
+                    b.Property<int?>("ComprobanteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("comprobante_id");
+
                     b.Property<DateTime>("CreadaEn")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("creada_en");
@@ -965,12 +969,41 @@ namespace Back.Data.Migrations
                         .HasColumnType("date")
                         .HasColumnName("pagada_el");
 
+                    b.Property<string>("Respaldo")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("respaldo");
+
+                    b.Property<int?>("TarjetaCreditoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("tarjeta_credito_id");
+
+                    b.Property<int?>("TrasladadaACuentaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("trasladada_a_cuenta_id");
+
+                    b.Property<int?>("TrasladadaDesdeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("trasladada_desde_id");
+
                     b.Property<int>("UsuarioId")
                         .HasColumnType("integer")
                         .HasColumnName("usuario_id");
 
                     b.HasKey("Id")
                         .HasName("pk_cuentas_personales");
+
+                    b.HasIndex("ComprobanteId")
+                        .HasDatabaseName("ix_cuentas_personales_comprobante_id");
+
+                    b.HasIndex("TarjetaCreditoId")
+                        .HasDatabaseName("ix_cuentas_personales_tarjeta_credito_id");
+
+                    b.HasIndex("TrasladadaACuentaId")
+                        .HasDatabaseName("ix_cuentas_personales_trasladada_a_cuenta_id");
+
+                    b.HasIndex("TrasladadaDesdeId")
+                        .HasDatabaseName("ix_cuentas_personales_trasladada_desde_id");
 
                     b.HasIndex("UsuarioId", "Anio", "Mes")
                         .HasDatabaseName("ix_cuentas_personales_usuario_id_anio_mes");
@@ -1095,6 +1128,76 @@ namespace Back.Data.Migrations
                         .HasDatabaseName("ix_detalles_factura_producto_id");
 
                     b.ToTable("detalles_factura", (string)null);
+                });
+
+            modelBuilder.Entity("Back.Models.EstadoCuentaTarjeta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creado_en");
+
+                    b.Property<int?>("CuentaPersonalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("cuenta_personal_id");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("estado");
+
+                    b.Property<DateOnly?>("FechaCorte")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_corte");
+
+                    b.Property<DateOnly?>("FechaMaximaPago")
+                        .HasColumnType("date")
+                        .HasColumnName("fecha_maxima_pago");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("origen");
+
+                    b.Property<decimal?>("PagoMinimo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("pago_minimo");
+
+                    b.Property<decimal?>("SaldoTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("saldo_total");
+
+                    b.Property<int>("TarjetaCreditoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("tarjeta_credito_id");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_estados_cuenta_tarjeta");
+
+                    b.HasIndex("CuentaPersonalId")
+                        .HasDatabaseName("ix_estados_cuenta_tarjeta_cuenta_personal_id");
+
+                    b.HasIndex("TarjetaCreditoId")
+                        .HasDatabaseName("ix_estados_cuenta_tarjeta_tarjeta_credito_id");
+
+                    b.HasIndex("UsuarioId", "Estado")
+                        .HasDatabaseName("ix_estados_cuenta_tarjeta_usuario_id_estado");
+
+                    b.ToTable("estados_cuenta_tarjeta", (string)null);
                 });
 
             modelBuilder.Entity("Back.Models.Factura", b =>
@@ -2584,6 +2687,66 @@ namespace Back.Data.Migrations
                     b.ToTable("suscripciones", (string)null);
                 });
 
+            modelBuilder.Entity("Back.Models.TarjetaCredito", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("alias");
+
+                    b.Property<string>("Banco")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("banco");
+
+                    b.Property<string>("Bin")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("bin");
+
+                    b.Property<DateTime>("CreadaEn")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creada_en");
+
+                    b.Property<string>("Marca")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("marca");
+
+                    b.Property<string>("Ultimos4")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("ultimos4");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("usuario_id");
+
+                    b.Property<bool>("Verificada")
+                        .HasColumnType("boolean")
+                        .HasColumnName("verificada");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tarjetas_credito");
+
+                    b.HasIndex("UsuarioId", "Bin", "Ultimos4")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tarjetas_credito_usuario_id_bin_ultimos4");
+
+                    b.ToTable("tarjetas_credito", (string)null);
+                });
+
             modelBuilder.Entity("Back.Models.TokenCuenta", b =>
                 {
                     b.Property<int>("Id")
@@ -3005,6 +3168,30 @@ namespace Back.Data.Migrations
 
             modelBuilder.Entity("Back.Models.CuentaPersonal", b =>
                 {
+                    b.HasOne("Back.Models.Comprobante", null)
+                        .WithMany()
+                        .HasForeignKey("ComprobanteId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_cuentas_personales_comprobantes_comprobante_id");
+
+                    b.HasOne("Back.Models.TarjetaCredito", null)
+                        .WithMany()
+                        .HasForeignKey("TarjetaCreditoId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_cuentas_personales_tarjetas_credito_tarjeta_credito_id");
+
+                    b.HasOne("Back.Models.CuentaPersonal", null)
+                        .WithMany()
+                        .HasForeignKey("TrasladadaACuentaId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_cuentas_personales_cuentas_personales_trasladada_a_cuenta_id");
+
+                    b.HasOne("Back.Models.CuentaPersonal", null)
+                        .WithMany()
+                        .HasForeignKey("TrasladadaDesdeId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_cuentas_personales_cuentas_personales_trasladada_desde_id");
+
                     b.HasOne("Back.Models.Usuario", null)
                         .WithMany()
                         .HasForeignKey("UsuarioId")
@@ -3042,6 +3229,29 @@ namespace Back.Data.Migrations
                     b.Navigation("Factura");
 
                     b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("Back.Models.EstadoCuentaTarjeta", b =>
+                {
+                    b.HasOne("Back.Models.CuentaPersonal", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaPersonalId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_estados_cuenta_tarjeta_cuentas_personales_cuenta_personal_id");
+
+                    b.HasOne("Back.Models.TarjetaCredito", null)
+                        .WithMany()
+                        .HasForeignKey("TarjetaCreditoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_estados_cuenta_tarjeta_tarjetas_credito_tarjeta_credito_id");
+
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_estados_cuenta_tarjeta_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.Factura", b =>
@@ -3350,6 +3560,16 @@ namespace Back.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_suscripciones_usuarios_usuario_id");
+                });
+
+            modelBuilder.Entity("Back.Models.TarjetaCredito", b =>
+                {
+                    b.HasOne("Back.Models.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tarjetas_credito_usuarios_usuario_id");
                 });
 
             modelBuilder.Entity("Back.Models.TokenCuenta", b =>

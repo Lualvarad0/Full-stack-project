@@ -60,7 +60,7 @@
   <section class="card mt-4 flex flex-wrap items-end gap-3 p-5">
     <div>
       <label for="fecha-vencimiento" class="field-label">Fecha de vencimiento</label
-      ><input id="fecha-vencimiento" type="date" class="input" [(ngModel)]="vencimiento" />
+      ><app-selector-fecha idCampo="fecha-vencimiento" [(ngModel)]="vencimiento" />
     </div>
     <button class="btn btn-secondary" [disabled]="ocupado()" (click)="guardarVencimiento()">
       Guardar vencimiento
@@ -91,7 +91,7 @@
       </div>
       <div>
         <label for="fecha-pago" class="field-label">Fecha</label
-        ><input class="input" id="fecha-pago" type="date" formControlName="fecha" />
+        ><app-selector-fecha idCampo="fecha-pago" formControlName="fecha" />
       </div>
       <div>
         <label for="importe-pago" class="field-label">Importe</label

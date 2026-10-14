@@ -39,7 +39,9 @@ public static class LimitesApi
                     ruta.StartsWithSegments("/api/contabilidad/exportaciones") || ruta.Value?.EndsWith("/importar", StringComparison.OrdinalIgnoreCase) == true ? "costosas" :
                     HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method) ? "lectura" :
                     ruta.StartsWithSegments("/api/comprobantes/importar") || ruta.StartsWithSegments("/api/facturacion/facturas") || ruta.StartsWithSegments("/api/facturacion/complementarios") || ruta.StartsWithSegments("/api/contabilidad/retenciones/importar") ||
-                    ruta.StartsWithSegments("/api/facturacion/firma") || ruta == "/api/suscripcion" ? "costosas" : "escritura";
+                    ruta.StartsWithSegments("/api/facturacion/firma") || ruta == "/api/suscripcion" ||
+                    // Verificar una tarjeta consulta a Kushki; leer un estado de cuenta abre y analiza un PDF.
+                    ruta == "/api/tarjetas" || ruta.Value?.EndsWith("/estado-cuenta", StringComparison.OrdinalIgnoreCase) == true ? "costosas" : "escritura";
                 var maximo = grupo switch { "acceso" => acceso, "webhooks" => webhooks, "lectura" => lectura, "costosas" => costosas, _ => escritura };
                 // El sujeto proviene exclusivamente del JWT validado, nunca de un header del cliente.
                 var sujeto = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "ip:" + context.Connection.RemoteIpAddress;

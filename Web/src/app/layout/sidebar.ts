@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import {
   LucideCalculator,
+  LucideCreditCard,
   LucideFileText,
   LucideFileUp,
   LucideHandCoins,
@@ -35,9 +36,11 @@ import { Credito, InsigniaPro, Marca } from '@shared/components';
     LucideHandCoins,
     LucideUsers,
     LucideWallet,
+    LucideCreditCard,
     LucideReceipt,
     LucideStore,
     LucideCalculator,
+  LucideCreditCard,
     LucideIdCard,
     LucideShieldUser,
     LucideSettings,

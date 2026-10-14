@@ -6,12 +6,16 @@ using MimeKit;
 namespace Back.Correo
 {
     /// <summary>Lo que importa de un correo entrante, sin importar el proveedor que lo entregó.</summary>
+    /// <summary>Pdfs: adjuntos PDF (posibles estados de cuenta de tarjetas); se leen en memoria y nunca se guardan.</summary>
     public record CorreoEntrante(
         IReadOnlyList<string> Destinatarios,
         string Remitente,
         string Asunto,
         IReadOnlyList<string> Xmls,
-        string Texto);
+        string Texto,
+        IReadOnlyList<AdjuntoPdf>? Pdfs = null);
+
+    public record AdjuntoPdf(string Nombre, byte[] Contenido);
 
     /// <summary>
     /// Convierte correos entrantes en <see cref="CorreoEntrante"/>: MIME crudo (Cloudflare Email Workers,
@@ -20,6 +24,10 @@ namespace Back.Correo
     public static partial class CorreoEntranteParser
     {
         public const long MaxBytesAdjunto = 5 * 1024 * 1024;
+        private const int MaxPdfs = 3;
+
+        private static bool EsPdf(string nombre, string? tipo) =>
+            nombre.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || tipo is "application/pdf";
 
         // Encabezados donde aparece la dirección real de entrega cuando el correo fue reenviado.
         private static readonly string[] EncabezadosDestino = { "Delivered-To", "X-Original-To", "X-Forwarded-To", "Envelope-To" };
@@ -35,6 +43,7 @@ namespace Back.Correo
                 .ToList();
 
             var xmls = new List<string>();
+            var pdfs = new List<AdjuntoPdf>();
             foreach (var adjunto in mensaje.Attachments.OfType<MimePart>())
             {
                 if (adjunto.Content is null) continue;
@@ -43,11 +52,12 @@ namespace Back.Correo
                 await adjunto.Content.DecodeToAsync(memoria, ct);
                 if (memoria.Length > MaxBytesAdjunto) continue;
                 xmls.AddRange(XmlDeArchivo(nombre, adjunto.ContentType.MimeType, memoria.ToArray()));
+                if (EsPdf(nombre, adjunto.ContentType.MimeType) && pdfs.Count < MaxPdfs) pdfs.Add(new AdjuntoPdf(nombre, memoria.ToArray()));
             }
 
             var texto = mensaje.TextBody ?? HtmlATexto(mensaje.HtmlBody);
             var remitente = mensaje.From.Mailboxes.FirstOrDefault()?.Address ?? string.Empty;
-            return new CorreoEntrante(destinatarios, remitente, mensaje.Subject ?? string.Empty, xmls, texto ?? string.Empty);
+            return new CorreoEntrante(destinatarios, remitente, mensaje.Subject ?? string.Empty, xmls, texto ?? string.Empty, pdfs);
         }
 
         /// <summary>Formulario multipart: campos de destinatario/remitente/asunto y archivos adjuntos.</summary>
@@ -62,12 +72,14 @@ namespace Back.Correo
 
             var destinatarios = destinatariosExtra.Concat(new[] { Campo("recipient", "to", "To") }).ToList();
             var xmls = new List<string>();
+            var pdfs = new List<AdjuntoPdf>();
             foreach (var archivo in form.Files)
             {
                 if (archivo.Length > MaxBytesAdjunto) continue;
                 using var memoria = new MemoryStream();
                 await archivo.CopyToAsync(memoria, ct);
                 xmls.AddRange(XmlDeArchivo(archivo.FileName, archivo.ContentType, memoria.ToArray()));
+                if (EsPdf(archivo.FileName, archivo.ContentType) && pdfs.Count < MaxPdfs) pdfs.Add(new AdjuntoPdf(archivo.FileName, memoria.ToArray()));
             }
 
             return new CorreoEntrante(
@@ -75,7 +87,8 @@ namespace Back.Correo
                 Campo("sender", "from", "From"),
                 Campo("subject", "Subject"),
                 xmls,
-                Campo("body-plain", "stripped-text", "text") is { Length: > 0 } t ? t : HtmlATexto(Campo("body-html", "html")));
+                Campo("body-plain", "stripped-text", "text") is { Length: > 0 } t ? t : HtmlATexto(Campo("body-html", "html")),
+                pdfs);
         }
 
         public static IEnumerable<string> XmlDeArchivo(string nombre, string? tipo, byte[] contenido)

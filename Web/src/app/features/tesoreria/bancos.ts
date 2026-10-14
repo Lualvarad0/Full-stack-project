@@ -22,12 +22,12 @@ import { TesoreriaService, hoyEcuador } from '@core/contabilidad/services/tesore
 import { cargar } from '@core/http';
 import { AvisosService } from '@core/ui';
 import { descargarArchivo } from '@core/utils';
-import { Titulo, ErrorCarga } from '@shared/components';
+import { Titulo, ErrorCarga, SelectorFecha } from '@shared/components';
 import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 import { PaginaContable } from '../contabilidad/pagina-contable';
 @Component({
   selector: 'app-bancos',
-  imports: [FormsModule, ReactiveFormsModule, Titulo, ErrorCarga, DineroPipe, FechaCortaPipe],
+  imports: [FormsModule, ReactiveFormsModule, SelectorFecha, Titulo, ErrorCarga, DineroPipe, FechaCortaPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bancos.html',
 })

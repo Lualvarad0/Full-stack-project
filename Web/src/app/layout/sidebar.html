@@ -33,6 +33,15 @@
         </a>
       </li>
       <li>
+        <a routerLink="/tarjetas" routerLinkActive="nav-activo" class="nav-item">
+          <svg lucideCreditCard class="size-5" aria-hidden="true"></svg>
+          <span class="flex-1">Mis tarjetas</span>
+          @if (!auth.esProfesional()) {
+            <app-insignia-pro />
+          }
+        </a>
+      </li>
+      <li>
         <a routerLink="/importar" routerLinkActive="nav-activo" class="nav-item">
           <svg lucideFileUp class="size-5" aria-hidden="true"></svg>
           <span class="flex-1">Traer facturas</span>

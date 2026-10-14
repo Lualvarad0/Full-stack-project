@@ -5,7 +5,7 @@ import { forkJoin } from 'rxjs';
 import { TributacionService } from '@core/contabilidad/services/tributacion.service';
 import { hoyEcuador } from '@core/contabilidad/services/tesoreria.service';
 import { cargar } from '@core/http';
-import { Titulo, ErrorCarga } from '@shared/components';
+import { Titulo, ErrorCarga, SelectorFecha } from '@shared/components';
 import { DineroPipe } from '@shared/pipes';
 import { PaginaContable } from '../contabilidad/pagina-contable';
 import { ParametrosIvaFormulario } from './parametros-iva';
@@ -14,6 +14,7 @@ import { RevisionFiscalDocumentos } from './revision-fiscal-documentos';
 @Component({
   selector: 'app-declaraciones',
   imports: [
+    SelectorFecha,
     FormsModule,
     RouterLink,
     Titulo,

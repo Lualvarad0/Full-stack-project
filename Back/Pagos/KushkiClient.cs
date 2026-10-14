@@ -27,6 +27,9 @@ namespace Back.Pagos
 
     public record ContactoKushki(string FirstName, string LastName, string Email);
 
+    /// <summary>Lo que Kushki dice de un BIN. Tipo: "credit" o "debit".</summary>
+    public record InfoBin(string Marca, string? Banco, string Tipo);
+
     /// <summary>Cliente de la API de suscripciones con tarjeta de Kushki (Ecuador).</summary>
     public class KushkiClient
     {
@@ -75,6 +78,30 @@ namespace Back.Pagos
             if (!respuesta.IsSuccessStatusCode && (int)respuesta.StatusCode != 404)
                 throw new BusinessException($"No se pudo cancelar en Kushki: {MensajeDeError(await respuesta.Content.ReadAsStringAsync(ct))}",
                     StatusCodes.Status502BadGateway);
+        }
+
+        /// <summary>
+        /// Banco emisor, marca y tipo ("credit"/"debit") de una tarjeta por su BIN (6 primeros dígitos), con la clave pública
+        /// (la misma consulta que hace el SDK del navegador). null si Kushki no reconoce el BIN.
+        /// </summary>
+        public async Task<InfoBin?> ConsultarBinAsync(string bin, CancellationToken ct)
+        {
+            if (string.IsNullOrEmpty(_options.ClavePublica))
+                throw new BusinessException("La verificación de tarjetas no está configurada en este servidor.", StatusCodes.Status503ServiceUnavailable);
+            using var solicitud = new HttpRequestMessage(HttpMethod.Get, $"{_options.UrlBase}/deferred/v2/bin/{Uri.EscapeDataString(bin)}");
+            solicitud.Headers.Add("Public-Merchant-Id", _options.ClavePublica);
+            using var respuesta = await _http.SendAsync(solicitud, ct);
+            if ((int)respuesta.StatusCode is 400 or 404) return null;
+            if (!respuesta.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Kushki respondió {Estado} al consultar un BIN", (int)respuesta.StatusCode);
+                throw new BusinessException("No pudimos verificar la tarjeta en este momento. Intenta de nuevo.", StatusCodes.Status502BadGateway);
+            }
+
+            using var documento = JsonDocument.Parse(await respuesta.Content.ReadAsStringAsync(ct));
+            string? Texto(string nombre) =>
+                documento.RootElement.TryGetProperty(nombre, out var v) && v.ValueKind == JsonValueKind.String && v.GetString() is { Length: > 0 } s ? s.Trim() : null;
+            return Texto("brand") is { } marca ? new InfoBin(marca, Texto("bank"), Texto("cardType") ?? "") : null;
         }
 
         /// <summary>

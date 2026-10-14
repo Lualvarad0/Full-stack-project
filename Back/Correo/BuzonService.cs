@@ -7,6 +7,7 @@ using Back.Interfaces;
 using Back.Models;
 using Back.Services;
 using Back.Sri;
+using Back.Tarjetas;
 
 namespace Back.Correo
 {
@@ -24,6 +25,7 @@ namespace Back.Correo
         private readonly ComprobanteService _comprobanteService;
         private readonly SenalCorreos _senal;
         private readonly AvisoService _avisos;
+        private readonly TarjetasService _tarjetas;
         private readonly IConfiguration _configuration;
         private readonly ILogger<BuzonService> _logger;
 
@@ -32,6 +34,7 @@ namespace Back.Correo
             ComprobanteService comprobanteService,
             SenalCorreos senal,
             AvisoService avisos,
+            TarjetasService tarjetas,
             IConfiguration configuration,
             ILogger<BuzonService> logger)
         {
@@ -39,6 +42,7 @@ namespace Back.Correo
             _comprobanteService = comprobanteService;
             _senal = senal;
             _avisos = avisos;
+            _tarjetas = tarjetas;
             _configuration = configuration;
             _logger = logger;
         }
@@ -103,7 +107,17 @@ namespace Back.Correo
             {
                 var contenido = string.Join("\n", correo.Xmls.Append(correo.Texto));
                 registro.ClavesEncontradas = ClaveAcceso.Extraer(contenido).Count;
-                if (registro.ClavesEncontradas == 0)
+                // Estados de cuenta de tarjetas (PDF): se leen ahora, en memoria; el PDF no se guarda.
+                var estados = correo.Pdfs is { Count: > 0 } pdfs
+                    ? await _tarjetas.RegistrarDesdeCorreoAsync(buzon.UsuarioId, pdfs, CancellationToken.None)
+                    : 0;
+                if (registro.ClavesEncontradas == 0 && estados > 0)
+                {
+                    registro.Estado = EstadoCorreo.Procesado;
+                    registro.Detalle = "Estado de cuenta de tu tarjeta listo para revisar en Tarjetas.";
+                    registro.ProcesadoEn = DateTime.UtcNow;
+                }
+                else if (registro.ClavesEncontradas == 0)
                 {
                     registro.Estado = EstadoCorreo.SinComprobantes;
                     registro.Detalle = "No trae XML ni claves de acceso de comprobantes electrónicos.";

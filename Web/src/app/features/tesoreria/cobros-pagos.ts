@@ -11,12 +11,13 @@ import { CarteraService } from '@core/contabilidad/services/cartera.service';
 import { TesoreriaService, hoyEcuador } from '@core/contabilidad/services/tesoreria.service';
 import { cargar } from '@core/http';
 import { AvisosService } from '@core/ui';
-import { Titulo, ErrorCarga } from '@shared/components';
+import { Titulo, ErrorCarga, SelectorFecha } from '@shared/components';
 import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
 import { PaginaContable } from '../contabilidad/pagina-contable';
 @Component({
   selector: 'app-cobros-pagos',
   imports: [
+    SelectorFecha,
     FormsModule,
     ReactiveFormsModule,
     RouterLink,
