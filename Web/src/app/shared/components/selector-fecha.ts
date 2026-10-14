@@ -200,7 +200,7 @@ type Vista = 'dias' | 'meses' | 'anios';
           </div>
           <div class="mt-2 flex items-center justify-between border-t border-border pt-2">
             <button type="button" class="btn btn-ghost min-h-8 px-2 text-sm" [disabled]="!hoyPermitido()"
-              (click)="elegir(hoy)">
+              (click)="elegir(hoy())">
               Hoy
             </button>
             @if (borrable() && valor()) {
@@ -260,8 +260,6 @@ export class SelectorFecha implements ControlValueAccessor {
   readonly compacto = input(false);
   /** Muestra "Borrar" para dejar el campo vacío (fechas opcionales). */
   readonly borrable = input(false);
-  /** Sin fecha elegida, empieza en la lista de años (fechas de nacimiento). */
-  readonly empezarEnAnios = input(false);
 
   private readonly injector = inject(Injector);
   private readonly boton = viewChild.required<ElementRef<HTMLButtonElement>>('boton');
@@ -274,7 +272,8 @@ export class SelectorFecha implements ControlValueAccessor {
 
   protected readonly diasSemana = DIAS_SEMANA;
   protected readonly meses = MESES.map((m, indice) => ({ indice, corto: capitalizar(m.slice(0, 3)) }));
-  protected readonly hoy = fechaIso(new Date());
+  /** Hoy en la zona horaria de quien ve la página; se renueva cada vez que se abre. */
+  protected readonly hoy = signal(fechaIso(new Date()));
   protected readonly panelClase = PANEL;
   protected readonly abierto = signal(false);
   protected readonly deshabilitado = signal(false);
@@ -282,7 +281,7 @@ export class SelectorFecha implements ControlValueAccessor {
   /** Primer día del mes que se está mostrando. */
   private readonly visible = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   /** Día con el foco del teclado (ISO). */
-  protected readonly foco = signal(this.hoy);
+  protected readonly foco = signal(this.hoy());
 
   protected readonly anioVisible = computed(() => this.visible().getFullYear());
   protected readonly mesVisible = computed(() => this.visible().getMonth());
@@ -315,14 +314,14 @@ export class SelectorFecha implements ControlValueAccessor {
         iso,
         dia: fecha.getDate(),
         fuera: fecha.getMonth() !== mes,
-        hoy: iso === this.hoy,
+        hoy: iso === this.hoy(),
         deshabilitado: !this.permitido(iso),
         etiqueta: `${DIAS_SEMANA_LARGOS[(fecha.getDay() + 6) % 7]}, ${fecha.getDate()} de ${MESES[fecha.getMonth()]} de ${fecha.getFullYear()}`,
       };
     });
   });
 
-  protected readonly hoyPermitido = computed(() => this.permitido(this.hoy));
+  protected readonly hoyPermitido = computed(() => this.permitido(this.hoy()));
 
   protected readonly anios = computed(() => {
     const actual = new Date().getFullYear();
@@ -347,14 +346,15 @@ export class SelectorFecha implements ControlValueAccessor {
       this.flotante.cerrar();
       return;
     }
-    const elegida = leerIso(this.valor());
-    const base = elegida ?? this.limitar(new Date());
+    // Sin fecha elegida se abre en el mes de hoy (hora local del navegador), aunque hoy quede fuera del rango.
+    const ahora = new Date();
+    this.hoy.set(fechaIso(ahora));
+    const base = leerIso(this.valor()) ?? ahora;
     this.visible.set(new Date(base.getFullYear(), base.getMonth(), 1));
     this.foco.set(fechaIso(base));
-    this.vista.set(!elegida && this.empezarEnAnios() ? 'anios' : 'dias');
+    this.vista.set('dias');
     this.flotante.abrir();
-    if (this.vista() === 'anios') this.mostrarAnioElegido();
-    else this.enfocarDia();
+    this.enfocarDia();
   }
 
   protected alCambiarPanel(estado: string): void {
@@ -457,16 +457,6 @@ export class SelectorFecha implements ControlValueAccessor {
     return (!min || iso >= min) && (!max || iso <= max);
   }
 
-  /** Hoy, o el límite más cercano si hoy queda fuera del rango permitido. */
-  private limitar(fecha: Date): Date {
-    const iso = fechaIso(fecha);
-    const max = this.max();
-    const min = this.min();
-    if (max && iso > max) return leerIso(max) ?? fecha;
-    if (min && iso < min) return leerIso(min) ?? fecha;
-    return fecha;
-  }
-
   private enfocarDia(): void {
     afterNextRender(
       () => {
@@ -481,7 +471,10 @@ export class SelectorFecha implements ControlValueAccessor {
   private mostrarAnioElegido(): void {
     afterNextRender(
       () => {
-        const anio = this.listaAnios()?.nativeElement.querySelector<HTMLElement>(`[data-anio="${this.anioVisible()}"]`);
+        // Si el año que se ve queda fuera del rango (hoy, en una fecha de nacimiento), se muestra el más cercano.
+        const anios = this.anios();
+        const cercano = Math.min(Math.max(this.anioVisible(), anios[0]), anios[anios.length - 1]);
+        const anio = this.listaAnios()?.nativeElement.querySelector<HTMLElement>(`[data-anio="${cercano}"]`);
         anio?.scrollIntoView({ block: 'center' });
         anio?.focus({ preventScroll: true });
         ubicarPanel(this.boton().nativeElement, this.panel().nativeElement);

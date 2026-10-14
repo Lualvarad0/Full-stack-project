@@ -116,7 +116,6 @@
           [idCampo]="id('nacimiento')"
           formControlName="fechaNacimiento"
           placeholder="Día, mes y año"
-          [empezarEnAnios]="true"
           [max]="fechaMaxima"
           min="1900-01-01"
           [invalido]="invalido('fechaNacimiento')"
@@ -159,7 +158,7 @@
       />
       @if (invalido('password')) {
         <p [id]="id('password-error')" class="field-error">
-          {{ registro() ? 'Usa al menos 8 caracteres.' : 'Escribe tu contraseña.' }}
+          {{ !registro() ? 'Escribe tu contraseña.' : conEspacios() ? 'La contraseña no puede tener espacios.' : 'Usa al menos 8 caracteres.' }}
         </p>
       }
 
@@ -184,6 +183,9 @@
           <p class="mt-2 text-xs text-muted-fg">
             Seguridad: <span class="font-medium text-fg">{{ etiquetaFuerza() }}</span>
           </p>
+          @if (conEspacios() && !invalido('password')) {
+            <p class="mt-1.5 text-xs font-medium text-danger">Quita los espacios: la contraseña no puede tenerlos.</p>
+          }
           <ul class="mt-1.5 grid grid-cols-2 gap-1 text-xs">
             @for (r of requisitos(); track r.texto) {
               <li

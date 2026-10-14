@@ -3,12 +3,12 @@ using System.Text;
 
 namespace Back.Seguridad;
 
-/// <summary>BCrypt solo procesa 72 bytes; impedir contraseñas truncadas silenciosamente.</summary>
+/// <summary>BCrypt solo procesa 72 bytes; impedir contraseñas truncadas silenciosamente. Tampoco se aceptan espacios.</summary>
 public sealed class ClaveCuentaAttribute : ValidationAttribute
 {
     public override bool IsValid(object? value) => value is string clave && clave.Length >= 8
-        && Encoding.UTF8.GetByteCount(clave) <= 72;
-    public override string FormatErrorMessage(string name) => "Usa al menos 8 caracteres y un máximo de 72 bytes para la contraseña.";
+        && Encoding.UTF8.GetByteCount(clave) <= 72 && !clave.Any(char.IsWhiteSpace);
+    public override string FormatErrorMessage(string name) => "Usa al menos 8 caracteres, sin espacios y con un máximo de 72 bytes para la contraseña.";
 }
 
 public sealed class ConfirmacionClaveAttribute : ValidationAttribute

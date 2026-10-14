@@ -1,0 +1,163 @@
+/* Ilustración del 404. Cada parte termina visible: sin animación (reducir movimiento) se ve completa. */
+.ilustracion {
+  overflow: visible;
+}
+
+.fondo {
+  fill: var(--primary-soft);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: respirar 6s ease-in-out infinite;
+}
+
+.cuatro path {
+  stroke: var(--fg);
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: aparecer-404 600ms ease-out both;
+}
+.cuatro path:last-child {
+  animation-delay: 150ms;
+}
+
+/* El hilo se dibuja y luego el nudo se mece como si alguien tirara de él. */
+.nudo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mecer-nudo 4s ease-in-out 1.8s infinite;
+}
+.hilo,
+.hilo-suelto {
+  stroke: var(--brand);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.hilo {
+  animation: dibujar 1.6s cubic-bezier(0.65, 0, 0.35, 1) 300ms both;
+}
+.hilo-suelto {
+  animation: dibujar 600ms ease-out 1.7s both;
+}
+
+/* La factura cuelga de la punta del hilo y se balancea. */
+.factura {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation:
+    aparecer-404 400ms ease-out 2.1s both,
+    balancear 3s ease-in-out 2.5s infinite;
+}
+.factura rect {
+  fill: var(--card);
+  stroke: var(--fg);
+  stroke-width: 2.5;
+}
+.factura path {
+  stroke: var(--muted-fg);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* La lupa recorre la escena buscando. */
+.lupa {
+  animation: buscar 7s ease-in-out 600ms infinite;
+  transform: translate(120px, 42px);
+}
+.lente {
+  fill: color-mix(in oklab, var(--card) 70%, transparent);
+  stroke: var(--primary);
+  stroke-width: 5;
+}
+.mango {
+  stroke: var(--primary);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.destello {
+  fill: var(--brand);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: titilar 2.4s ease-in-out infinite;
+}
+.d2 {
+  fill: var(--primary);
+  animation-delay: 0.8s;
+}
+.d3 {
+  animation-delay: 1.6s;
+}
+
+@keyframes respirar {
+  50% {
+    transform: scale(1.04);
+  }
+}
+@keyframes aparecer-404 {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes dibujar {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes mecer-nudo {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-7deg) scale(1.03);
+  }
+  60% {
+    transform: rotate(5deg) scale(0.98);
+  }
+}
+@keyframes balancear {
+  0%,
+  100% {
+    transform: rotate(7deg);
+  }
+  50% {
+    transform: rotate(-7deg);
+  }
+}
+@keyframes buscar {
+  0%,
+  100% {
+    transform: translate(120px, 42px) rotate(0);
+  }
+  30% {
+    transform: translate(52px, 196px) rotate(-12deg);
+  }
+  55% {
+    transform: translate(196px, 214px) rotate(6deg);
+  }
+  80% {
+    transform: translate(236px, 30px) rotate(10deg);
+  }
+}
+@keyframes titilar {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ilustracion * {
+    animation: none !important;
+  }
+}

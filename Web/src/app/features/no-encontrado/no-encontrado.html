@@ -1,0 +1,94 @@
+<main class="relative flex min-h-dvh flex-col bg-bg px-4 py-6 text-fg sm:px-8">
+  <a [routerLink]="inicio()" class="self-start" aria-label="Ir al inicio de Nudo">
+    <app-marca [tamano]="28" />
+  </a>
+
+  <section class="mx-auto my-auto flex w-full max-w-xl flex-col items-center py-10 text-center">
+    <svg
+      class="ilustracion w-full max-w-md"
+      viewBox="0 0 360 250"
+      fill="none"
+      role="img"
+      aria-label="Un hilo enredado forma el cero de 404 mientras una lupa busca una factura perdida"
+    >
+      <!-- Fondo suave que respira -->
+      <ellipse class="fondo" cx="180" cy="128" rx="168" ry="100" />
+      <!-- Destellos -->
+      <g class="destellos">
+        <path class="destello d1" d="M38 40l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" />
+        <path class="destello d2" d="M326 66l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" />
+        <path class="destello d3" d="M300 212l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" />
+      </g>
+
+      <!-- Los dos "4" -->
+      <g class="cuatro">
+        <path d="M78 74 46 142h66M94 74v104" />
+        <path d="M282 74l-32 68h66M298 74v104" />
+      </g>
+
+      <!-- El "0": un hilo enredado (un nudo) con la punta suelta hacia la factura -->
+      <g class="nudo">
+        <path
+          class="hilo"
+          pathLength="1"
+          d="M180 70c-34 0-50 24-50 56s20 54 50 54 50-22 50-54-18-46-44-46-40 20-40 44 16 38 36 38 34-14 34-36-12-32-30-32-26 12-26 30 10 24 24 24 22-8 22-22-8-18-18-18"
+        />
+      </g>
+      <path class="hilo-suelto" pathLength="1" d="M230 128c22 34 18 60 52 74" />
+
+      <!-- Factura perdida que se balancea en la punta del hilo -->
+      <g class="factura">
+        <rect x="266" y="200" width="34" height="42" rx="5" />
+        <path d="M273 213h20M273 221h20M273 229h12" />
+      </g>
+
+      <!-- Lupa que busca -->
+      <g class="lupa">
+        <circle cx="0" cy="0" r="17" class="lente" />
+        <path d="M12 12l14 14" class="mango" />
+      </g>
+    </svg>
+
+    <p class="pildora mt-6 bg-brand/15 px-3 text-brand">Error 404</p>
+    <h1 class="titular mt-4 text-4xl text-balance sm:text-6xl">
+      Esta página se nos <em class="text-brand italic">enredó</em>
+    </h1>
+    <p class="mt-4 max-w-md text-muted-fg text-pretty">
+      La página que buscas no existe o cambió de lugar. Te ayudamos a retomar el hilo.
+    </p>
+    @if (ruta && ruta !== '/') {
+      <p class="mt-3 max-w-full truncate rounded-lg bg-muted px-3 py-1 font-mono text-xs text-muted-fg">
+        {{ ruta }}
+      </p>
+    }
+
+    <div class="mt-7 flex flex-wrap justify-center gap-3">
+      <a [routerLink]="inicio()" class="btn btn-primary">
+        <svg lucideHouse class="size-4" aria-hidden="true"></svg>
+        Ir al inicio
+      </a>
+      @if (puedeVolver) {
+        <button type="button" class="btn btn-secondary" (click)="volver()">
+          <svg lucideArrowLeft class="size-4" aria-hidden="true"></svg>
+          Volver atrás
+        </button>
+      }
+    </div>
+
+    <nav class="mt-8 text-sm" aria-label="Sugerencias">
+      <p class="text-xs text-muted-fg">Quizás buscabas:</p>
+      <ul class="mt-2 flex flex-wrap justify-center gap-x-5 gap-y-1">
+        @for (s of sugerencias(); track s.texto) {
+          <li>
+            <a
+              [routerLink]="s.ruta"
+              [fragment]="s.fragmento"
+              class="font-medium text-fg underline-offset-4 hover:text-primary hover:underline"
+              >{{ s.texto }}</a
+            >
+          </li>
+        }
+      </ul>
+    </nav>
+  </section>
+</main>

@@ -1,5 +1,5 @@
 import { haceAnios, mayorDeEdad } from './validators/registro.validator';
-import { claveCuenta } from './validators/clave.validator';
+import { claveCuenta, tieneEspacios } from './validators/clave.validator';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,7 +15,7 @@ import { Router, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { LucideCircleCheck, LucideLoader } from '@lucide/angular';
 import { AVISO_LANZAMIENTO, esDePago, esPlan, PLANES, PlanSuscripcion } from '@core/suscripcion';
-import { ModoAcceso, AuthService } from '@core/auth';
+import { ModoAcceso, AuthService, rutaInterna } from '@core/auth';
 import { mensajeDeError } from '@core/http';
 import { CampoClave, MensajeError, SelectorFecha } from '@shared/components';
 /** Formulario de inicio de sesión o de registro; la pantalla de acceso muestra uno de cada lado. */
@@ -77,10 +77,14 @@ export class FormularioAcceso implements OnInit {
       { texto: '8 caracteres o más', ok: c.length >= 8 },
       { texto: 'Una mayúscula', ok: /[A-ZÁÉÍÓÚÑ]/.test(c) },
       { texto: 'Un número', ok: /\d/.test(c) },
-      { texto: 'Un símbolo', ok: /[^A-Za-z0-9ÁÉÍÓÚÑáéíóúñ]/.test(c) },
+      { texto: 'Un símbolo', ok: /[^\sA-Za-z0-9ÁÉÍÓÚÑáéíóúñ]/.test(c) },
     ];
   });
-  protected readonly fuerza = computed(() => this.requisitos().filter((r) => r.ok).length);
+  protected readonly conEspacios = computed(() => tieneEspacios(this.clave()));
+  /** Con espacios la contraseña no es válida, así que no suma seguridad. */
+  protected readonly fuerza = computed(() =>
+    this.conEspacios() ? 0 : this.requisitos().filter((r) => r.ok).length,
+  );
   protected readonly etiquetaFuerza = computed(
     () => ['Muy débil', 'Débil', 'Aceptable', 'Buena', 'Fuerte'][this.fuerza()],
   );
@@ -144,7 +148,8 @@ export class FormularioAcceso implements OnInit {
     this.enviando.set(true);
     peticion.subscribe({
       next: () => {
-        const destino = this.volver()?.startsWith('/') ? this.volver()! : this.auth.rutaInicio();
+        const volver = this.volver();
+        const destino = rutaInterna(volver) ? volver : this.auth.rutaInicio();
         if (this.registro() && esDePago(this.plan())) {
           // Eligió un plan de pago: pasa a ingresar la tarjeta (empieza en Personal hasta pagar).
           void this.router.navigate(['/suscripcion'], {

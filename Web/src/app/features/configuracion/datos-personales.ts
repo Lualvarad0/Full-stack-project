@@ -70,7 +70,7 @@ function fechaMaxima(): string {
           </div>
           <div>
             <label class="field-label" for="dp-nacimiento">Fecha de nacimiento</label>
-            <app-selector-fecha idCampo="dp-nacimiento" formControlName="fechaNacimiento" [empezarEnAnios]="true"
+            <app-selector-fecha idCampo="dp-nacimiento" formControlName="fechaNacimiento"
               [max]="maxNacimiento" min="1900-01-01" [invalido]="invalido('fechaNacimiento')" />
           </div>
           <div>
