@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from '@core/admin';
-import { authGuard, invitadoGuard } from '@core/auth';
+import { authGuard, idValidoGuard, invitadoGuard } from '@core/auth';
 import { inicioPorPlanGuard, planProfesionalGuard } from '@core/suscripcion';
 export const routes: Routes = [
   { path: 'recuperar-clave', title: 'Recuperar contraseña · Nudo', loadComponent: () => import('./features/auth/recuperar-clave').then(m => m.RecuperarClave) },
@@ -40,7 +40,7 @@ export const routes: Routes = [
       { path: 'retenciones', title: 'Retenciones · Nudo', canActivate: [planProfesionalGuard], loadComponent: () => import('./features/contabilidad/retenciones').then(m => m.RetencionesPagina) },
       { path: 'cobros-pagos', title: 'Cobros y pagos · Nudo', canActivate: [planProfesionalGuard], loadComponent: () => import('./features/tesoreria/cobros-pagos').then(m => m.CobrosPagosPagina) },
       { path: 'bancos', title: 'Bancos · Nudo', canActivate: [planProfesionalGuard], loadComponent: () => import('./features/tesoreria/bancos').then(m => m.BancosPagina) },
-      { path: 'facturacion/nota-credito/:facturaId', title: 'Nota de crédito · Nudo', canActivate: [planProfesionalGuard], loadComponent: () => import('./features/facturacion/nueva-nota-credito').then(m => m.NuevaNotaCredito) },
+      { path: 'facturacion/nota-credito/:facturaId', title: 'Nota de crédito · Nudo', canActivate: [planProfesionalGuard, idValidoGuard('facturaId')], loadComponent: () => import('./features/facturacion/nueva-nota-credito').then(m => m.NuevaNotaCredito) },
       { path: 'facturacion/retencion/nueva', title: 'Emitir retención · Nudo', canActivate: [planProfesionalGuard], loadComponent: () => import('./features/facturacion/nueva-retencion').then(m => m.NuevaRetencion) },
       {
         path: 'resumen',
@@ -81,6 +81,7 @@ export const routes: Routes = [
       {
         path: 'comprobantes/:id',
         title: 'Comprobante · Nudo',
+        canActivate: [planProfesionalGuard, idValidoGuard()],
         loadComponent: () =>
           import('./features/comprobante/comprobante').then((m) => m.ComprobantePagina),
       },
@@ -137,11 +138,16 @@ export const routes: Routes = [
       {
         path: 'facturacion/:id',
         title: 'Factura · Nudo',
-        canActivate: [planProfesionalGuard],
+        canActivate: [planProfesionalGuard, idValidoGuard()],
         loadComponent: () =>
           import('./features/facturacion/factura-detalle').then((m) => m.FacturaDetalle),
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  {
+    // Cualquier dirección que no existe: página 404 (la URL se conserva para que se vea qué se escribió).
+    path: '**',
+    title: 'Página no encontrada · Nudo',
+    loadComponent: () => import('./features/no-encontrado/no-encontrado').then((m) => m.NoEncontrado),
+  },
 ];
