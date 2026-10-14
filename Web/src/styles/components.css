@@ -87,6 +87,29 @@
   .money {
     @apply tabular-nums;
   }
+
+  /* Calendario de app-selector-fecha y app-selector-dia. */
+  .encabezado-calendario {
+    @apply inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-lg px-2 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring;
+  }
+  .flecha-calendario {
+    @apply grid size-9 cursor-pointer place-items-center rounded-lg text-muted-fg transition-colors hover:bg-muted hover:text-fg focus-visible:outline-2 focus-visible:outline-ring;
+  }
+  .dia-calendario {
+    @apply grid aspect-square min-h-9 cursor-pointer place-items-center rounded-lg text-sm tabular-nums transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:text-muted-fg/40 disabled:hover:bg-transparent;
+  }
+  .celda-calendario {
+    @apply min-h-10 cursor-pointer rounded-lg text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:text-muted-fg/40 disabled:hover:bg-transparent;
+  }
+  .dia-fuera {
+    @apply text-muted-fg/60;
+  }
+  .dia-hoy {
+    @apply font-semibold text-primary ring-1 ring-primary/40 ring-inset;
+  }
+  .dia-elegido {
+    @apply bg-primary font-semibold text-primary-fg ring-0 hover:bg-primary;
+  }
 }
 
 @layer components {
