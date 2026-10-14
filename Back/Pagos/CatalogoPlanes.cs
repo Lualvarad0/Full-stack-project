@@ -6,7 +6,7 @@ namespace Back.Pagos
     public record PrecioPlan(PlanSuscripcion Plan, Periodicidad Periodicidad, decimal Subtotal, decimal Iva, decimal Total);
 
     /// <summary>
-    /// Precios de Nudo (fuente única: el frontend los pide a la API). El plan anual cuesta 10 meses.
+    /// Precios de Nudo (fuente única: el frontend los pide a la API). El plan anual cuesta 11 meses.
     /// </summary>
     public static class CatalogoPlanes
     {
@@ -15,10 +15,10 @@ namespace Back.Pagos
 
         private static readonly Dictionary<(PlanSuscripcion, Periodicidad), decimal> Subtotales = new()
         {
-            [(PlanSuscripcion.Profesional, Periodicidad.Mensual)] = 9.99m,
-            [(PlanSuscripcion.Profesional, Periodicidad.Anual)] = 99.00m,
+            [(PlanSuscripcion.Profesional, Periodicidad.Mensual)] = 12.00m,
+            [(PlanSuscripcion.Profesional, Periodicidad.Anual)] = 132.00m,
             [(PlanSuscripcion.Contadores, Periodicidad.Mensual)] = 49.00m,
-            [(PlanSuscripcion.Contadores, Periodicidad.Anual)] = 490.00m,
+            [(PlanSuscripcion.Contadores, Periodicidad.Anual)] = 539.00m,
         };
 
         public static IEnumerable<PrecioPlan> Todos() => Subtotales.Keys.Select(k => Precio(k.Item1, k.Item2));

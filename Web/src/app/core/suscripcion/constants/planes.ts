@@ -29,10 +29,10 @@ export const PLANES: readonly Plan[] = [
   {
     id: 'Profesional',
     nombre: 'Profesional',
-    precio: '$9,99',
+    precio: '$12',
     periodo: '/mes + IVA',
-    precioAnual: '$99',
-    equivalenteMensual: '$8,25',
+    precioAnual: '$132',
+    equivalenteMensual: '$11',
     descripcion: 'Para quien factura con su RUC.',
     destacado: true,
     cta: `Probar ${DIAS_PRUEBA} días gratis`,
@@ -55,8 +55,8 @@ export const PLANES: readonly Plan[] = [
     nombre: 'Contadores',
     precio: '$49',
     periodo: '/mes + IVA',
-    precioAnual: '$490',
-    equivalenteMensual: '$40,83',
+    precioAnual: '$539',
+    equivalenteMensual: '$44,92',
     descripcion: 'Para contadores y estudios contables: hasta 15 RUC.',
     destacado: false,
     cta: `Probar ${DIAS_PRUEBA} días gratis`,
@@ -77,7 +77,7 @@ export const PLANES: readonly Plan[] = [
 ];
 
 /** Mensaje común de los planes de pago (la tarjeta se cobra al terminar la prueba). */
-export const AVISO_LANZAMIENTO = `Los planes de pago incluyen ${DIAS_PRUEBA} días gratis: no se cobra nada hasta que terminen y puedes cancelar cuando quieras. Pagando el año te regalamos 2 meses.`;
+export const AVISO_LANZAMIENTO = `Los planes de pago incluyen ${DIAS_PRUEBA} días gratis: no se cobra nada hasta que terminen y puedes cancelar cuando quieras. Pagando el año, un mes te sale gratis.`;
 
 export function esPlan(valor: string | null | undefined): valor is PlanSuscripcion {
   return PLANES.some((p) => p.id === valor);

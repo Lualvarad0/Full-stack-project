@@ -88,7 +88,7 @@ export class SuscripcionPagina implements OnInit {
   protected readonly planesDePago = PLANES.filter((p) => p.id !== 'Personal');
   protected readonly periodos = [
     { valor: 'Mensual', etiqueta: 'Mensual' },
-    { valor: 'Anual', etiqueta: 'Anual · 2 meses gratis' },
+    { valor: 'Anual', etiqueta: 'Anual · 1 mes gratis' },
   ] as const;
 
   protected readonly cargando = signal(true);
