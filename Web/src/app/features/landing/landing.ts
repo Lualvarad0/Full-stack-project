@@ -1,6 +1,6 @@
 import { PlanesLanding } from './planes';
 import { PreguntasLanding } from './preguntas';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   LucideArrowRight,
@@ -10,13 +10,14 @@ import {
   LucideHandCoins,
   LucideLock,
   LucideMail,
+  LucideMenu,
   LucideScale,
   LucideShieldCheck,
   LucideLandmark,
   LucideFileText,
-  LucideSparkles,
   LucideUsers,
   LucideWallet,
+  LucideX,
 } from '@lucide/angular';
 import { CANASTA_ENERO, calcularTope } from '@core/perfil';
 import { NOMBRE_APP } from '@core/ui';
@@ -38,7 +39,6 @@ import { FlujoFacturas } from './flujo-facturas';
     DemoPanel,
     FlujoFacturas,
     DineroPipe,
-    LucideSparkles,
     LucideArrowRight,
     LucideMail,
     LucideHandCoins,
@@ -52,12 +52,16 @@ import { FlujoFacturas } from './flujo-facturas';
     LucideUsers,
     LucideShieldCheck,
     LucideLock,
+    LucideMenu,
+    LucideX,
   ],
   templateUrl: './landing.html',
 })
 export class Landing {
   protected readonly nombre = NOMBRE_APP;
   protected readonly anio = new Date().getFullYear();
+  /** Menú a pantalla completa en móvil. */
+  protected readonly menuAbierto = signal(false);
 
   /** Tope real del año en curso (canasta de enero del INEC), si ya está registrado. */
   protected readonly tope = calcularTope(
