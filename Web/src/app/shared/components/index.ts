@@ -13,5 +13,6 @@ export * from './graficos';
 export * from './marca';
 export * from './mensaje-error';
 export * from './plan-tarjeta';
+export * from './selector-fecha';
 export * from './uso-plan';
 export * from './zona-archivos';

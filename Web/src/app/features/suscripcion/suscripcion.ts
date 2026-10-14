@@ -59,6 +59,8 @@ import { DineroPipe } from '@shared/pipes';
 export class SuscripcionPagina implements OnInit {
   /** Query param ?plan= (desde el registro o la landing). */
   readonly planInicial = input<string | undefined>(undefined, { alias: 'plan' });
+  /** Query param ?periodicidad=Anual (desde los planes de la landing). */
+  readonly periodicidadInicial = input<string | undefined>(undefined, { alias: 'periodicidad' });
   /** Sección que el usuario intentó abrir sin el plan Profesional (?motivo=ingresos). */
   readonly motivo = input<string | undefined>();
   protected readonly mensajeMotivo = computed(
@@ -132,6 +134,7 @@ export class SuscripcionPagina implements OnInit {
   ngOnInit(): void {
     const sugerido = this.planInicial();
     if (esPlan(sugerido) && sugerido !== 'Personal') this.plan.set(sugerido);
+    if (this.periodicidadInicial() === 'Anual') this.periodicidad.set('Anual');
   }
 
   protected subtotalDe(c: CatalogoPagos, plan: PlanSuscripcion): number {

@@ -111,16 +111,16 @@
       </div>
       <div>
         <label class="field-label" [attr.for]="id('nacimiento')">Fecha de nacimiento</label>
-        <input
-          [id]="id('nacimiento')"
-          type="date"
-          class="input min-h-11"
+        <app-selector-fecha
+          class="[&>button]:min-h-11"
+          [idCampo]="id('nacimiento')"
           formControlName="fechaNacimiento"
-          autocomplete="bday"
+          placeholder="Día, mes y año"
+          [empezarEnAnios]="true"
           [max]="fechaMaxima"
           min="1900-01-01"
-          [attr.aria-invalid]="invalido('fechaNacimiento')"
-          [attr.aria-describedby]="id('nacimiento-error')"
+          [invalido]="invalido('fechaNacimiento')"
+          [describedby]="id('nacimiento-error')"
         />
         @if (invalido('fechaNacimiento')) {
           <p [id]="id('nacimiento-error')" class="field-error">

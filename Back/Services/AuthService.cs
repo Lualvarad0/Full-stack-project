@@ -31,11 +31,7 @@ namespace Back.Services
             if (await _usuarioRepository.GetByCorreoAsync(correo) is not null)
                 throw BusinessException.Conflict("Ya existe una cuenta con ese correo.");
 
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5));
-            if (request.FechaNacimiento > hoy.AddYears(-18))
-                throw new BusinessException("Debes ser mayor de edad para crear una cuenta.");
-            if (request.FechaNacimiento < new DateOnly(1900, 1, 1))
-                throw new BusinessException("Revisa tu fecha de nacimiento.");
+            EdadMinima.Validar(request.FechaNacimiento);
 
             var usuario = new Usuario
             {
@@ -63,6 +59,9 @@ namespace Back.Services
                 throw new BusinessException("Correo o contraseña incorrectos.", StatusCodes.Status401Unauthorized);
             if (!usuario.Activo)
                 throw new BusinessException("Tu cuenta está suspendida. Escríbenos para revisarla.", StatusCodes.Status403Forbidden);
+            // Cuentas antiguas sin fecha entran, pero la app les pide completarla antes de seguir (UsuarioDto.FaltaFechaNacimiento).
+            if (usuario.FechaNacimiento is { } nacimiento && !EdadMinima.EsMayorDeEdad(nacimiento))
+                throw new BusinessException(EdadMinima.Mensaje, StatusCodes.Status403Forbidden);
 
             usuario.UltimoIngresoEn = DateTime.UtcNow;
             await _usuarioRepository.UpdateAsync(usuario);

@@ -15,9 +15,7 @@ public class CuentaUsuarioService(AppDbContext db, AvisoService avisos)
 
     public async Task<DatosPersonalesActualizadosDto> ActualizarDatosAsync(int usuarioId, DatosPersonalesRequest r, CancellationToken ct)
     {
-        var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-5));
-        if (r.FechaNacimiento > hoy.AddYears(-18)) throw new BusinessException("Debes ser mayor de edad para usar Nudo.");
-        if (r.FechaNacimiento < new DateOnly(1900, 1, 1)) throw new BusinessException("Revisa tu fecha de nacimiento.");
+        EdadMinima.Validar(r.FechaNacimiento);
 
         var u = await UsuarioAsync(usuarioId, ct);
         u.Nombre = r.Nombre.Trim();
@@ -31,6 +29,17 @@ public class CuentaUsuarioService(AppDbContext db, AvisoService avisos)
         await avisos.NotificarAsync(u.Id, TipoAviso.PerfilActualizado, "Datos personales actualizados",
             "Se cambiaron tus datos personales (nombre, contacto o dirección).");
         return new DatosPersonalesActualizadosDto(DatosPersonalesDto.From(u), UsuarioDto.From(u));
+    }
+
+    /// <summary>Cuentas creadas antes de pedir la fecha de nacimiento: la completan una vez (y solo si son mayores de edad).</summary>
+    public async Task<UsuarioDto> CompletarFechaNacimientoAsync(int usuarioId, DateOnly fechaNacimiento, CancellationToken ct)
+    {
+        EdadMinima.Validar(fechaNacimiento);
+        var u = await UsuarioAsync(usuarioId, ct);
+        if (u.FechaNacimiento is not null) throw new BusinessException("Tu fecha de nacimiento ya está registrada; cámbiala en Mi perfil.");
+        u.FechaNacimiento = fechaNacimiento;
+        await db.SaveChangesAsync(ct);
+        return UsuarioDto.From(u);
     }
 
     public async Task<ConfiguracionSistemaDto> ConfiguracionAsync(int usuarioId, CancellationToken ct) =>

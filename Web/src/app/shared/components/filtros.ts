@@ -3,10 +3,11 @@ import { LucideCalendarRange, LucideSlidersHorizontal, LucideX } from '@lucide/a
 import { FILTRO_VACIO, FiltroRango } from '@core/comprobantes';
 import { fechaIso } from '@core/utils';
 import { Segmentado } from './controles';
+import { SelectorFecha } from './selector-fecha';
 @Component({
   selector: 'app-filtros',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Segmentado, LucideSlidersHorizontal, LucideCalendarRange, LucideX],
+  imports: [Segmentado, SelectorFecha, LucideSlidersHorizontal, LucideCalendarRange, LucideX],
   template: `
     <button
       type="button"
@@ -41,22 +42,22 @@ import { Segmentado } from './controles';
               <div class="mt-3 grid grid-cols-2 gap-3">
                 <label class="text-sm">
                   <span class="mb-1 block text-muted-fg">Desde</span>
-                  <input
-                    type="date"
-                    class="input"
-                    [value]="valor().desde"
+                  <app-selector-fecha
+                    etiqueta="Desde"
+                    [borrable]="true"
+                    [valor]="valor().desde"
                     [max]="valor().hasta || null"
-                    (change)="cambiar({ desde: $any($event.target).value })"
+                    (valorChange)="cambiar({ desde: $event })"
                   />
                 </label>
                 <label class="text-sm">
                   <span class="mb-1 block text-muted-fg">Hasta</span>
-                  <input
-                    type="date"
-                    class="input"
-                    [value]="valor().hasta"
+                  <app-selector-fecha
+                    etiqueta="Hasta"
+                    [borrable]="true"
+                    [valor]="valor().hasta"
                     [min]="valor().desde || null"
-                    (change)="cambiar({ hasta: $any($event.target).value })"
+                    (valorChange)="cambiar({ hasta: $event })"
                   />
                 </label>
               </div>

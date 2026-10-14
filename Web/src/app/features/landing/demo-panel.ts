@@ -1,5 +1,16 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Contador } from './contador';
-import { BASE, CATEGORIAS, INICIALES, PASOS, POR_LLEGAR, RECORRIDO, TOPE } from './demo-datos';
+import {
+  CUENTAS,
+  EVOLUCION,
+  INGRESO_MENSUAL,
+  INICIALES,
+  MES,
+  PASOS,
+  POR_LLEGAR,
+  RECORRIDO,
+  TOPE,
+} from './demo-datos';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -12,40 +23,67 @@ import {
   viewChild,
 } from '@angular/core';
 import {
-  LucideBell,
+  LucideCheck,
+  LucideChevronLeft,
+  LucideChevronRight,
   LucideCircleCheck,
+  LucideCopy,
+  LucideFileText,
+  LucideFileUp,
   LucideHandCoins,
   LucideInbox,
   LucideLayoutDashboard,
   LucideLoaderCircle,
+  LucideMail,
+  LucideMoon,
   LucideMousePointer2,
   LucideReceipt,
+  LucideScale,
   LucideSearch,
+  LucideStore,
+  LucideUndo2,
+  LucideUsers,
+  LucideWallet,
 } from '@lucide/angular';
+import { categoria, CATEGORIAS, CategoriaGasto } from '@core/comprobantes';
+import { CATEGORIAS_CUENTA, CategoriaCuenta } from '@core/cuentas';
 import { MONEDA } from '@core/utils';
-import {
-  CategoriaDemo,
-  LlegadaDemo,
-  MovimientoDemo,
-  VistaDemo,
-} from '@features/landing/models/landing.model';
+import { Marca } from '@shared/components';
+import { CuentaDemo, LlegadaDemo, MovimientoDemo, VistaDemo } from '@features/landing/models/landing.model';
+
+const IVA = 0.15;
+
 /**
- * Demo interactiva del panel para la landing: se puede navegar con clics, las facturas
- * "llegan" solas al buzón y, si nadie la toca, un cursor la recorre por su cuenta.
- * Todos los datos son ilustrativos.
+ * Demo interactiva para la landing: reproduce las pantallas reales de la app (Resumen, Mis cuentas,
+ * Traer facturas, Ingresos y Gastos) con sus mismos textos, categorías y colores. Las facturas "llegan"
+ * solas al buzón y, si nadie la toca, un cursor la recorre por su cuenta. Todos los datos son ilustrativos.
  */
 @Component({
   selector: 'app-demo-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    NgTemplateOutlet,
     Contador,
-    LucideSearch,
-    LucideBell,
-    LucideCircleCheck,
+    Marca,
     LucideLayoutDashboard,
-    LucideReceipt,
+    LucideWallet,
+    LucideFileUp,
+    LucideFileText,
     LucideHandCoins,
+    LucideUsers,
+    LucideReceipt,
+    LucideStore,
+    LucideChevronLeft,
+    LucideChevronRight,
+    LucideMoon,
+    LucideMail,
+    LucideScale,
     LucideInbox,
+    LucideCopy,
+    LucideSearch,
+    LucideCheck,
+    LucideUndo2,
+    LucideCircleCheck,
     LucideMousePointer2,
     LucideLoaderCircle,
   ],
@@ -54,75 +92,110 @@ import {
 })
 export class DemoPanel {
   private readonly marco = viewChild.required<ElementRef<HTMLElement>>('marco');
+  private readonly contenido = viewChild.required<ElementRef<HTMLElement>>('contenido');
 
-  protected readonly secciones: { vista: VistaDemo; nombre: string }[] = [
-    { vista: 'resumen', nombre: 'Resumen' },
-    { vista: 'gastos', nombre: 'Gastos' },
-    { vista: 'ingresos', nombre: 'Ingresos' },
-    { vista: 'buzon', nombre: 'Buzón' },
-  ];
+  protected readonly mes = MES;
   protected readonly pasos = PASOS;
-  protected readonly filtrosGasto: ('Todas' | CategoriaDemo)[] = ['Todas', ...CATEGORIAS];
+  protected readonly tope = TOPE;
+  protected readonly ingresoMensual = INGRESO_MENSUAL;
+  /** Mismas secciones y nombres que el menú de la app; las que no tienen vista en la demo no son clicables. */
+  protected readonly menu: { grupo: string | null; items: { vista: VistaDemo | null; nombre: string; icono: string }[] }[] = [
+    {
+      grupo: null,
+      items: [
+        { vista: 'resumen', nombre: 'Resumen', icono: 'resumen' },
+        { vista: 'cuentas', nombre: 'Mis cuentas', icono: 'cuentas' },
+        { vista: 'importar', nombre: 'Traer facturas', icono: 'importar' },
+      ],
+    },
+    {
+      grupo: 'Lo que facturas',
+      items: [
+        { vista: null, nombre: 'Emitir facturas', icono: 'factura' },
+        { vista: 'ingresos', nombre: 'Ingresos', icono: 'ingresos' },
+        { vista: null, nombre: 'Clientes', icono: 'clientes' },
+      ],
+    },
+    {
+      grupo: 'Gastos con facturas',
+      items: [
+        { vista: 'gastos', nombre: 'Gastos', icono: 'gastos' },
+        { vista: null, nombre: 'Proveedores', icono: 'proveedores' },
+      ],
+    },
+  ];
+  protected readonly pestanas: { vista: VistaDemo; nombre: string }[] = [
+    { vista: 'resumen', nombre: 'Resumen' },
+    { vista: 'cuentas', nombre: 'Mis cuentas' },
+    { vista: 'importar', nombre: 'Traer facturas' },
+    { vista: 'ingresos', nombre: 'Ingresos' },
+    { vista: 'gastos', nombre: 'Gastos' },
+  ];
+  protected readonly categoriasGasto = CATEGORIAS.filter((c) => c.deducible);
 
   protected readonly vista = signal<VistaDemo>('resumen');
-  protected readonly filtro = signal<'Todas' | CategoriaDemo>('Todas');
+  protected readonly filtro = signal<CategoriaGasto | ''>('');
   private readonly movimientos = signal<MovimientoDemo[]>(INICIALES);
+  protected readonly cuentas = signal<CuentaDemo[]>(CUENTAS);
   protected readonly llegadas = signal<LlegadaDemo[]>([]);
   protected readonly aviso = signal<LlegadaDemo[]>([]);
   protected readonly nuevas = signal(0);
   protected readonly cursor = signal<{ x: number; y: number; clic: boolean } | null>(null);
 
-  protected readonly totalIngresos = computed(() => BASE.ingresos + this.suma((m) => m.ingreso));
-  protected readonly totalGastos = computed(() => BASE.gastos + this.suma((m) => !m.ingreso));
-  protected readonly kpis = computed(() => [
-    { nombre: 'Ingresos', valor: this.totalIngresos(), clase: 'text-success' },
-    { nombre: 'Gastos', valor: this.totalGastos(), clase: '' },
-    { nombre: 'Balance', valor: this.totalIngresos() - this.totalGastos(), clase: '' },
-  ]);
-  protected readonly ivaCobrado = computed(() => this.totalIngresos() * 0.15);
-  protected readonly ivaPagado = computed(() => this.totalGastos() * 0.15 * 0.62);
-
-  private readonly deducibles = computed(() => {
-    const totales = { ...BASE.deducibles };
-    for (const m of this.movimientos()) if (m.categoria) totales[m.categoria] += m.monto;
-    return totales;
-  });
-  protected readonly avanceTope = computed(() => {
-    const usado = Object.values(this.deducibles()).reduce((a, b) => a + b, 0);
-    return Math.min(100, Math.round((usado / TOPE) * 100));
-  });
-  protected readonly faltaTope = computed(() =>
-    Math.max(0, TOPE - Object.values(this.deducibles()).reduce((a, b) => a + b, 0)),
+  // Resumen, ingresos y gastos
+  protected readonly ingresos = computed(() => this.movimientos().filter((m) => m.ingreso));
+  protected readonly gastos = computed(() => this.movimientos().filter((m) => !m.ingreso));
+  protected readonly totalIngresos = computed(() => this.suma(this.ingresos()));
+  protected readonly totalGastos = computed(() => this.suma(this.gastos()));
+  protected readonly balance = computed(() => this.totalIngresos() - this.totalGastos());
+  protected readonly deducible = computed(
+    () => this.suma(this.gastos().filter((m) => m.categoria && categoria(m.categoria).deducible)),
   );
-  protected readonly porCategoria = computed(() => {
-    const d = this.deducibles();
-    const max = Math.max(...Object.values(d));
-    return CATEGORIAS.map((nombre) => ({
-      nombre,
-      texto: MONEDA.format(d[nombre]),
-      porcentaje: (d[nombre] / max) * 100,
+  protected readonly facturasEmitidas = computed(() => this.ingresos().length);
+  protected readonly comprobantes = computed(() => this.gastos().length);
+  protected readonly ivaCobrado = computed(() => this.ivaDe(this.totalIngresos()));
+  protected readonly ivaPagado = computed(() => this.ivaDe(this.totalGastos()) * 0.6);
+  protected readonly evolucion = computed(() => {
+    const puntos = [...EVOLUCION, { mes: 'Oct', ingresos: this.totalIngresos(), gastos: this.totalGastos() }];
+    const max = Math.max(...puntos.map((p) => p.ingresos));
+    return puntos.map((p, i) => ({
+      ...p,
+      altoIngresos: (p.ingresos / max) * 100,
+      altoGastos: (p.gastos / max) * 100,
+      actual: i === puntos.length - 1,
     }));
   });
-  protected readonly clientes = computed(() => {
-    const totales = { ...BASE.clientes };
-    for (const m of this.movimientos())
-      if (m.ingreso) totales[m.nombre] = (totales[m.nombre] ?? 0) + m.monto;
-    const max = Math.max(...Object.values(totales));
-    return Object.entries(totales)
+  protected readonly avanceTope = computed(() =>
+    Math.min(100, ((TOPE.deducidoAntes + this.deducible()) / TOPE.tope) * 100),
+  );
+  protected readonly faltaTope = computed(() => Math.max(0, TOPE.tope - TOPE.deducidoAntes - this.deducible()));
+  protected readonly rebaja = computed(() => Math.min(TOPE.tope, TOPE.deducidoAntes + this.deducible()) * 0.18);
+  protected readonly porCategoria = computed(() => {
+    const totales = new Map<CategoriaGasto, number>();
+    for (const m of this.gastos()) if (m.categoria) totales.set(m.categoria, (totales.get(m.categoria) ?? 0) + m.monto);
+    const max = Math.max(1, ...totales.values());
+    return [...totales.entries()]
       .sort((a, b) => b[1] - a[1])
-      .map(([nombre, total]) => ({
-        nombre,
-        texto: MONEDA.format(total),
-        porcentaje: (total / max) * 100,
-      }));
+      .map(([valor, total]) => ({ ...categoria(valor), total, ancho: (total / max) * 100 }));
   });
   protected readonly recientes = computed(() => this.movimientos().slice(0, 5));
   protected readonly gastosFiltrados = computed(() => {
     const f = this.filtro();
-    return this.movimientos()
-      .filter((m) => !m.ingreso && (f === 'Todas' || m.categoria === f))
-      .slice(0, 6);
+    return this.gastos().filter((m) => !f || m.categoria === f);
   });
+  protected readonly totalFiltrado = computed(() => this.suma(this.gastosFiltrados()));
+
+  // Mis cuentas
+  protected readonly totalCuentas = computed(() => this.cuentas().reduce((t, c) => t + c.monto, 0));
+  protected readonly pagado = computed(() =>
+    this.cuentas().reduce((t, c) => (c.pagadaEl ? t + c.monto : t), 0),
+  );
+  protected readonly pagadas = computed(() => this.cuentas().filter((c) => c.pagadaEl).length);
+  protected readonly teQueda = computed(() => INGRESO_MENSUAL - this.totalCuentas());
+  protected readonly proporcion = computed(() => Math.round((this.totalCuentas() / INGRESO_MENSUAL) * 100));
+  protected readonly cuentasOrdenadas = computed(() =>
+    [...this.cuentas()].sort((a, b) => Number(!!a.pagadaEl) - Number(!!b.pagadaEl) || a.diaVencimiento - b.diaVencimiento),
+  );
 
   private visible = false;
   private ultimaInteraccion = 0;
@@ -153,8 +226,10 @@ export class DemoPanel {
   }
 
   protected ir(vista: VistaDemo): void {
+    // Cada pantalla empieza arriba, como al navegar en la app.
+    if (this.vista() !== vista) this.contenido().nativeElement.scrollTop = 0;
     this.vista.set(vista);
-    if (vista === 'buzon') this.nuevas.set(0);
+    if (vista === 'importar') this.nuevas.set(0);
   }
 
   /** Cualquier clic o tecla del visitante pausa el recorrido automático y esconde el cursor. */
@@ -163,12 +238,36 @@ export class DemoPanel {
     this.cursor.set(null);
   }
 
+  protected dinero(valor: number): string {
+    return MONEDA.format(valor);
+  }
+
   protected signo(m: MovimientoDemo): string {
     return (m.ingreso ? '+' : '−') + MONEDA.format(m.monto);
   }
 
-  private suma(filtro: (m: MovimientoDemo) => boolean): number {
-    return this.movimientos().reduce((total, m) => (filtro(m) ? total + m.monto : total), 0);
+  protected infoCategoria(m: MovimientoDemo) {
+    return categoria(m.categoria ?? 'SinCategoria');
+  }
+
+  protected etiquetaCuenta(valor: CategoriaCuenta): string {
+    return CATEGORIAS_CUENTA.find((c) => c.valor === valor)?.etiqueta ?? valor;
+  }
+
+  protected vencida(c: CuentaDemo): boolean {
+    return !c.pagadaEl && c.diaVencimiento < MES.hoy;
+  }
+
+  protected marcarPagada(c: CuentaDemo, pagada: boolean): void {
+    this.cuentas.update((cs) => cs.map((x) => (x.id === c.id ? { ...x, pagadaEl: pagada ? MES.hoy : null } : x)));
+  }
+
+  private ivaDe(total: number): number {
+    return (total / (1 + IVA)) * IVA;
+  }
+
+  private suma(lista: MovimientoDemo[]): number {
+    return lista.reduce((t, m) => t + m.monto, 0);
   }
 
   private activa(): boolean {
@@ -194,7 +293,7 @@ export class DemoPanel {
     }
     this.esperar(3 * 650, () => {
       this.movimientos.update((m) => [movimiento, ...m]);
-      if (this.vista() !== 'buzon') this.nuevas.update((n) => n + 1);
+      if (this.vista() !== 'importar') this.nuevas.update((n) => n + 1);
       this.aviso.set([{ id, movimiento, paso: 3 }]);
       this.esperar(2600, () => this.aviso.update((a) => a.filter((x) => x.id !== id)));
     });

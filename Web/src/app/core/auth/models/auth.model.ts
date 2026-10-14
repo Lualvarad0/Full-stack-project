@@ -27,6 +27,8 @@ export interface Usuario {
   paginaInicio?: 'Resumen' | 'Cuentas';
   /** Mes que se muestra al entrar. */
   mesAlEntrar?: 'Actual' | 'Anterior';
+  /** Cuenta antigua sin fecha de nacimiento: debe registrarla (y ser mayor de edad) antes de usar la app. */
+  faltaFechaNacimiento?: boolean;
 }
 
 export interface AuthResponse {

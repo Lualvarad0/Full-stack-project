@@ -20,5 +20,10 @@ public class CuentasController(CuentasPersonalesService cuentas) : ControllerBas
     [HttpPut("{id:int}/pago")] public Task<CuentaPersonalDto> Pagar(int id, PagoCuentaRequest r, CancellationToken ct) => cuentas.PagarAsync(UsuarioId, id, r.Fecha, ct);
     [HttpDelete("{id:int}/pago")] public Task<CuentaPersonalDto> QuitarPago(int id, CancellationToken ct) => cuentas.QuitarPagoAsync(UsuarioId, id, ct);
     [HttpPut("ingreso")] public async Task<IActionResult> Ingreso(IngresoMensualRequest r, CancellationToken ct) { await cuentas.GuardarIngresoAsync(UsuarioId, r, ct); return NoContent(); }
+    /// <summary>Cuentas pendientes del mes que terminó (planes de pago); 204 si no hay nada que cerrar.</summary>
+    [HttpGet("cierre")]
+    public async Task<ActionResult<CierreMesDto>> Cierre(CancellationToken ct) =>
+        await cuentas.CierrePendienteAsync(UsuarioId, ct) is { Pendientes.Count: > 0 } cierre ? cierre : NoContent();
+    [HttpPost("cierre")] public Task<CierreMesResultadoDto> Cerrar(CierreMesRequest r, CancellationToken ct) => cuentas.CerrarMesAsync(UsuarioId, r, ct);
     [HttpPost("copiar-mes-anterior")] public async Task<IActionResult> Copiar(CopiarMesRequest r, CancellationToken ct) => Ok(new { copiadas = await cuentas.CopiarMesAnteriorAsync(UsuarioId, r.Anio, r.Mes, ct) });
 }

@@ -30,6 +30,8 @@ export class Acceso {
   readonly volver = input<string | undefined>();
   /** Query param ?plan= que deja la landing al elegir un plan. */
   readonly plan = input<string | undefined>();
+  /** ?periodicidad=Anual desde los planes de la landing. */
+  readonly periodicidad = input<string | undefined>();
 
   /** El panel tapa el formulario que no se usa e invita a cambiar al otro. */
   protected readonly paneles = [

@@ -8,6 +8,17 @@
   "
 />
 
+@if (cierre(); as c) {
+  <div class="aviso-atencion mt-6 flex-wrap items-center" role="status">
+    <svg lucideCalendarCheck class="size-5 shrink-0 text-warning" aria-hidden="true"></svg>
+    <p class="min-w-0 flex-1">
+      {{ c.pendientes.length === 1 ? 'Quedó 1 cuenta pendiente' : 'Quedaron ' + c.pendientes.length + ' cuentas pendientes' }}
+      en {{ etiquetaCierre(c) }}. Dinos si ya las pagaste o si pasan a este mes.
+    </p>
+    <button type="button" class="btn btn-secondary min-h-9 text-sm" (click)="modalCierre.set(true)">Cerrar {{ etiquetaCierre(c) }}</button>
+  </div>
+}
+
 @if (datos(); as d) {
   <!-- Resumen del mes frente al ingreso -->
   <section class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Resumen del mes">
@@ -39,7 +50,12 @@
       <p class="cifra mt-2 text-2xl" [class.text-warning]="d.pendiente > 0">
         {{ d.pendiente | dinero }}
       </p>
-      <p class="mt-1 text-xs text-muted-fg">Ya pagaste {{ d.pagado | dinero }}</p>
+      <p class="mt-1 text-xs text-muted-fg">
+        Ya pagaste {{ d.pagado | dinero }}
+        @if (d.trasladado) {
+          · {{ d.trasladado | dinero }} pasó a {{ mesSiguiente() }}
+        }
+      </p>
     </div>
     <div class="card p-5">
       <p class="etiqueta">Te queda</p>
@@ -105,11 +121,20 @@
           <li class="border-b border-border px-5 py-4 last:border-0">
             <div class="flex items-start gap-2">
               <div class="min-w-0 flex-1">
-                <p class="font-medium" [class.text-muted-fg]="c.pagadaEl">{{ c.nombre }}</p>
+                <p class="font-medium" [class.text-muted-fg]="c.pagadaEl || c.trasladada">{{ c.nombre }}</p>
                 <p class="mt-0.5 text-xs text-muted-fg">
                   {{ etiquetaCategoria(c.categoria) }}
                   @if (c.diaVencimiento) {
                     · vence el día {{ c.diaVencimiento }}
+                  }
+                  @if (c.delMesAnterior) {
+                    · deuda del mes anterior
+                  }
+                  @if (c.tarjetaCreditoId) {
+                    ·
+                    <a routerLink="/tarjetas" class="enlace inline-flex items-center gap-1"
+                      ><svg lucideCreditCard class="size-3" aria-hidden="true"></svg> ver tarjeta</a
+                    >
                   }
                 </p>
               </div>
@@ -139,6 +164,11 @@
                 <span class="pildora estado-ok">
                   <svg lucideCheck class="size-3.5" aria-hidden="true"></svg>
                   Pagada el {{ c.pagadaEl | fechaCorta }}
+                  @if (c.respaldo === 'Factura') {
+                    · con factura
+                  } @else if (c.respaldo === 'Correo') {
+                    · con correo
+                  }
                 </span>
                 <button
                   type="button"
@@ -148,15 +178,16 @@
                 >
                   <svg lucideUndo2 class="size-3.5" aria-hidden="true"></svg> Deshacer
                 </button>
+              } @else if (c.trasladada) {
+                <span class="pildora bg-muted text-muted-fg">Pasó a {{ mesSiguiente() }}</span>
               } @else if (pagando() === c.id) {
                 <label class="sr-only" [attr.for]="'dia-pago-' + c.id">Día en que pagaste {{ c.nombre }}</label>
-                <input
-                  [id]="'dia-pago-' + c.id"
-                  type="date"
-                  class="input min-h-9 w-auto py-1 text-sm"
+                <app-selector-fecha
+                  class="w-44"
+                  [idCampo]="'dia-pago-' + c.id"
+                  [compacto]="true"
                   [max]="hoy"
-                  [value]="fechaPago()"
-                  (input)="fechaPago.set($any($event.target).value)"
+                  [(valor)]="fechaPago"
                 />
                 <button type="button" class="btn btn-primary min-h-9 text-sm" (click)="confirmarPago(c)">
                   Confirmar pago
@@ -237,20 +268,10 @@
             </div>
             <div>
               <label class="field-label" for="cuenta-dia">Vence el día</label>
-              <input
-                id="cuenta-dia"
-                type="number"
-                inputmode="numeric"
-                min="1"
-                max="31"
-                placeholder="Opcional"
-                class="input"
-                [value]="borrador().diaVencimiento ?? ''"
-                (input)="
-                  cambiar({
-                    diaVencimiento: $any($event.target).value === '' ? null : +$any($event.target).value,
-                  })
-                "
+              <app-selector-dia
+                idCampo="cuenta-dia"
+                [valor]="borrador().diaVencimiento"
+                (valorChange)="cambiar({ diaVencimiento: $event })"
               />
             </div>
           </div>
@@ -328,6 +349,15 @@
   </div>
 }
 <app-error-carga [mensaje]="carga().error" />
+
+<app-cierre-mes-modal
+  [cierre]="cierre()"
+  [abierto]="modalCierre()"
+  [guardando]="guardandoCierre()"
+  [error]="errorCierre()"
+  (confirmar)="cerrarMes($event)"
+  (cerrado)="cierreCerrado()"
+/>
 
 <app-ingreso-modal
   [abierto]="modalIngreso()"

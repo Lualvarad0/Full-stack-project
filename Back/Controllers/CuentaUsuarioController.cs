@@ -15,6 +15,7 @@ public class CuentaUsuarioController(CuentaUsuarioService cuenta) : ControllerBa
 
     [HttpGet("datos")] public Task<DatosPersonalesDto> Datos(CancellationToken ct) => cuenta.DatosAsync(UsuarioId, ct);
     [HttpPut("datos")] public Task<DatosPersonalesActualizadosDto> GuardarDatos(DatosPersonalesRequest r, CancellationToken ct) => cuenta.ActualizarDatosAsync(UsuarioId, r, ct);
+    [HttpPut("fecha-nacimiento")] public Task<UsuarioDto> CompletarFechaNacimiento(FechaNacimientoRequest r, CancellationToken ct) => cuenta.CompletarFechaNacimientoAsync(UsuarioId, r.FechaNacimiento, ct);
     [HttpGet("configuracion")] public Task<ConfiguracionSistemaDto> Configuracion(CancellationToken ct) => cuenta.ConfiguracionAsync(UsuarioId, ct);
     [HttpPut("configuracion")] public Task<ConfiguracionSistemaDto> GuardarConfiguracion(ConfiguracionSistemaRequest r, CancellationToken ct) => cuenta.GuardarConfiguracionAsync(UsuarioId, r, ct);
 }

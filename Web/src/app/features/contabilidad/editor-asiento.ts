@@ -17,10 +17,11 @@ import {
 } from '@core/contabilidad/services/libros.service';
 import { hoyEcuador } from '@core/contabilidad/services/tesoreria.service';
 import { AvisosService } from '@core/ui';
+import { SelectorFecha } from '@shared/components';
 import { DineroPipe } from '@shared/pipes';
 @Component({
   selector: 'app-editor-asiento',
-  imports: [FormsModule, DineroPipe],
+  imports: [FormsModule, DineroPipe, SelectorFecha],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './editor-asiento.html',
 })

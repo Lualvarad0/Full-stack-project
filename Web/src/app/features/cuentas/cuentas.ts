@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
+  LucideCalendarCheck,
   LucideCheck,
   LucideCopy,
+  LucideCreditCard,
   LucideLoader,
   LucidePencil,
   LucidePlus,
@@ -15,9 +17,11 @@ import { PeriodoService } from '@core/comprobantes';
 import {
   CATEGORIAS_CUENTA,
   CategoriaCuenta,
+  CierreMes,
   CuentaBorrador,
   CuentaPersonal,
   CuentasService,
+  DecisionCierre,
   estadoPresupuesto,
   estaVencida,
   gastosPorCategoria,
@@ -25,9 +29,10 @@ import {
 } from '@core/cuentas';
 import { cargar, mensajeDeError } from '@core/http';
 import { AvisosService } from '@core/ui';
-import { fechaIso } from '@core/utils';
-import { ErrorCarga, MensajeError, Titulo } from '@shared/components';
+import { fechaIso, nombreMes } from '@core/utils';
+import { ErrorCarga, MensajeError, Titulo, SelectorDia, SelectorFecha } from '@shared/components';
 import { DineroPipe, FechaCortaPipe } from '@shared/pipes';
+import { CierreMesModal } from './cierre-mes-modal';
 import { IngresoModal } from './ingreso-modal';
 
 const VACIA: CuentaBorrador = { nombre: '', categoria: 'Vivienda', monto: 0, diaVencimiento: null };
@@ -40,11 +45,15 @@ const VACIA: CuentaBorrador = { nombre: '', categoria: 'Vivienda', monto: 0, dia
   selector: 'app-cuentas',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    SelectorDia, SelectorFecha,
     RouterLink,
     Titulo,
     ErrorCarga,
     MensajeError,
     IngresoModal,
+    CierreMesModal,
+    LucideCalendarCheck,
+    LucideCreditCard,
     DineroPipe,
     FechaCortaPipe,
     LucidePlus,
@@ -90,6 +99,14 @@ export class Cuentas {
   /** Para no volver a abrir el modal solo si el usuario dijo "Ahora no". */
   private omitioIngreso = false;
 
+  // Cierre del mes anterior (planes de pago): cuentas que quedaron pendientes
+  protected readonly cierre = signal<CierreMes | null>(null);
+  protected readonly modalCierre = signal(false);
+  protected readonly guardandoCierre = signal(false);
+  protected readonly errorCierre = signal<string | null>(null);
+  /** "Decidir después": no se vuelve a abrir solo mientras siga en la página. */
+  private omitioCierre = false;
+
   protected readonly estado = computed(() => {
     const d = this.datos();
     return d ? estadoPresupuesto(d.total, d.ingreso) : 'sinIngreso';
@@ -112,6 +129,57 @@ export class Cuentas {
       const d = this.datos();
       if (d && d.ingreso === null && !this.omitioIngreso) this.modalIngreso.set(true);
     });
+    if (this.auth.esProfesional()) this.cargarCierre();
+  }
+
+  /** Mes al que pasa una deuda trasladada desde el mes que se está viendo. */
+  protected mesSiguiente(): string {
+    return nombreMes((this.periodo.mes() % 12) + 1);
+  }
+
+  protected etiquetaCierre(c: CierreMes): string {
+    return nombreMes(c.mes);
+  }
+
+  private cargarCierre(): void {
+    this.api.cierre().subscribe({
+      next: (c) => {
+        const pendiente = c && c.pendientes.length > 0 ? c : null;
+        this.cierre.set(pendiente);
+        if (pendiente && !this.omitioCierre) this.modalCierre.set(true);
+      },
+      // Si falla, Mis cuentas sigue funcionando; el cierre se ofrece la próxima vez.
+      error: () => this.cierre.set(null),
+    });
+  }
+
+  protected cerrarMes(decisiones: DecisionCierre[]): void {
+    const c = this.cierre();
+    if (!c) return;
+    this.guardandoCierre.set(true);
+    this.errorCierre.set(null);
+    this.api.cerrarMes(c.anio, c.mes, decisiones).subscribe({
+      next: ({ pagadas, trasladadas }) => {
+        this.guardandoCierre.set(false);
+        this.modalCierre.set(false);
+        const partes = [
+          pagadas ? `${pagadas} ${pagadas === 1 ? 'pagada' : 'pagadas'}` : null,
+          trasladadas ? `${trasladadas} ${trasladadas === 1 ? 'pasó' : 'pasaron'} a ${nombreMes((c.mes % 12) + 1)}` : null,
+        ].filter(Boolean);
+        this.avisos.exito(`Cierre de ${nombreMes(c.mes)}: ${partes.join(' y ')}.`);
+        this.cargarCierre();
+        this.recargar();
+      },
+      error: (e) => {
+        this.guardandoCierre.set(false);
+        this.errorCierre.set(mensajeDeError(e));
+      },
+    });
+  }
+
+  protected cierreCerrado(): void {
+    this.omitioCierre = true;
+    this.modalCierre.set(false);
   }
 
   protected etiquetaCategoria(valor: CategoriaCuenta): string {

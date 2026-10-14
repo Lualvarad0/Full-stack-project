@@ -8,6 +8,9 @@ export interface Plan {
   nombre: string;
   precio: string;
   periodo: string;
+  /** Precio del año (10 meses) y lo que equivale al mes; iguales a precio en el plan gratis. */
+  precioAnual: string;
+  equivalenteMensual: string;
   descripcion: string;
   destacado: boolean;
   cta: string;

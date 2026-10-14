@@ -22,6 +22,7 @@ namespace Back.Services
 
         public async Task<UsuarioDto> CrearUsuarioAsync(UsuarioRequest request)
         {
+            EdadMinima.Validar(request.FechaNacimiento);
             var correo = request.Email.Trim().ToLowerInvariant();
             if (await _usuarioRepository.GetByCorreoAsync(correo) is not null)
                 throw BusinessException.Conflict("Ya existe una cuenta con ese correo.");
@@ -29,6 +30,7 @@ namespace Back.Services
             var usuario = new Usuario
             {
                 Nombre = request.Nombre.Trim(),
+                FechaNacimiento = request.FechaNacimiento,
                 Correo = correo,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Rol = request.Rol,

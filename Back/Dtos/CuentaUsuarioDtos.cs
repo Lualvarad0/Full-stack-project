@@ -21,6 +21,8 @@ public record DatosPersonalesRequest(
     [TextoPlano, StringLength(300)] string? Direccion,
     [TextoPlano, StringLength(120)] string? Ocupacion);
 
+public record FechaNacimientoRequest([Required] DateOnly FechaNacimiento);
+
 /// <summary>Tras guardar: los datos y el usuario de la sesión (el nombre puede haber cambiado).</summary>
 public record DatosPersonalesActualizadosDto(DatosPersonalesDto Datos, UsuarioDto Usuario);
 

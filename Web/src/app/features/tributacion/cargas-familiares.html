@@ -76,7 +76,7 @@
             <option value="Hijo">Hijo</option>
           </select></label
         ><label
-          >Nacimiento<input class="input" type="date" formControlName="fechaNacimiento" /></label
+          >Nacimiento<app-selector-fecha formControlName="fechaNacimiento" [max]="hoy" [empezarEnAnios]="true" /></label
         ><label
           >Ingresos gravados anuales<input
             class="input"

@@ -54,6 +54,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/cuentas/cuentas').then((m) => m.Cuentas),
       },
       {
+        path: 'tarjetas',
+        title: 'Mis tarjetas · Nudo',
+        canActivate: [planProfesionalGuard],
+        loadComponent: () => import('./features/tarjetas/tarjetas').then((m) => m.TarjetasPagina),
+      },
+      {
         path: 'gastos',
         title: 'Gastos · Nudo',
         canActivate: [planProfesionalGuard],

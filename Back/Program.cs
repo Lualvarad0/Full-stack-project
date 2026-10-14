@@ -65,6 +65,7 @@ builder.Services.AddScoped<IComprobanteRepository, ComprobanteRepository>();
 builder.Services.AddScoped<ComprobanteService>();
 builder.Services.AddScoped<PerfilService>();
 builder.Services.AddScoped<Back.Services.CuentasPersonalesService>();
+builder.Services.AddScoped<Back.Tarjetas.TarjetasService>();
 builder.Services.AddScoped<Back.Services.CuentaUsuarioService>();
 
 // Servicio web de autorización del SRI

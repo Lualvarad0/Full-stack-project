@@ -27,6 +27,13 @@ export class CuentaUsuarioService {
       .pipe(tap((r) => this.auth.actualizarUsuario(r.usuario)));
   }
 
+  /** Cuentas antiguas sin fecha de nacimiento: la completan una vez (solo mayores de edad). */
+  completarFechaNacimiento(fechaNacimiento: string): Observable<Usuario> {
+    return this.http
+      .put<Usuario>(`${this.url}/fecha-nacimiento`, { fechaNacimiento })
+      .pipe(tap((u) => this.auth.actualizarUsuario(u)));
+  }
+
   configuracion(): Observable<ConfiguracionSistema> {
     return this.http.get<ConfiguracionSistema>(`${this.url}/configuracion`);
   }
