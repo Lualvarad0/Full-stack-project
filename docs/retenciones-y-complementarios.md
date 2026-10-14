@@ -1,0 +1,15 @@
+# Retenciones y documentos complementarios
+
+Retenciones permite importar XML/TXT o claves (hasta 100 por lote). El SRI debe confirmar la autorización y el documento debe corresponder al emisor/retendido del perfil seleccionado. Se leen formatos 1.0.0 y ATS 2.0.0, conservando XML, códigos, bases, porcentajes, importes y período fiscal. El sustento se vincula automáticamente solo si número, contraparte y dirección coinciden. El usuario revisa los importes antes del cierre. El listado no convierte una retención en ingreso/gasto.
+
+La emisión de retenciones locales requiere plan profesional, firma, datos completos, ambiente compatible, sustento propio a nombre del titular y habilitación de agente confirmada por el titular. El contador autorizado no puede modificar esa configuración. Se calculan los valores retenidos, se impiden duplicados y bases mayores al documento y se firma/envía mediante los servicios de recepción/autorización existentes. Los códigos y porcentajes se introducen bajo revisión del contador y el SRI los valida; el sistema no inventa una tasa según proveedor. Se admite emisión local de renta e IVA; ISD se importa pero requiere otro sustento para emisión.
+
+La nota de crédito se emite desde una factura autorizada propia. Reutiliza cliente, precio, tarifa, descuento y ambiente originales, referencia el número/fecha del documento y registra motivo. No permite consumidor final, documentos de más de doce meses ni acreditar cantidades/importes superiores a lo disponible. Reservas pendientes y notas autorizadas participan del control para evitar doble crédito. Las notas de crédito no borran el documento original. El formato XML es 1.1.0.
+
+Los documentos generados comparten reserva de secuencial, firma XAdES, estados del SRI, XML y PDF. La emisión en producción registra la nota como comprobante con signo negativo y la retención en su módulo específico, sin sumarla a ingresos. El cierre verifica registros pendientes y las retenciones sin revisión. La anulación sigue siendo un trámite externo y no se simula.
+
+Para producción configurar `Sri:RucProveedor` con el RUC real del proveedor del SaaS. Se añade como campo adicional `RUC Proveedor`. El proveedor debe cumplir su registro ante el SRI; una configuración numérica no certifica ese registro. No se permite emitir en producción sin configurar el dato. [SRI: registro de proveedores de sistemas, resolución 26-00000027](https://www.sri.gob.ec/detalle-noticias?idnoticia=1318&marquesina=1).
+
+Migración `RetencionesYDocumentosComplementarios`: documentos conservan por defecto tipo 01; añade retenciones, vínculos de sustento y habilitación. No envía documentos reales durante migración ni pruebas. El transporte del SRI se simula en las pruebas de firma, importación, propietario, duplicados y saldos; es necesario validar los datos reales del emisor y los escenarios tributarios en el ambiente de certificación del SRI antes del despliegue.
+
+Referencia de formatos: [documentación oficial de facturación electrónica](https://www.sri.gob.ec/facturacion-electronica).
